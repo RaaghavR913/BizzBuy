@@ -1,0 +1,58 @@
+So our idea on how to execute this is cerate a bunch of mini AI agents who can analyze and break down the large problem of analyzing a business. For example an Finance Agent, Tax Agent, Contract Review Agent, Market Risk agent, Macroeconomic Agent, Document analyzing agent, competitor analysis agent.  I am thinking that each agent get's it's own skills file so it knows what to do
+
+so my question is what are all the agents we would need, and how would the workflow look like? How would they pass the information along to each other (information that needs multiple agents to communicate)? 
+
+give me your thoughts
+
+Mar 28
+
+Reading the business idea file
+Reading the business idea file
+Here's my honest thinking on the agent architecture for BizzBuy.
+
+The multi-agent approach is genuinely the right call for this problem because due diligence is inherently parallel. You have 11 document types, multiple risk dimensions, and a final synthesis that depends on all of them. A single monolithic agent would be slow, context-heavy, and bad at specialized reasoning. Breaking it into agents lets each one go deep on its domain.
+
+Here's how I'd structure it:
+
+The agents you need:
+
+Document Ingestion Agent -- runs first, always. Its only job is to parse, normalize, and extract structured data from raw uploaded files (PDFs, Excel, Word). It doesn't analyze anything, it just produces clean structured output that every other agent consumes. This is the most underrated agent in the pipeline.
+Financial Analysis Agent -- P&L, Balance Sheet, Cash Flow, SDE/EBITDA recalculation. Validates add-backs, checks for revenue/expense inconsistencies, computes debt service coverage.
+Tax Compliance Agent -- compares tax returns against financial statements. Looks for discrepancies in revenue reported to IRS vs. what's in the P&L. Flags unreported income, aggressive deductions.
+AR/Collections Agent -- focuses on the AR Aging report. Computes DSO, looks for concentration in old buckets, flags receivables being counted as income that haven't collected.
+Customer & Concentration Agent -- Customer/Contract List. Computes revenue concentration percentages, evaluates contract terms, renewal risk, and identifies single-customer dependency.
+Operations & Transferability Agent -- Employee Roster, Licenses, Insurance, PP&E. Evaluates owner dependence, key-person risk, whether certifications transfer, equipment condition.
+Lease & Contract Agent -- reviews the lease for transferability clauses, rent escalations, remaining term relative to deal structure. Also reviews non-competes if present.
+Market & Macro Agent -- the only agent that goes beyond the uploaded documents. Uses web search. Evaluates industry trends, local market conditions, macroeconomic headwinds relevant to the business type.
+Lending & Affordability Agent -- takes the validated SDE from the Financial Agent and runs SBA 7(a) debt service coverage analysis. Computes max loan supportable, down payment implications, and whether the deal is bankable.
+Synthesis/Report Agent -- runs last. Reads all agent outputs and produces the final plain-language report with a risk score, red flag summary, and acquisition recommendation.
+Now here's the workflow and how they communicate:
+
+Phase 1 (always sequential): Document Ingestion Agent runs first and produces a structured data payload. Nothing else starts until this is done. This is your single source of truth that all downstream agents pull from.
+
+Phase 2 (parallel): Agents 2 through 8 all run simultaneously against the structured data payload. They don't need to talk to each other during this phase. Each produces its own JSON output object.
+
+Phase 3 (cross-agent reconciliation): This is where it gets interesting. Certain findings need agents to communicate. For example: the Tax Agent flags a $40K revenue discrepancy, and the Financial Agent needs to know about it to recalculate a defensible SDE. The AR Agent flags that $80K of "cash" add-backs are actually uncollected receivables, and the Financial Agent needs to adjust. Rather than having agents call each other directly (which creates messy dependencies), you use a shared context store -- essentially a running JSON object that agents can write flags to. After Phase 2, a lightweight Reconciliation step runs that merges conflicting findings and resolves them with priority rules.
+
+Phase 4 (sequential): Lending & Affordability Agent runs after reconciliation, because it depends on the final validated SDE number. Then Synthesis Agent runs last.
+
+Let me draw this out:
+
+Log in to see interactive visuals
+
+On the shared context store: This is the key architectural decision. Instead of agents calling each other synchronously (which creates tight coupling and retry nightmares), each agent writes its findings as a JSON object to a central store during Phase 2. The store has a schema -- things like validated_sde, red_flags[], discrepancies[], confidence_scores. The Reconciliation step (end of Phase 3) is a lightweight rule-based pass that resolves conflicts: if Tax Agent flags revenue as $900K but Financial Agent computed $1.1M, Reconciliation writes the discrepancy as a red flag and uses the lower/conservative number for Lending.
+
+On the skills file idea: Totally the right approach. Each agent gets a skills file that tells it: what documents it expects as input, what structured JSON it must output, what specific red flags to look for, and how to score confidence. This keeps them modular and testable in isolation, which matters because you already have sample companies to test against.
+
+The honest complexity warning: The Market & Macro Agent is the hardest one to get right. Web search results are noisy, industry data is often stale or paywalled, and "macroeconomic risk" for a Cedar Falls HVAC company is genuinely hard to quantify. I'd scope that agent narrowly for now: search for industry trend headlines and local area unemployment/housing data, and be explicit in the output that it's a qualitative signal, not a scored metric.
+
+Want me to start drafting the skills files for any of these agents? The Financial and Document Ingestion ones are probably the highest leverage starting points.
+
+Tell me more about the Document Ingestion Agent in BizzBuy
+
+Mar 28
+Good question, because this agent is the foundation everything else sits on. If it outputs garbage, every downstream agent is working with garbage.
+
+What the Document Ingestion Agent actually does:
+
+Its job is purely transformation
