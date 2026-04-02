@@ -21,11 +21,11 @@ interface FileDropZoneProps {
 }
 
 function getFileIcon(file: File) {
-  if (file.type === 'application/pdf') return <FileText className="w-5 h-5 text-red-500" />;
+  if (file.type === 'application/pdf') return <FileText className="w-5 h-5 text-red-400" />;
   // eslint-disable-next-line jsx-a11y/alt-text
-  if (file.type.startsWith('image/')) return <Image className="w-5 h-5 text-blue-500" aria-hidden="true" />;
-  if (file.type.includes('csv') || file.name.endsWith('.csv')) return <FileSpreadsheet className="w-5 h-5 text-green-500" />;
-  return <FileText className="w-5 h-5 text-slate-400" />;
+  if (file.type.startsWith('image/')) return <Image className="w-5 h-5 text-blue-400" aria-hidden="true" />;
+  if (file.type.includes('csv') || file.name.endsWith('.csv')) return <FileSpreadsheet className="w-5 h-5 text-green-400" />;
+  return <FileText className="w-5 h-5 text-t-muted" />;
 }
 
 function formatFileSize(bytes: number): string {
@@ -122,8 +122,8 @@ export function FileDropZone({
         className={cn(
           'relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer',
           isDragOver
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-slate-300 bg-white hover:border-blue-400 hover:bg-slate-50'
+            ? 'border-accent bg-accent/5 shadow-lg shadow-accent/10'
+            : 'border-white/[0.1] bg-surface hover:border-accent/30 hover:bg-surface'
         )}
         onClick={() => document.getElementById('file-input')?.click()}
       >
@@ -135,26 +135,26 @@ export function FileDropZone({
           className="hidden"
           onChange={onInputChange}
         />
-        <Upload className={cn('w-10 h-10 mx-auto mb-3', isDragOver ? 'text-blue-500' : 'text-slate-400')} />
-        <p className="text-base font-semibold text-slate-700 mb-1">
+        <Upload className={cn('w-10 h-10 mx-auto mb-3 transition-colors', isDragOver ? 'text-accent' : 'text-t-muted')} />
+        <p className="text-base font-semibold text-white mb-1">
           {isDragOver ? 'Drop files here' : 'Drag & drop your documents'}
         </p>
-        <p className="text-sm text-slate-500 mb-4">or click to browse</p>
+        <p className="text-sm text-t-secondary mb-4">or click to browse</p>
         <div className="flex items-center justify-center gap-2">
           {['PDF', 'PNG', 'JPG', 'CSV'].map((fmt) => (
             <span
               key={fmt}
-              className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded text-xs font-medium"
+              className="px-2.5 py-1 bg-raised text-t-secondary rounded text-xs font-medium border border-white/[0.06]"
             >
               {fmt}
             </span>
           ))}
         </div>
-        <p className="text-xs text-slate-400 mt-3">Max {maxFiles} files · {maxSizeMB}MB per file</p>
+        <p className="text-xs text-t-muted mt-3">Max {maxFiles} files · {maxSizeMB}MB per file</p>
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+        <div className="flex items-center gap-2 text-risk-critical text-sm bg-risk-critical/10 border border-risk-critical/20 rounded-lg px-4 py-3">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {error}
         </div>
@@ -165,19 +165,19 @@ export function FileDropZone({
           {files.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl"
+              className="flex items-center gap-3 p-4 bg-surface border border-white/[0.06] rounded-xl"
             >
               <div className="flex-shrink-0">{getFileIcon(item.file)}</div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">{item.file.name}</p>
-                <p className="text-xs text-slate-400">{formatFileSize(item.file.size)}</p>
+                <p className="text-sm font-medium text-white truncate">{item.file.name}</p>
+                <p className="text-xs text-t-muted">{formatFileSize(item.file.size)}</p>
               </div>
               <div className="flex-shrink-0 w-52">
                 <Select
                   value={item.documentType}
                   onValueChange={(v) => updateDocumentType(item.id, v ?? '')}
                 >
-                  <SelectTrigger className="h-8 text-xs">
+                  <SelectTrigger className="h-8 text-xs bg-raised border-white/[0.08]">
                     <SelectValue placeholder="Select document type..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -191,7 +191,7 @@ export function FileDropZone({
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); removeFile(item.id); }}
-                className="flex-shrink-0 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                className="flex-shrink-0 p-1.5 text-t-muted hover:text-risk-critical hover:bg-risk-critical/10 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

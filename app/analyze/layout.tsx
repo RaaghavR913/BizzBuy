@@ -12,7 +12,7 @@ export default function AnalyzeLayout({
 
   return (
     <div className="min-h-full">
-      <div className="bg-white border-b border-slate-200 py-6 px-4">
+      <div className="bg-surface border-b border-white/[0.06] py-6 px-4">
         <div className="max-w-3xl mx-auto">
           <StepIndicator currentStep={state.step} />
         </div>

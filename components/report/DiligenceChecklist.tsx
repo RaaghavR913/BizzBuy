@@ -5,9 +5,9 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const PRIORITY_CONFIG = {
-  critical: { label: 'Critical', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' },
-  important: { label: 'Important', bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' },
-  nice_to_have: { label: 'Nice to Have', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-700' },
+  critical: { label: 'Critical', bg: 'bg-red-500/5', border: 'border-red-500/20', text: 'text-red-400', badge: 'bg-red-500/10 text-red-400 border-red-500/20' },
+  important: { label: 'Important', bg: 'bg-yellow-500/5', border: 'border-yellow-500/20', text: 'text-yellow-400', badge: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
+  nice_to_have: { label: 'Nice to Have', bg: 'bg-accent/5', border: 'border-accent/20', text: 'text-accent', badge: 'bg-accent/10 text-accent border-accent/20' },
 };
 
 export function DiligenceChecklist({ report }: { report: ReportOutput }) {
@@ -35,13 +35,13 @@ export function DiligenceChecklist({ report }: { report: ReportOutput }) {
   const done = checked.size;
 
   return (
-    <section id="diligence-checklist" className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5">
+    <section id="diligence-checklist" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-xl font-bold text-slate-900">7. Due Diligence Checklist</h2>
-        <span className="text-sm text-slate-500">{done}/{total} completed</span>
+        <h2 className="text-xl font-display font-bold text-white">7. Due Diligence Checklist</h2>
+        <span className="text-sm text-t-muted font-mono">{done}/{total} completed</span>
       </div>
-      <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
-        <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
+      <div className="h-1.5 bg-raised rounded-full overflow-hidden">
+        <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
       </div>
 
       {(['critical', 'important', 'nice_to_have'] as const).map((priority) => {
@@ -71,15 +71,15 @@ export function DiligenceChecklist({ report }: { report: ReportOutput }) {
                   >
                     <div className={cn(
                       'w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-all',
-                      isChecked ? 'bg-blue-600 border-blue-600' : 'border-slate-300 bg-white'
+                      isChecked ? 'bg-accent border-accent' : 'border-t-muted bg-transparent'
                     )}>
                       {isChecked && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={cn('text-sm font-medium', isChecked ? 'line-through text-slate-400' : 'text-slate-800')}>{item.item}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{item.reason}</p>
+                      <p className={cn('text-sm font-medium', isChecked ? 'line-through text-t-muted' : 'text-t-secondary')}>{item.item}</p>
+                      <p className="text-xs text-t-muted mt-0.5">{item.reason}</p>
                     </div>
-                    <span className={cn('flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium hidden sm:block', config.badge)}>
+                    <span className={cn('flex-shrink-0 text-xs px-2 py-0.5 rounded-full font-medium hidden sm:block border', config.badge)}>
                       {item.category}
                     </span>
                   </div>
