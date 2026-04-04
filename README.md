@@ -1,5 +1,7 @@
 # BizzBuy — AI Acquisition Diligence Co-Pilot
 
+
+
 > There is no simple tool that helps non-expert buyers determine whether a small business is truly affordable, transferable, and worth acquiring. BizzBuy is the **"Carfax for buying a business"** — an AI-powered diligence engine that analyzes financials, operational risk, and lending viability, then delivers a plain-language buyer report.
 
 ---

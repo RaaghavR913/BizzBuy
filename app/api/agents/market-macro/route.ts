@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
     };
 
     return NextResponse.json({ success: true, output });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ success: true, output: fallbackMarketOutput(body.dealInfo) });
   }
 }
