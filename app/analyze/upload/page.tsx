@@ -74,21 +74,24 @@ function UploadContent() {
   const canUpload = files.length > 0 && files.every((f) => f.documentType);
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Upload Your Documents</h1>
-        <p className="text-slate-500">
+        <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-xs text-accent font-medium mb-3">
+          Step 1 of 4
+        </div>
+        <h1 className="text-2xl font-display font-bold text-white mb-2">Upload Your Documents</h1>
+        <p className="text-t-secondary">
           Upload the business&apos;s financial documents. We&apos;ll extract the data using AI and
           ask you to confirm before analysis.
         </p>
       </div>
 
       {isDemo && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
-          <Zap className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-xl flex items-start gap-3">
+          <Zap className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-blue-800">Demo Mode — Loading sample data</p>
-            <p className="text-sm text-blue-700 mt-0.5">
+            <p className="text-sm font-semibold text-accent">Demo Mode — Loading sample data</p>
+            <p className="text-sm text-t-secondary mt-0.5">
               We&apos;re loading pre-built data for Sunny&apos;s HVAC Services, a fictional
               $850K/year home services business with an SBA loan offer.
             </p>
@@ -97,7 +100,7 @@ function UploadContent() {
       )}
 
       {state.error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div className="mb-6 p-4 bg-risk-critical/10 border border-risk-critical/20 rounded-xl text-sm text-risk-critical">
           {state.error}
         </div>
       )}
@@ -108,7 +111,7 @@ function UploadContent() {
         <button
           onClick={handleUpload}
           disabled={!canUpload || state.isLoading}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-colors"
+          className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
         >
           {state.isLoading ? (
             <>
@@ -126,7 +129,7 @@ function UploadContent() {
         <button
           onClick={handleSkip}
           disabled={state.isLoading}
-          className="w-full flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 border border-slate-200 hover:border-slate-300 bg-white px-6 py-3 rounded-xl font-medium transition-colors text-sm"
+          className="w-full flex items-center justify-center gap-2 text-t-secondary hover:text-white border border-white/[0.08] hover:border-white/[0.15] bg-surface px-6 py-3 rounded-xl font-medium transition-all text-sm"
         >
           <PenLine className="w-4 h-4" />
           Skip — I&apos;ll enter data manually
@@ -135,7 +138,7 @@ function UploadContent() {
         <button
           onClick={handleDemo}
           disabled={state.isLoading}
-          className="w-full flex items-center justify-center gap-2 text-blue-600 hover:text-blue-700 border border-blue-200 hover:border-blue-300 bg-blue-50 px-6 py-3 rounded-xl font-medium transition-colors text-sm"
+          className="w-full flex items-center justify-center gap-2 text-accent hover:text-accent-hover border border-accent/20 hover:border-accent/30 bg-accent/5 px-6 py-3 rounded-xl font-medium transition-all text-sm"
         >
           <Zap className="w-4 h-4" />
           Load Demo — Sunny&apos;s HVAC Services
@@ -149,7 +152,7 @@ export default function UploadPage() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
       </div>
     }>
       <UploadContent />

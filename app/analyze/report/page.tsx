@@ -38,9 +38,9 @@ export default function ReportPage() {
   if (state.isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-slate-600 font-medium">{state.loadingMessage || 'Generating your report...'}</p>
-        <p className="text-sm text-slate-400">This usually takes 30–60 seconds</p>
+        <Loader2 className="w-10 h-10 animate-spin text-accent" />
+        <p className="text-t-secondary font-medium">{state.loadingMessage || 'Generating your report...'}</p>
+        <p className="text-sm text-t-muted">This usually takes 30–60 seconds</p>
       </div>
     );
   }
@@ -48,10 +48,10 @@ export default function ReportPage() {
   if (!state.report) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-slate-600">No report found. Please complete the analysis flow.</p>
+        <p className="text-t-secondary">No report found. Please complete the analysis flow.</p>
         <button
           onClick={() => router.push('/analyze/upload')}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700"
+          className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-semibold transition-all"
         >
           Start Analysis
         </button>
@@ -69,17 +69,17 @@ export default function ReportPage() {
     <div className="relative">
       <ReportHeader report={report} onReset={reset} />
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex gap-8">
           {/* Sidebar nav — desktop */}
           <aside className="hidden lg:block w-48 flex-shrink-0">
             <div className="sticky top-32 space-y-1">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Sections</p>
+              <p className="text-xs font-semibold text-t-muted uppercase tracking-wider mb-3">Sections</p>
               {SECTIONS.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => scrollTo(s.id)}
-                  className="w-full text-left text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-100 px-3 py-2 rounded-lg transition-colors"
+                  className="w-full text-left text-sm text-t-secondary hover:text-white hover:bg-white/[0.05] px-3 py-2 rounded-lg transition-colors"
                 >
                   {s.label}
                 </button>

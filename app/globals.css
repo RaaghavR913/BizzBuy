@@ -4,34 +4,85 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* ── Dark palette ───────────────────────── */
+    --bg-base: 228 30% 6%;       /* #0b0d14 */
+    --bg-surface: 228 22% 10%;   /* #13151f */
+    --bg-raised: 228 18% 15%;    /* #1c1f2e */
+
+    --border-subtle: 0 0% 100% / 0.07;
+
+    /* Accent */
+    --accent: 245 78% 68%;       /* #7c6fee */
+    --accent-hover: 245 78% 74%;
+    --accent-glow: 245 78% 68% / 0.25;
+
+    /* Text */
+    --text-primary: 228 40% 96%;   /* #f0f2f8 */
+    --text-secondary: 228 12% 60%; /* #8b90a7 */
+    --text-muted: 228 12% 37%;     /* #50556a */
+
+    /* Semantic risk */
+    --risk-low: 142 71% 45%;
+    --risk-medium: 48 96% 53%;
+    --risk-high: 25 95% 53%;
+    --risk-critical: 0 84% 60%;
+
+    /* shadcn compatibility */
+    --background: var(--bg-base);
+    --foreground: var(--text-primary);
+    --card: var(--bg-surface);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-raised);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--accent);
+    --primary-foreground: 0 0% 100%;
+    --secondary: var(--bg-raised);
+    --secondary-foreground: var(--text-primary);
+    --muted: var(--bg-raised);
+    --muted-foreground: var(--text-secondary);
+    --accent-ui: var(--bg-raised);
+    --accent-foreground: var(--text-primary);
+    --destructive: var(--risk-critical);
+    --destructive-foreground: 0 0% 100%;
+    --border: var(--border-subtle);
+    --input: var(--border-subtle);
+    --ring: var(--accent);
+    --radius: 0.75rem;
   }
 
   * {
-    @apply border-border;
+    border-color: hsl(var(--border-subtle));
   }
 
   body {
-    @apply bg-background text-foreground;
+    background: hsl(var(--bg-base));
+    color: hsl(var(--text-primary));
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--text-muted));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--text-secondary));
+  }
+
+  /* Selection */
+  ::selection {
+    background: hsl(var(--accent) / 0.35);
+    color: hsl(var(--text-primary));
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 }
 
@@ -39,4 +90,72 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* ── Animations ──────────────────────────── */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0.4); }
+  50% { box-shadow: 0 0 16px 4px hsl(var(--accent) / 0.2); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-ticker {
+  animation: ticker 30s linear infinite;
+}
+
+/* Staggered animation delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Grid pattern for hero sections */
+.hero-grid {
+  background-image: 
+    linear-gradient(hsl(var(--accent) / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--accent) / 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
 }
