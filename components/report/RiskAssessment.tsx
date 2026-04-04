@@ -105,7 +105,7 @@ export function RiskAssessment({ report }: { report: ReportOutput }) {
 
       {report.agentFlags.length > 0 && (
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-          <h3 className="font-semibold text-slate-900 mb-3">Shared Phase 2 Flags</h3>
+          <h3 className="font-semibold text-slate-900 mb-3">Backend Risk Flags</h3>
           <div className="space-y-2">
             {report.agentFlags.slice(0, 6).map((flag, index) => (
               <div key={`${flag.message}-${index}`} className="text-sm text-slate-700">

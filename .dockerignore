@@ -1,0 +1,9 @@
+node_modules
+.next
+coverage
+.git
+.gitignore
+backend
+backend/.venv
+backend/__pycache__
+*.log

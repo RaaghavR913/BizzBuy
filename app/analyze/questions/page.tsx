@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronRight, ChevronLeft, Loader2, HelpCircle, Users, UserCircle, TrendingUp, Truck, DollarSign, Building2 } from 'lucide-react';
 import { useAnalysis } from '@/context/AnalysisContext';
 import type { QuestionnaireData } from '@/lib/types';
-import { analyzeData, runPhase2Agents, type Phase2AgentName } from '@/lib/api-client';
+import { analyzeData } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 
@@ -228,30 +228,11 @@ const DEFAULT_QUESTIONNAIRE: QuestionnaireData = {
   },
 };
 
-const PHASE2_AGENT_LABELS: Record<Phase2AgentName, string> = {
-  financial: 'Financial',
-  tax: 'Tax',
-  arCollections: 'AR / Collections',
-  customer: 'Customer',
-  operations: 'Operations',
-  leaseContracts: 'Lease & Contracts',
-  marketMacro: 'Market & Macro',
-};
-
 export default function QuestionsPage() {
   const router = useRouter();
   const { state, setQuestionnaire, setSharedContext, setReport, setStep, setLoading, setError } = useAnalysis();
   const [currentSection, setCurrentSection] = useState(0);
   const [q, setQ] = useState<QuestionnaireData>(state.questionnaire ?? DEFAULT_QUESTIONNAIRE);
-  const [phase2Progress, setPhase2Progress] = useState<Record<Phase2AgentName, 'running' | 'completed' | 'failed'>>({
-    financial: 'running',
-    tax: 'running',
-    arCollections: 'running',
-    customer: 'running',
-    operations: 'running',
-    leaseContracts: 'running',
-    marketMacro: 'running',
-  });
 
   useEffect(() => {
     setStep(3);
@@ -283,28 +264,11 @@ export default function QuestionsPage() {
     }
     setQuestionnaire(q);
     setSharedContext(null);
-    setPhase2Progress({
-      financial: 'running',
-      tax: 'running',
-      arCollections: 'running',
-      customer: 'running',
-      operations: 'running',
-      leaseContracts: 'running',
-      marketMacro: 'running',
-    });
-    setLoading(true, 'Running Phase 2 parallel agents...');
+    setLoading(true, 'Running deterministic backend analysis...');
     setError(null);
 
     try {
-      const sharedContext = await runPhase2Agents(
-        state.financialData,
-        q,
-        state.dealInfo,
-        ({ agent, status }) => setPhase2Progress((prev) => ({ ...prev, [agent]: status }))
-      );
-      setSharedContext(sharedContext);
-      setLoading(true, 'Synthesizing lending and report analysis...');
-      const result = await analyzeData(sharedContext);
+      const result = await analyzeData(state.financialData, q, state.dealInfo);
       setReport(result.report);
       setStep(4);
       router.push('/analyze/report');
@@ -540,25 +504,10 @@ export default function QuestionsPage() {
 
       {state.isLoading && (
         <div className="mt-4 bg-white border border-slate-200 rounded-2xl p-4">
-          <p className="text-sm font-semibold text-slate-900 mb-3">Phase 2 Agent Progress</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {Object.entries(PHASE2_AGENT_LABELS).map(([agent, label]) => {
-              const status = phase2Progress[agent as Phase2AgentName];
-              return (
-                <div key={agent} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
-                  <span className="text-sm text-slate-700">{label}</span>
-                  <span className={cn(
-                    'text-xs font-semibold uppercase tracking-wide',
-                    status === 'completed' && 'text-emerald-600',
-                    status === 'failed' && 'text-red-600',
-                    status === 'running' && 'text-blue-600'
-                  )}>
-                    {status}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          <p className="text-sm font-semibold text-slate-900">Backend Analysis In Progress</p>
+          <p className="text-sm text-slate-500 mt-1">
+            The frontend is sending your financials and questionnaire answers to the Python backend for deterministic scoring.
+          </p>
         </div>
       )}
 

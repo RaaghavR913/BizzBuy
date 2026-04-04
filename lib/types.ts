@@ -77,7 +77,7 @@ export interface AgentFlag {
   severity: 'info' | 'warning' | 'critical';
   message: string;
   dimension: string;
-  sourceAgent: AgentId;
+  sourceAgent?: AgentId | 'backend';
   metric?: string;
 }
 

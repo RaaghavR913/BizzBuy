@@ -203,7 +203,7 @@ export function ReportPdfDocument({ report }: { report: ReportOutput }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5. Shared Agent Flags</Text>
+          <Text style={styles.sectionTitle}>5. Backend Risk Flags</Text>
           {report.agentFlags.length > 0 ? report.agentFlags.map((flag, index) => (
             <Text key={`${flag.message}-${index}`} style={[styles.listItem, renderFlagColor(flag.severity)]}>
               • [{flag.severity.toUpperCase()}] {flag.dimension}: {flag.message}

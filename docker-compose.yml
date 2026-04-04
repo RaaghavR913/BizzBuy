@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: bizbuy-backend
+    environment:
+      BIZBUY_ENV: docker
+      FRONTEND_ORIGIN: http://localhost:3000
+      REPORT_MODE: deterministic
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: .
+    container_name: bizbuy-frontend
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8000/api
+    ports:
+      - "3000:3000"
