@@ -30,7 +30,7 @@ function RadioGroup({
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-slate-700">{label}</p>
+      <p className="text-sm font-medium text-t-secondary">{label}</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {allOptions.map((opt) => (
           <button
@@ -40,12 +40,12 @@ function RadioGroup({
             className={cn(
               'flex flex-col items-start px-4 py-3 rounded-xl border text-left transition-all',
               value === opt.value
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-slate-50'
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-white/[0.08] bg-surface text-t-secondary hover:border-accent/30 hover:bg-surface'
             )}
           >
             <span className="text-sm font-medium">{opt.label}</span>
-            {opt.sublabel && <span className="text-xs text-slate-400 mt-0.5">{opt.sublabel}</span>}
+            {opt.sublabel && <span className="text-xs text-t-muted mt-0.5">{opt.sublabel}</span>}
           </button>
         ))}
       </div>
@@ -68,13 +68,13 @@ function SliderQuestion({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-slate-700">{label}</p>
+        <p className="text-sm font-medium text-t-secondary">{label}</p>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-blue-600">{value ?? '—'}%</span>
+          <span className="text-lg font-bold font-mono text-accent">{value ?? '—'}%</span>
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1"
+            className="text-xs text-t-muted hover:text-t-secondary flex items-center gap-1 transition-colors"
           >
             <HelpCircle className="w-3.5 h-3.5" />
             Unknown
@@ -89,12 +89,12 @@ function SliderQuestion({
         step={5}
         className="w-full"
       />
-      <div className="flex justify-between text-xs text-slate-400">
+      <div className="flex justify-between text-xs text-t-muted">
         <span>0%</span>
         <span>50%</span>
         <span>100%</span>
       </div>
-      {hint && <p className="text-xs text-slate-400">{hint}</p>}
+      {hint && <p className="text-xs text-t-muted">{hint}</p>}
     </div>
   );
 }
@@ -114,7 +114,7 @@ function TriStateToggle({
 }) {
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-slate-700">{label}</p>
+      <p className="text-sm font-medium text-t-secondary">{label}</p>
       <div className="flex gap-2">
         {[
           { val: true, label: trueLabel },
@@ -128,8 +128,8 @@ function TriStateToggle({
             className={cn(
               'flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all',
               value === val
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200'
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-white/[0.08] bg-surface text-t-secondary hover:border-accent/30'
             )}
           >
             {lbl}
@@ -146,48 +146,54 @@ const SECTIONS = [
     title: 'Owner Dependence',
     icon: UserCircle,
     description: 'How much does the business rely on the current owner to operate and generate revenue?',
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
+    color: 'text-purple-400',
+    bgColor: 'bg-purple-500/10',
+    borderColor: 'border-purple-500/20',
   },
   {
     id: 'customerConcentration',
     title: 'Customer Concentration',
     icon: Users,
     description: 'How concentrated is revenue among a few key customers? Losing one big client could be devastating.',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-500/10',
+    borderColor: 'border-blue-500/20',
   },
   {
     id: 'revenueQuality',
     title: 'Revenue Quality',
     icon: TrendingUp,
     description: 'Is revenue predictable and recurring, or lumpy and project-based?',
-    color: 'text-green-600',
-    bgColor: 'bg-green-50',
+    color: 'text-emerald-400',
+    bgColor: 'bg-emerald-500/10',
+    borderColor: 'border-emerald-500/20',
   },
   {
     id: 'employeeRisk',
     title: 'Employee & Operational Risk',
     icon: Building2,
     description: 'Does the business have documented processes and a team that can operate without the owner?',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
+    color: 'text-orange-400',
+    bgColor: 'bg-orange-500/10',
+    borderColor: 'border-orange-500/20',
   },
   {
     id: 'supplierRisk',
     title: 'Supplier & Vendor Risk',
     icon: Truck,
     description: 'Are there critical supplier dependencies that could disrupt operations after acquisition?',
-    color: 'text-red-600',
-    bgColor: 'bg-red-50',
+    color: 'text-red-400',
+    bgColor: 'bg-red-500/10',
+    borderColor: 'border-red-500/20',
   },
   {
     id: 'financialRisk',
     title: 'Financial & Add-Back Risk',
     icon: DollarSign,
     description: 'Are the financial statements reliable? Are add-backs reasonable and documented?',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-50',
+    color: 'text-yellow-400',
+    bgColor: 'bg-yellow-500/10',
+    borderColor: 'border-yellow-500/20',
   },
 ];
 
@@ -284,26 +290,29 @@ export default function QuestionsPage() {
   const progress = ((currentSection + 1) / SECTIONS.length) * 100;
 
   return (
-    <div>
+    <div className="animate-fade-in-up">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">Risk Assessment</h1>
-        <p className="text-slate-500 text-sm">Section {currentSection + 1} of {SECTIONS.length}</p>
-        <div className="mt-3 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+        <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-xs text-accent font-medium mb-3">
+          Step 3 of 4
+        </div>
+        <h1 className="text-2xl font-display font-bold text-white mb-1">Risk Assessment</h1>
+        <p className="text-t-secondary text-sm">Section {currentSection + 1} of {SECTIONS.length}</p>
+        <div className="mt-3 h-1.5 bg-raised rounded-full overflow-hidden">
           <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-300"
+            className="h-full bg-accent rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6">
+      <div className="bg-surface border border-white/[0.06] rounded-2xl p-6 space-y-6">
         <div className="flex items-start gap-4">
-          <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0', section.bgColor)}>
+          <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border', section.bgColor, section.borderColor)}>
             <Icon className={cn('w-6 h-6', section.color)} />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{section.title}</h2>
-            <p className="text-sm text-slate-500 mt-1">{section.description}</p>
+            <h2 className="text-lg font-bold text-white">{section.title}</h2>
+            <p className="text-sm text-t-secondary mt-1">{section.description}</p>
           </div>
         </div>
 
@@ -415,23 +424,23 @@ export default function QuestionsPage() {
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <p className="text-sm font-medium text-slate-700">Total employees</p>
+                  <p className="text-sm font-medium text-t-secondary">Total employees</p>
                   <input
                     type="number"
                     value={q.employeeRisk.totalEmployees ?? ''}
                     onChange={(e) => updateEmployee({ totalEmployees: parseInt(e.target.value) || null })}
                     placeholder="e.g. 8"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-raised border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-t-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/30 transition-all"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-sm font-medium text-slate-700">Mission-critical employees</p>
+                  <p className="text-sm font-medium text-t-secondary">Mission-critical employees</p>
                   <input
                     type="number"
                     value={q.employeeRisk.missionCriticalEmployees ?? ''}
                     onChange={(e) => updateEmployee({ missionCriticalEmployees: parseInt(e.target.value) || null })}
                     placeholder="e.g. 2"
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+                    className="w-full bg-raised border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-t-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/30 transition-all"
                   />
                 </div>
               </div>
@@ -497,24 +506,47 @@ export default function QuestionsPage() {
       </div>
 
       {state.error && (
-        <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+        <div className="mt-4 text-sm text-risk-critical bg-risk-critical/10 border border-risk-critical/20 rounded-lg px-4 py-3">
           {state.error}
         </div>
       )}
 
       {state.isLoading && (
-        <div className="mt-4 bg-white border border-slate-200 rounded-2xl p-4">
-          <p className="text-sm font-semibold text-slate-900">Backend Analysis In Progress</p>
-          <p className="text-sm text-slate-500 mt-1">
-            The frontend is sending your financials and questionnaire answers to the Python backend for deterministic scoring.
-          </p>
+        <div className="mt-4 bg-surface border border-white/[0.06] rounded-2xl p-4">
+          <p className="text-sm font-semibold text-white mb-3">Phase 2 Agent Progress</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {Object.entries(PHASE2_AGENT_LABELS).map(([agent, label]) => {
+              const status = phase2Progress[agent as Phase2AgentName];
+              return (
+                <div key={agent} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-raised px-3 py-2">
+                  <span className="text-sm text-t-secondary">{label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      'w-2 h-2 rounded-full',
+                      status === 'completed' && 'bg-emerald-400',
+                      status === 'failed' && 'bg-red-400',
+                      status === 'running' && 'bg-accent animate-pulse'
+                    )} />
+                    <span className={cn(
+                      'text-xs font-semibold uppercase tracking-wide',
+                      status === 'completed' && 'text-emerald-400',
+                      status === 'failed' && 'text-red-400',
+                      status === 'running' && 'text-accent'
+                    )}>
+                      {status}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
       <div className="mt-6 flex gap-3">
         <button
           onClick={() => currentSection > 0 ? setCurrentSection(s => s - 1) : router.push('/analyze/review')}
-          className="flex items-center gap-2 border border-slate-200 bg-white text-slate-700 hover:border-slate-300 px-5 py-3 rounded-xl font-medium transition-colors text-sm"
+          className="flex items-center gap-2 border border-white/[0.08] bg-surface text-t-secondary hover:text-white hover:border-white/[0.15] px-5 py-3 rounded-xl font-medium transition-all text-sm"
         >
           <ChevronLeft className="w-4 h-4" />
           {currentSection === 0 ? 'Back to Review' : 'Previous'}
@@ -523,7 +555,7 @@ export default function QuestionsPage() {
         {currentSection < SECTIONS.length - 1 ? (
           <button
             onClick={() => setCurrentSection(s => s + 1)}
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-semibold transition-all"
           >
             Next Section
             <ChevronRight className="w-5 h-5" />
@@ -532,7 +564,7 @@ export default function QuestionsPage() {
           <button
             onClick={handleGenerate}
             disabled={state.isLoading}
-            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-all"
           >
             {state.isLoading ? (
               <>

@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const { report } = await req.json() as { report: ReportOutput };
     const pdfBuffer = await renderToBuffer(ReportPdfDocument({ report }));
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdfBuffer as unknown as BodyInit, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': 'attachment; filename="bizbuy-acquisition-report.pdf"',
