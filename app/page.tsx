@@ -3,6 +3,10 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArrowRight, ShieldCheck, TrendingUp, Users, FileText, BarChart3, CheckCircle2, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { TiltedCard } from '@/components/ui/tilted-card';
+import { SplitText } from '@/components/ui/split-text';
+import { BlurText } from '@/components/ui/blur-text';
 
 export default function HomePage() {
   return (
@@ -11,21 +15,25 @@ export default function HomePage() {
       <section className="relative min-h-[90vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="hero-grid absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.04] via-transparent to-transparent" />
-        <div className="max-w-4xl mx-auto text-center relative animate-fade-in-up">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="max-w-4xl mx-auto text-center relative"
+        >
           <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 text-sm text-accent mb-8">
             <BarChart3 className="w-3.5 h-3.5" />
             AI-Powered Acquisition Diligence
           </div>
-          <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-[1.1]">
+          <h1 className="font-sans text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1] text-white">
             The Carfax for{' '}
-            <span className="bg-gradient-to-r from-accent via-violet-400 to-purple-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-accent via-orange-400 to-amber-300 bg-clip-text text-transparent">
               Buying a Business
             </span>
           </h1>
-          <p className="text-lg sm:text-xl text-t-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
-            Upload your financials. Answer a few questions. Get a plain-language acquisition
-            report — affordability, risk, and transferability analysis in minutes.
-          </p>
+          <div className="text-lg sm:text-xl text-t-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
+            <BlurText text="Upload your financials. Answer a few questions. Get a plain-language acquisition report — affordability, risk, and transferability analysis in minutes." delay={0.02} />
+          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/analyze/upload"
@@ -45,7 +53,7 @@ export default function HomePage() {
           <p className="text-t-muted text-sm mt-6">
             No account required · No permanent data storage · Free for the MVP
           </p>
-        </div>
+        </motion.div>
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
@@ -74,14 +82,20 @@ export default function HomePage() {
       {/* Value Props */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
-              Not every profitable business is an acquirable business.
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              <SplitText text="Not every profitable business is an acquirable business." delay={0.03} />
             </h2>
             <p className="text-lg text-t-secondary max-w-2xl mx-auto">
               BizzBuy gives you the analysis that financial statements alone can&apos;t provide — the operational and financial risks that determine whether a deal is truly worth pursuing.
             </p>
-          </div>
+          </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ValuePropCard
               icon={<TrendingUp className="w-6 h-6 text-accent" />}
@@ -108,9 +122,17 @@ export default function HomePage() {
       {/* How It Works */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface/50">
         <div className="max-w-4xl mx-auto">
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-white text-center mb-16">
-            From documents to decision in 4 steps
-          </h2>
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="flex justify-center w-full mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl font-bold text-white text-center">
+              <SplitText text="From documents to decision in 4 steps" delay={0.04} />
+            </h2>
+          </motion.div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { step: '01', title: 'Upload Financials', desc: 'Drop in your P&L, balance sheet, and loan term sheet. Our AI extracts the data.' },
@@ -118,11 +140,18 @@ export default function HomePage() {
               { step: '03', title: 'Answer Risk Questions', desc: '6 sections covering ownership, customers, revenue, employees, suppliers, and financials.' },
               { step: '04', title: 'Get Your Report', desc: 'A complete acquisition analysis with scores, seller questions, and a final recommendation.' },
             ].map(({ step, title, desc }, i) => (
-              <div key={step} className={`flex flex-col items-start gap-3 animate-fade-in-up delay-${(i + 1) * 100}`}>
-                <span className="text-5xl font-display font-extrabold text-accent/20 leading-none">{step}</span>
+              <motion.div 
+                key={step} 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="flex flex-col items-start gap-3"
+              >
+                <span className="text-5xl font-sans font-black tracking-tight text-accent/30 leading-none">{step}</span>
                 <h3 className="text-base font-bold text-white">{title}</h3>
                 <p className="text-sm text-t-secondary leading-relaxed">{desc}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -131,12 +160,18 @@ export default function HomePage() {
       {/* Report Sections Preview */}
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-14"
+          >
             <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">What you get in the report</h2>
             <p className="text-t-secondary text-lg">
               A complete acquisition analysis report with 9 sections designed for the non-expert buyer.
             </p>
-          </div>
+          </motion.div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[
               'Executive Summary & Risk Scores',
@@ -148,11 +183,18 @@ export default function HomePage() {
               'Due Diligence Checklist',
               'Upside & Opportunities',
               'Final Recommendation',
-            ].map((item) => (
-              <div key={item} className="flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-surface hover:border-accent/30 hover:bg-surface transition-all duration-200 group">
+            ].map((item, i) => (
+              <motion.div 
+                key={item} 
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.4, delay: i * 0.05 }}
+                className="flex items-center gap-3 p-4 rounded-xl border border-white/[0.06] bg-surface hover:border-accent/30 hover:bg-surface transition-colors duration-200 group"
+              >
                 <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 group-hover:scale-110 transition-transform" />
                 <span className="text-sm font-medium text-t-secondary group-hover:text-white transition-colors">{item}</span>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -175,7 +217,13 @@ export default function HomePage() {
       {/* CTA */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-violet-900/20 to-transparent" />
-        <div className="max-w-3xl mx-auto text-center relative">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7 }}
+          className="max-w-3xl mx-auto text-center relative"
+        >
           <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
             Ready to evaluate your deal?
           </h2>
@@ -189,7 +237,7 @@ export default function HomePage() {
             Start Your Analysis
             <ArrowRight className="w-5 h-5" />
           </Link>
-        </div>
+        </motion.div>
       </section>
     </div>
   );
@@ -208,14 +256,23 @@ function ValuePropCard({
   description: string;
   delay?: string;
 }) {
+  const parsedDelay = delay.startsWith('delay-') ? parseInt(delay.replace('delay-', ''), 10) / 1000 : 0;
   return (
-    <div className={`p-6 rounded-2xl border border-white/[0.06] bg-surface hover:border-accent/30 transition-all duration-300 group animate-fade-in-up ${delay}`}>
-      <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-        {icon}
-      </div>
-      <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-      <p className="text-t-secondary leading-relaxed text-sm">{description}</p>
-    </div>
+    <motion.div 
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.5, delay: parsedDelay }}
+      className="h-full"
+    >
+      <TiltedCard className="h-full" rotationIntensity={10}>
+        <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mb-4 transition-colors">
+          {icon}
+        </div>
+        <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+        <p className="text-t-secondary leading-relaxed text-sm">{description}</p>
+      </TiltedCard>
+    </motion.div>
   );
 }
 

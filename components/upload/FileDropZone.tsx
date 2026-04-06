@@ -2,6 +2,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { Upload, X, FileText, Image, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DOCUMENT_TYPES } from '@/lib/constants';
@@ -115,31 +116,39 @@ export function FileDropZone({
 
   return (
     <div className="space-y-4">
-      <div
-        onDrop={onDrop}
-        onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-        onDragLeave={() => setIsDragOver(false)}
-        className={cn(
-          'relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer',
-          isDragOver
-            ? 'border-accent bg-accent/5 shadow-lg shadow-accent/10'
-            : 'border-white/[0.1] bg-surface hover:border-accent/30 hover:bg-surface'
+      <div className={cn("relative rounded-2xl p-[2px] overflow-hidden group", isDragOver ? "bg-accent/20" : "")}>
+        {isDragOver && (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[400%] bg-[conic-gradient(from_0deg,transparent_0_280deg,hsl(var(--accent))_360deg)] z-0 rounded-full"
+          />
         )}
-        onClick={() => document.getElementById('file-input')?.click()}
-      >
-        <input
-          id="file-input"
-          type="file"
-          multiple
-          accept=".pdf,.png,.jpg,.jpeg,.csv"
-          className="hidden"
-          onChange={onInputChange}
-        />
-        <Upload className={cn('w-10 h-10 mx-auto mb-3 transition-colors', isDragOver ? 'text-accent' : 'text-t-muted')} />
-        <p className="text-base font-semibold text-white mb-1">
-          {isDragOver ? 'Drop files here' : 'Drag & drop your documents'}
-        </p>
-        <p className="text-sm text-t-secondary mb-4">or click to browse</p>
+        <div
+          onDrop={onDrop}
+          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+          onDragLeave={() => setIsDragOver(false)}
+          className={cn(
+            'relative z-10 border-2 border-dashed rounded-[14px] p-10 text-center transition-all duration-200 cursor-pointer',
+            isDragOver
+              ? 'border-transparent bg-surface/90 backdrop-blur-sm'
+              : 'border-white/[0.1] bg-surface hover:border-accent/30 hover:bg-surface'
+          )}
+          onClick={() => document.getElementById('file-input')?.click()}
+        >
+          <input
+            id="file-input"
+            type="file"
+            multiple
+            accept=".pdf,.png,.jpg,.jpeg,.csv"
+            className="hidden"
+            onChange={onInputChange}
+          />
+          <Upload className={cn('w-10 h-10 mx-auto mb-3 transition-colors', isDragOver ? 'text-accent animate-pulse' : 'text-t-muted')} />
+          <p className="text-base font-semibold text-white mb-1">
+            {isDragOver ? 'Drop files here' : 'Drag & drop your documents'}
+          </p>
+          <p className="text-sm text-t-secondary mb-4">or click to browse</p>
         <div className="flex items-center justify-center gap-2">
           {['PDF', 'PNG', 'JPG', 'CSV'].map((fmt) => (
             <span
@@ -151,6 +160,7 @@ export function FileDropZone({
           ))}
         </div>
         <p className="text-xs text-t-muted mt-3">Max {maxFiles} files · {maxSizeMB}MB per file</p>
+        </div>
       </div>
 
       {error && (

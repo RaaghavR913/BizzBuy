@@ -8,6 +8,7 @@ import type { QuestionnaireData } from '@/lib/types';
 import { analyzeData, runPhase2Agents, type Phase2AgentName } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
+import { BlurText } from '@/components/ui/blur-text';
 
 type RadioOption = { value: string; label: string; sublabel?: string };
 
@@ -331,7 +332,9 @@ export default function QuestionsPage() {
         <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-xs text-accent font-medium mb-3">
           Step 3 of 4
         </div>
-        <h1 className="text-2xl font-display font-bold text-white mb-1">Risk Assessment</h1>
+        <h1 className="text-2xl font-bold text-white mb-1">
+          <BlurText text="Risk Assessment" delay={0.03} />
+        </h1>
         <p className="text-t-secondary text-sm">Section {currentSection + 1} of {SECTIONS.length}</p>
         <div className="mt-3 h-1.5 bg-raised rounded-full overflow-hidden">
           <div
@@ -549,7 +552,9 @@ export default function QuestionsPage() {
 
       {state.isLoading && (
         <div className="mt-4 bg-surface border border-white/[0.06] rounded-2xl p-4">
-          <p className="text-sm font-semibold text-white mb-3">Phase 2 Agent Progress</p>
+          <p className="text-sm font-semibold text-white mb-3">
+            <BlurText text="Phase 2 Agent Progress" delay={0.04} />
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {Object.entries(PHASE2_AGENT_LABELS).map(([agent, label]) => {
               const status = phase2Progress[agent as Phase2AgentName];
