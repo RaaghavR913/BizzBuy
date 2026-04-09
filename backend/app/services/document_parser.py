@@ -2,23 +2,35 @@ from __future__ import annotations
 
 from fastapi import UploadFile
 
+from app.agents.schemas import IngestionOutput
 from app.models.schemas import FinancialData
+from app.services.ingestion_service import ingest_and_persist_intake_documents
+from app.services.intake_service import normalize_upload_files
 
 
-async def parse_documents(files: list[UploadFile], file_types: list[str]) -> FinancialData:
+async def parse_documents(files: list[UploadFile], file_types: list[str]) -> tuple[FinancialData, IngestionOutput]:
+    intake_documents = await normalize_upload_files(files, file_types)
+    ingestion_output = ingest_and_persist_intake_documents(intake_documents)
+
     parsing_notes: list[str] = []
-
-    for index, file in enumerate(files):
-        declared_type = file_types[index] if index < len(file_types) else "unknown"
+    for document in ingestion_output.documents:
         parsing_notes.append(
-            f"Received {file.filename} as {declared_type}. Deterministic analysis is ready; AI document extraction is the next backend phase."
+            f"{document.file_name}: {document.status.value} as {document.canonical_type.value} with {len(document.sections)} section(s)."
         )
+        parsing_notes.extend(document.notes)
+
+    for missing_input in ingestion_output.metadata.missing_inputs:
+        parsing_notes.append(f"Missing {missing_input.key}: {missing_input.description}")
+
+    for issue in ingestion_output.metadata.failed_artifacts:
+        target = issue.file_name or issue.document_id or "document"
+        parsing_notes.append(f"{target}: {issue.message}")
 
     completeness = 0.0
-    if any(file_types):
-        completeness = min(0.15 * len(file_types), 0.5)
+    if ingestion_output.metadata.total_documents:
+        completeness = ingestion_output.metadata.successfully_parsed / ingestion_output.metadata.total_documents
 
-    return FinancialData(
+    financial_data = FinancialData(
         income_statement=None,
         balance_sheet=None,
         loan_terms=None,
@@ -26,3 +38,4 @@ async def parse_documents(files: list[UploadFile], file_types: list[str]) -> Fin
         parsing_notes=parsing_notes,
         data_completeness=completeness,
     )
+    return financial_data, ingestion_output

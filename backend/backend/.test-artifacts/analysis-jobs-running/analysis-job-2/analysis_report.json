@@ -1,0 +1,24 @@
+{
+  "modeAvailable": {
+    "summary": true,
+    "deep": false
+  },
+  "summary": {
+    "headline": "Finished",
+    "overview": "Done",
+    "keyFindings": [],
+    "recommendedActions": []
+  },
+  "scorecard": {
+    "buyerFacingDimensions": [],
+    "technicalScorecards": [],
+    "dealBreakers": [],
+    "conflicts": [],
+    "validatedMetrics": {}
+  },
+  "metadata": {
+    "contractVersion": "2.0",
+    "analysisId": "analysis-job-2",
+    "pipelineStatus": "completed"
+  }
+}

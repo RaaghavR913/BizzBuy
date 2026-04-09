@@ -16,5 +16,10 @@ async def parse_documents_route(
     file_types: str = Form(default="[]"),
 ) -> ParseDocumentsResponse:
     parsed_file_types = json.loads(file_types) if file_types else []
-    extracted = await parse_documents(files, parsed_file_types)
-    return ParseDocumentsResponse(success=True, extracted_data=extracted)
+    extracted, ingestion_output = await parse_documents(files, parsed_file_types)
+    return ParseDocumentsResponse(
+        success=True,
+        extracted_data=extracted,
+        analysis_id=ingestion_output.metadata.analysis_id,
+        pipeline_documents=[document.model_dump(mode="json") for document in ingestion_output.documents],
+    )

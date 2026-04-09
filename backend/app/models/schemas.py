@@ -4,6 +4,16 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.agents.schemas import (
+    AgentExecutionStatus,
+    AgentName,
+    ClarificationAnswer,
+    DeterministicTag,
+    DocumentType,
+    FindingCategory,
+    Severity,
+)
+
 
 def to_camel(value: str) -> str:
     head, *tail = value.split("_")
@@ -12,6 +22,164 @@ def to_camel(value: str) -> str:
 
 class CamelModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
+
+
+class EvidenceReference(CamelModel):
+    document_id: str
+    file_name: str | None = None
+    section_id: str | None = None
+    page: int | None = None
+    snippet: str | None = None
+    extracted_fields: dict[str, str | float | int | bool | None] = Field(default_factory=dict)
+    confidence: float | None = Field(None, ge=0, le=1)
+
+
+class NormalizedMetric(CamelModel):
+    value: str | float | int | bool | None = None
+    unit: str | None = None
+    display_value: str | None = None
+    confidence: float | None = Field(None, ge=0, le=1)
+    timeframe: dict[str, str | int | None] | None = None
+    evidence: list[EvidenceReference] = Field(default_factory=list)
+
+
+class MissingInput(CamelModel):
+    key: str
+    description: str
+    document_type: DocumentType | None = None
+    required: bool = True
+    reason: str | None = None
+
+
+class NormalizedFinding(CamelModel):
+    finding_id: str
+    source_agent: AgentName
+    category: FindingCategory
+    severity: Severity
+    title: str
+    description: str
+    deterministic_tags: list[DeterministicTag] = Field(default_factory=list)
+    metric_impact: dict[str, str | float | int | bool | None] = Field(default_factory=dict)
+    evidence: list[EvidenceReference] = Field(default_factory=list)
+    confidence: float = Field(..., ge=0, le=1)
+    missing_data: bool = False
+
+
+class AgentEnvelope(CamelModel):
+    agent_name: AgentName
+    status: AgentExecutionStatus
+    summary: str | None = None
+    confidence: float | None = Field(None, ge=0, le=1)
+    overall_score: int | None = Field(None, ge=1, le=10)
+    normalized_metrics: dict[str, NormalizedMetric] = Field(default_factory=dict)
+    findings: list[NormalizedFinding] = Field(default_factory=list)
+    missing_inputs: list[MissingInput] = Field(default_factory=list)
+    evidence: list[EvidenceReference] = Field(default_factory=list)
+    raw_domain_output: dict[str, object] | None = None
+
+
+class BuyerFacingDimension(CamelModel):
+    key: str
+    label: str
+    score: float | None = None
+    status: str | None = None
+    summary: str | None = None
+
+
+class TechnicalScorecard(CamelModel):
+    name: str
+    score: float | None = None
+    recommendation: str | None = None
+    findings: list[NormalizedFinding] = Field(default_factory=list)
+    metrics: dict[str, NormalizedMetric] = Field(default_factory=dict)
+
+
+class ScoreConflict(CamelModel):
+    key: str
+    description: str
+    conservative_value: str | float | int | bool | None = None
+    conflicting_values: dict[str, str | float | int | bool | None] = Field(default_factory=dict)
+    evidence: list[EvidenceReference] = Field(default_factory=list)
+
+
+class DeterministicScorecard(CamelModel):
+    overall_risk_score: int | None = Field(None, ge=1, le=100)
+    overall_recommendation: str | None = None
+    buyer_facing_dimensions: list[BuyerFacingDimension] = Field(default_factory=list)
+    technical_scorecards: list[TechnicalScorecard] = Field(default_factory=list)
+    deal_breakers: list[NormalizedFinding] = Field(default_factory=list)
+    conflicts: list[ScoreConflict] = Field(default_factory=list)
+    completeness_score: float | None = Field(None, ge=0, le=1)
+    confidence_score: float | None = Field(None, ge=0, le=1)
+    validated_metrics: dict[str, NormalizedMetric] = Field(default_factory=dict)
+
+
+class ReportModeAvailability(CamelModel):
+    summary: bool = True
+    deep: bool = False
+
+
+class ReportSummaryV2(CamelModel):
+    headline: str | None = None
+    overview: str | None = None
+    key_findings: list[NormalizedFinding] = Field(default_factory=list)
+    recommended_actions: list[str] = Field(default_factory=list)
+
+
+class DeepReviewScoringImpactV2(CamelModel):
+    buyer_facing_dimensions: list[str] = Field(default_factory=list)
+    risk_contribution: float | None = None
+
+
+class DeepReviewAgentReviewV2(CamelModel):
+    agent_name: AgentName
+    headline: str | None = None
+    summary: str | None = None
+    technical_score: float | None = None
+    confidence: float | None = Field(None, ge=0, le=1)
+    key_metrics: dict[str, NormalizedMetric] = Field(default_factory=dict)
+    findings: list[NormalizedFinding] = Field(default_factory=list)
+    evidence: list[EvidenceReference] = Field(default_factory=list)
+    missing_inputs: list[MissingInput] = Field(default_factory=list)
+    scoring_impact: DeepReviewScoringImpactV2 = Field(default_factory=DeepReviewScoringImpactV2)
+
+
+class MissingDataDetailV2(CamelModel):
+    key: str
+    description: str
+    document_type: DocumentType | None = None
+    required: bool = True
+    reason: str | None = None
+    affected_agents: list[AgentName] = Field(default_factory=list)
+    related_findings: list[str] = Field(default_factory=list)
+    impact_summary: str | None = None
+
+
+class DeepReviewV2(CamelModel):
+    agent_reviews: list[DeepReviewAgentReviewV2] = Field(default_factory=list)
+    evidence_index: list[EvidenceReference] = Field(default_factory=list)
+    audit_trail: list[str] = Field(default_factory=list)
+    missing_data: list[MissingDataDetailV2] = Field(default_factory=list)
+
+
+class ReportMetadataV2(CamelModel):
+    contract_version: str = "2.0"
+    generated_at: str | None = None
+    analysis_id: str | None = None
+    pipeline_status: str | None = None
+    source_document_count: int | None = None
+    total_tokens: int | None = None
+    estimated_cost: float | None = None
+    total_latency_ms: int | None = None
+    audit_metadata: dict[str, object] | None = None
+
+
+class ReportOutputV2(CamelModel):
+    mode_available: ReportModeAvailability = Field(default_factory=ReportModeAvailability)
+    summary: ReportSummaryV2 = Field(default_factory=ReportSummaryV2)
+    scorecard: DeterministicScorecard = Field(default_factory=DeterministicScorecard)
+    deep_review: DeepReviewV2 | None = None
+    metadata: ReportMetadataV2 = Field(default_factory=ReportMetadataV2)
 
 
 class AddBack(CamelModel):
@@ -298,7 +466,49 @@ class AnalyzeResponse(CamelModel):
     error: str | None = None
 
 
+class AnalysisJobProgress(CamelModel):
+    stage: str = "queued"
+    message: str = "Analysis queued."
+    progress: float = Field(0, ge=0, le=1)
+    updated_at: str | None = None
+
+
+class AnalysisJobRecord(CamelModel):
+    analysis_id: str
+    status: Literal["queued", "running", "completed", "failed"]
+    created_at: str
+    updated_at: str
+    started_at: str | None = None
+    completed_at: str | None = None
+    progress: AnalysisJobProgress = Field(default_factory=AnalysisJobProgress)
+    error: str | None = None
+
+
+class AnalysisJobRequest(CamelModel):
+    financials: FinancialData | None = None
+    questionnaire: QuestionnaireData | None = None
+    deal_info: DealInfo | None = None
+    documents: list[dict[str, object]] = Field(default_factory=list)
+    analysis_id: str | None = None
+    clarifications: list[ClarificationAnswer] = Field(default_factory=list)
+    report_depth: Literal["summary", "deep"] | None = "summary"
+
+
+class AnalysisJobResponse(CamelModel):
+    analysis_id: str
+    status: Literal["queued", "running", "completed", "failed"]
+    created_at: str
+    updated_at: str
+    started_at: str | None = None
+    completed_at: str | None = None
+    progress: AnalysisJobProgress = Field(default_factory=AnalysisJobProgress)
+    error: str | None = None
+    report: dict[str, object] | None = None
+
+
 class ParseDocumentsResponse(CamelModel):
     success: bool
     extracted_data: FinancialData | None = None
+    analysis_id: str | None = None
+    pipeline_documents: list[dict[str, object]] = Field(default_factory=list)
     error: str | None = None

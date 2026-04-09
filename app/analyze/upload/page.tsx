@@ -13,7 +13,7 @@ import type { FinancialData } from '@/lib/types';
 function UploadContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { state, setFinancialData, setStep, setLoading, setError } = useAnalysis();
+  const { state, setFinancialData, setStep, setLoading, setError, setAnalysisId, setAnalysisJob, setPipelineDocuments } = useAnalysis();
   const [files, setFiles] = useState<FileItem[]>([]);
   const isDemo = searchParams.get('demo') === 'true';
 
@@ -27,6 +27,9 @@ function UploadContent() {
   }, [isDemo]);
 
   function handleDemo() {
+    setAnalysisId(null);
+    setAnalysisJob(null);
+    setPipelineDocuments([]);
     setFinancialData(DEMO_FINANCIAL_DATA);
     setStep(2);
     router.push('/analyze/review?demo=true');
@@ -47,6 +50,9 @@ function UploadContent() {
         files.map((f) => f.file),
         files.map((f) => f.documentType)
       );
+      setAnalysisId(result.analysisId ?? null);
+      setAnalysisJob(null);
+      setPipelineDocuments(result.pipelineDocuments ?? []);
       setFinancialData(result.extractedData);
       setStep(2);
       router.push('/analyze/review');
@@ -58,6 +64,9 @@ function UploadContent() {
   }
 
   function handleSkip() {
+    setAnalysisId(null);
+    setAnalysisJob(null);
+    setPipelineDocuments([]);
     const empty: FinancialData = {
       incomeStatement: null,
       balanceSheet: null,

@@ -1,8 +1,12 @@
 import type {
+  AnalysisJobSnapshot,
   AgentId,
   AgentOutput,
+  AnyReportOutput,
+  ClarificationAnswer,
   DealInfo,
   FinancialData,
+  PipelineDocumentPayload,
   QuestionnaireData,
   ReportOutput,
   SharedContext,
@@ -13,13 +17,25 @@ export type { AgentId, AgentOutput, FinancialData, QuestionnaireData, DealInfo, 
 export interface ParseDocumentsResponse {
   success: boolean;
   extractedData: FinancialData;
+  analysisId?: string;
+  pipelineDocuments: PipelineDocumentPayload[];
   error?: string;
 }
 
 export interface AnalyzeResponse {
   success: boolean;
-  report: ReportOutput;
+  report: AnyReportOutput;
   error?: string;
+}
+
+export interface AnalysisRunContext {
+  analysisId?: string | null;
+  pipelineDocuments?: PipelineDocumentPayload[];
+  clarifications?: ClarificationAnswer[];
+}
+
+function hasUsablePipelineDocuments(documents: PipelineDocumentPayload[]): boolean {
+  return documents.some((document) => Array.isArray(document.sections) && document.sections.length > 0);
 }
 
 const DEFAULT_BACKEND_URL = 'http://localhost:8000/api';
@@ -52,17 +68,84 @@ export async function parseDocuments(
 export async function analyzeData(
   financials: FinancialData,
   questionnaire: QuestionnaireData,
-  dealInfo: DealInfo
+  dealInfo: DealInfo,
+  context?: AnalysisRunContext
 ): Promise<AnalyzeResponse> {
-  const res = await fetch(backendUrl('/analyze'), {
+  const pipelineDocuments = context?.pipelineDocuments ?? [];
+  const clarifications = context?.clarifications ?? [];
+
+  if (hasUsablePipelineDocuments(pipelineDocuments)) {
+    const pipelineRes = await fetch(backendUrl('/pipeline'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        documents: pipelineDocuments,
+        asking_price: dealInfo.askingPrice,
+        business_type: dealInfo.businessType,
+        location: dealInfo.location,
+        analysis_id: context?.analysisId,
+        clarifications,
+        report_depth: 'summary',
+      }),
+    });
+
+    if (pipelineRes.ok) {
+      const report = await pipelineRes.json();
+      return { success: true, report };
+    }
+  }
+
+  const legacyRes = await fetch(backendUrl('/analyze'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ financials, questionnaire, dealInfo }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+  if (!legacyRes.ok) {
+    const err = await legacyRes.json().catch(() => ({ error: 'Request failed' }));
     throw new Error(err.error || 'Failed to run analysis');
   }
+  return legacyRes.json();
+}
+
+export async function startAnalysisJob(
+  financials: FinancialData,
+  questionnaire: QuestionnaireData,
+  dealInfo: DealInfo,
+  context?: AnalysisRunContext
+): Promise<AnalysisJobSnapshot> {
+  const res = await fetch(backendUrl('/analyses'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      financials,
+      questionnaire,
+      dealInfo,
+      documents: context?.pipelineDocuments ?? [],
+      analysisId: context?.analysisId,
+      clarifications: context?.clarifications ?? [],
+      reportDepth: 'summary',
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || err.detail || 'Failed to start analysis job');
+  }
+
+  return res.json();
+}
+
+export async function getAnalysisJob(analysisId: string): Promise<AnalysisJobSnapshot> {
+  const res = await fetch(backendUrl(`/analyses/${analysisId}`), {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || err.detail || 'Failed to load analysis job');
+  }
+
   return res.json();
 }
 

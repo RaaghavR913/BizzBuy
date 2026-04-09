@@ -1,0 +1,29 @@
+{
+  "modeAvailable": {
+    "summary": true,
+    "deep": false
+  },
+  "summary": {
+    "headline": "Caution",
+    "overview": "Partial",
+    "keyFindings": [],
+    "recommendedActions": []
+  },
+  "scorecard": {
+    "buyerFacingDimensions": [],
+    "technicalScorecards": [],
+    "dealBreakers": [],
+    "conflicts": [],
+    "validatedMetrics": {}
+  },
+  "metadata": {
+    "contractVersion": "2.0",
+    "analysisId": "analysis-job-3",
+    "pipelineStatus": "partial",
+    "auditMetadata": {
+      "partialFailures": [
+        "tax_compliance"
+      ]
+    }
+  }
+}

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Mapping, Sequence
 
-from app.agents.schemas import AgentResult, AgentSource, DocumentSection, IngestionOutput, Severity
+from app.agents.schemas import AgentEnvelope, AgentResult, AgentSource, DocumentSection, IngestionOutput, NormalizedFinding, Severity
 from app.services.calculations import (
     calculate_dscr,
     calculate_ebitda,
@@ -620,19 +620,60 @@ def compute_sba_lending(sde: float, asking_price: float, interest_rate: float | 
     }
 
 
+def _agent_payload(result: AgentResult[Any] | None) -> Any:
+    if not result or result.status != "success" or not result.data:
+        return None
+    data = result.data
+    if isinstance(data, AgentEnvelope):
+        raw = data.raw_domain_output
+        return raw if raw is not None else data
+    return data
+
+
+def _agent_summary(result: AgentResult[Any] | None) -> str:
+    if not result or result.status != "success" or not result.data:
+        return ""
+    data = result.data
+    if isinstance(data, AgentEnvelope):
+        return data.summary or ""
+    return getattr(data, "summary", "") or ""
+
+
+def _agent_score(result: AgentResult[Any] | None) -> int | None:
+    if not result or result.status != "success" or not result.data:
+        return None
+    data = result.data
+    if isinstance(data, AgentEnvelope):
+        return data.overall_score
+    return getattr(data, "overall_score", None)
+
+
+def _normalized_finding_financial_impact(finding: NormalizedFinding) -> float | int | None:
+    for key in ("financial_impact_usd", "potential_tax_exposure", "amount_at_risk", "validated_sde_delta"):
+        value = finding.metric_impact.get(key)
+        if isinstance(value, (int, float)):
+            return value
+    return None
+
+
 def extract_risks(agent_results: Mapping[str, AgentResult[Any]], agent_key: str) -> list[Any]:
     result = agent_results.get(agent_key)
     if not result or result.status != "success" or not result.data:
         return []
+    if isinstance(result.data, AgentEnvelope) and result.data.findings:
+        return result.data.findings
+    payload = _agent_payload(result)
+    if payload is None:
+        return []
     if agent_key == "tax_compliance":
-        return getattr(result.data, "compliance_flags", []) or []
+        return getattr(payload, "compliance_flags", []) or []
     if agent_key == "ar_collections":
-        return getattr(result.data, "collectibility_flags", []) or []
+        return getattr(payload, "collectibility_flags", []) or []
     if agent_key == "customer_concentration":
-        return getattr(result.data, "contract_risks", []) or []
+        return getattr(payload, "contract_risks", []) or []
     if agent_key == "market_macro":
-        return getattr(result.data, "threats", []) or []
-    return getattr(result.data, "risks", []) or []
+        return getattr(payload, "threats", []) or []
+    return getattr(payload, "risks", []) or []
 
 
 def compute_synthesis_metrics(agent_results: Mapping[str, AgentResult[Any]]) -> dict[str, Any]:
@@ -645,7 +686,7 @@ def compute_synthesis_metrics(agent_results: Mapping[str, AgentResult[Any]]) -> 
     else:
         weighted_sum = 0.0
         for key in successful_agents:
-            score = getattr(agent_results[key].data, "overall_score", None)
+            score = _agent_score(agent_results.get(key))
             if score is None:
                 continue
             weighted_sum += score * (AGENT_WEIGHTS[key] / total_available_weight)
@@ -658,8 +699,8 @@ def compute_synthesis_metrics(agent_results: Mapping[str, AgentResult[Any]]) -> 
         result = agent_results.get(key)
         display_name = AGENT_DISPLAY_NAMES[key]
         if result and result.status == "success" and result.data:
-            score = getattr(result.data, "overall_score", 0)
-            summary = getattr(result.data, "summary", "")
+            score = _agent_score(result) or 0
+            summary = _agent_summary(result)
             risks = extract_risks(agent_results, key)
             section_summaries[key] = {
                 "score": score,
@@ -682,16 +723,21 @@ def compute_synthesis_metrics(agent_results: Mapping[str, AgentResult[Any]]) -> 
                 severity = getattr(risk, "severity", Severity.LOW)
                 severity_value = severity.value if isinstance(severity, Severity) else str(severity)
                 if severity_value in {Severity.HIGH.value, Severity.CRITICAL.value}:
+                    financial_impact = (
+                        _normalized_finding_financial_impact(risk)
+                        if isinstance(risk, NormalizedFinding)
+                        else getattr(risk, "financial_impact", None)
+                        or getattr(risk, "potential_exposure", None)
+                        or getattr(risk, "amount", None)
+                    )
                     red_flags.append(
                         {
-                            "id": getattr(risk, "id", f"{key}-{len(red_flags) + 1}"),
+                            "id": getattr(risk, "id", getattr(risk, "finding_id", f"{key}-{len(red_flags) + 1}")),
                             "severity": severity_value,
                             "source": AGENT_SOURCES[key],
                             "title": getattr(risk, "title", getattr(risk, "description", "Risk")),
                             "description": getattr(risk, "description", ""),
-                            "financial_impact": getattr(risk, "financial_impact", None)
-                            or getattr(risk, "potential_exposure", None)
-                            or getattr(risk, "amount", None),
+                            "financial_impact": financial_impact,
                         }
                     )
         else:

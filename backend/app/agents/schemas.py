@@ -3,7 +3,16 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+
+
+def to_camel(value: str) -> str:
+    head, *tail = value.split("_")
+    return head + "".join(part.title() for part in tail)
+
+
+class ContractModel(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
 
 
 class DocumentType(str, Enum):
@@ -23,6 +32,137 @@ class DocumentType(str, Enum):
     OTHER = "other"
 
 
+class DocumentStatus(str, Enum):
+    UPLOADED = "uploaded"
+    PARSED = "parsed"
+    PARTIAL = "partial"
+    FAILED = "failed"
+    MISSING = "missing"
+
+
+class SectionContentType(str, Enum):
+    TEXT = "text"
+    TABLE = "table"
+    SHEET = "sheet"
+    STRUCTURED = "structured"
+    UNKNOWN = "unknown"
+
+
+class AgentName(str, Enum):
+    INGESTION = "ingestion"
+    FINANCIAL_ANALYSIS = "financial_analysis"
+    TAX_COMPLIANCE = "tax_compliance"
+    AR_COLLECTIONS = "ar_collections"
+    CUSTOMER_CONCENTRATION = "customer_concentration"
+    OPERATIONS_TRANSFERABILITY = "operations_transferability"
+    LEASE_CONTRACT = "lease_contract"
+    MARKET_MACRO = "market_macro"
+    LENDING_AFFORDABILITY = "lending_affordability"
+    SYNTHESIS_REPORT = "synthesis_report"
+
+
+class AgentExecutionStatus(str, Enum):
+    SUCCESS = "success"
+    PARTIAL = "partial"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+
+class FindingCategory(str, Enum):
+    EARNINGS_QUALITY = "earnings_quality"
+    CASH_FLOW = "cash_flow"
+    WORKING_CAPITAL = "working_capital"
+    TAX_COMPLIANCE = "tax_compliance"
+    RECEIVABLES = "receivables"
+    CUSTOMER_CONCENTRATION = "customer_concentration"
+    CONTRACT_DURABILITY = "contract_durability"
+    OWNER_DEPENDENCE = "owner_dependence"
+    OPERATIONAL_TRANSFERABILITY = "operational_transferability"
+    LEASE_TRANSFERABILITY = "lease_transferability"
+    MARKET_CONDITIONS = "market_conditions"
+    LENDING = "lending"
+    LEGAL_COMPLIANCE = "legal_compliance"
+    MISSING_DATA = "missing_data"
+    CONFLICT = "conflict"
+
+
+class DeterministicTag(str, Enum):
+    DEAL_BREAKER_CANDIDATE = "deal_breaker_candidate"
+    SDE_ADJUSTMENT = "sde_adjustment"
+    VALUATION_PRESSURE = "valuation_pressure"
+    BANKABILITY_PRESSURE = "bankability_pressure"
+    TRANSFERABILITY_PRESSURE = "transferability_pressure"
+    COMPLETENESS_PENALTY = "completeness_penalty"
+
+
+class EvidenceReference(ContractModel):
+    document_id: str
+    file_name: Optional[str] = None
+    section_id: Optional[str] = None
+    page: Optional[int] = None
+    snippet: Optional[str] = None
+    extracted_fields: Dict[str, Any] = Field(default_factory=dict)
+    confidence: Optional[float] = Field(None, ge=0, le=1)
+
+
+class NormalizedMetric(ContractModel):
+    value: float | int | str | bool | None = None
+    unit: Optional[str] = None
+    display_value: Optional[str] = None
+    confidence: Optional[float] = Field(None, ge=0, le=1)
+    timeframe: Optional["Timeframe"] = None
+    evidence: List[EvidenceReference] = Field(default_factory=list)
+
+
+class MissingInput(ContractModel):
+    key: str
+    description: str
+    document_type: Optional[DocumentType] = None
+    required: bool = True
+    reason: Optional[str] = None
+
+
+class ClarificationAnswerType(str, Enum):
+    BOOLEAN = "boolean"
+    PERCENT = "percent"
+    SELECT = "select"
+
+
+class ClarificationCategory(str, Enum):
+    OWNER_DEPENDENCE = "owner_dependence"
+    CUSTOMER_CONCENTRATION = "customer_concentration"
+    OPERATIONAL_TRANSFERABILITY = "operational_transferability"
+    FINANCIAL_RISK = "financial_risk"
+
+
+class ClarificationAnswer(ContractModel):
+    question_id: str
+    prompt: str
+    category: ClarificationCategory
+    answer_type: ClarificationAnswerType
+    value: float | int | str | bool | None = None
+    value_label: Optional[str] = None
+    related_document_types: List[DocumentType] = Field(default_factory=list)
+    legacy_field_path: Optional[str] = None
+    source: str = "user_asserted"
+    confidence: float = Field(0.6, ge=0, le=1)
+    supplemental: bool = True
+
+
+class NormalizedFinding(ContractModel):
+    finding_id: str
+    source_agent: AgentName
+    category: FindingCategory
+    severity: Severity
+    title: str
+    description: str
+    deterministic_tags: List[DeterministicTag] = Field(default_factory=list)
+    metric_impact: Dict[str, float | int | str | bool | None] = Field(default_factory=dict)
+    evidence: List[EvidenceReference] = Field(default_factory=list)
+    confidence: float = Field(..., ge=0, le=1)
+    missing_data: bool = False
+
+
 class Timeframe(BaseModel):
     start_date: Optional[str] = None
     end_date: Optional[str] = None
@@ -30,12 +170,31 @@ class Timeframe(BaseModel):
 
 
 class DocumentSection(BaseModel):
+    section_id: Optional[str] = None
     document_id: str = Field(..., description="References the source UploadedDocument id")
     document_type: DocumentType
     timeframe: Timeframe
     extracted_data: Dict[str, Any] = Field(..., description="Raw key-value pairs extracted from this section")
     raw_text: str = Field(..., description="Original text from the document section")
     confidence: float = Field(..., ge=0, le=1, description="Model confidence in extraction accuracy, 0-1")
+    section_name: Optional[str] = None
+    page: Optional[int] = None
+    page_start: Optional[int] = None
+    page_end: Optional[int] = None
+    source_format: Optional[str] = None
+    content_type: SectionContentType = SectionContentType.UNKNOWN
+    status: DocumentStatus = DocumentStatus.PARSED
+    notes: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def populate_section_defaults(self) -> "DocumentSection":
+        if self.section_id is None:
+            base = self.section_name or f"section-{self.page or self.page_start or '1'}"
+            self.section_id = f"{self.document_id}:{base}"
+        if self.page is not None:
+            self.page_start = self.page_start or self.page
+            self.page_end = self.page_end or self.page
+        return self
 
 
 class DocumentInfo(BaseModel):
@@ -43,19 +202,82 @@ class DocumentInfo(BaseModel):
     file_name: str
     mime_type: str
     document_type: DocumentType
+    declared_type: Optional[DocumentType] = None
+    canonical_type: Optional[DocumentType] = None
+    size_bytes: Optional[int] = None
+    status: DocumentStatus = DocumentStatus.PARSED
+    confidence: Optional[float] = Field(None, ge=0, le=1)
+    notes: List[str] = Field(default_factory=list)
     sections: List[DocumentSection]
+
+    @model_validator(mode="after")
+    def populate_document_defaults(self) -> "DocumentInfo":
+        if self.canonical_type is None:
+            self.canonical_type = self.document_type
+        self.document_type = self.canonical_type
+        if self.confidence is None:
+            if self.sections:
+                self.confidence = round(sum(section.confidence for section in self.sections) / len(self.sections), 4)
+            elif self.status == DocumentStatus.FAILED:
+                self.confidence = 0.0
+        return self
+
+
+class IngestionIssue(BaseModel):
+    document_id: Optional[str] = None
+    file_name: Optional[str] = None
+    document_type: Optional[DocumentType] = None
+    stage: str
+    code: str
+    message: str
+
+
+class ArtifactStorageKind(str, Enum):
+    FILESYSTEM = "filesystem"
+
+
+class ArtifactReference(BaseModel):
+    artifact_key: str
+    storage_kind: ArtifactStorageKind = ArtifactStorageKind.FILESYSTEM
+    path: str
+    content_type: str = "application/json"
 
 
 class IngestionMetadata(BaseModel):
     total_documents: int
     successfully_parsed: int
     failed_documents: List[str] = Field(..., description="Document IDs that could not be parsed")
+    failed_artifacts: List[IngestionIssue] = Field(default_factory=list)
+    missing_inputs: List[MissingInput] = Field(default_factory=list)
+    analysis_id: Optional[str] = None
+    overall_confidence: Optional[float] = Field(None, ge=0, le=1)
+    artifact_refs: List[ArtifactReference] = Field(default_factory=list)
     warnings: List[str]
 
 
 class IngestionOutput(BaseModel):
     documents: List[DocumentInfo]
     metadata: IngestionMetadata
+
+
+class IngestionDocumentArtifact(BaseModel):
+    document_id: str
+    file_name: str
+    document_type: DocumentType
+    status: DocumentStatus
+    confidence: Optional[float] = Field(None, ge=0, le=1)
+    section_ids: List[str] = Field(default_factory=list)
+    notes: List[str] = Field(default_factory=list)
+
+
+class StoredIngestionArtifacts(BaseModel):
+    analysis_id: str
+    storage_version: str = "1.0"
+    stored_at: str
+    ingestion_output: IngestionOutput
+    document_inventory: List[IngestionDocumentArtifact] = Field(default_factory=list)
+    evidence_index: List[EvidenceReference] = Field(default_factory=list)
+    clarifications: List[ClarificationAnswer] = Field(default_factory=list)
 
 
 class Severity(str, Enum):
@@ -264,16 +486,14 @@ class DataCompleteness(BaseModel):
 
 
 class SynthesisReportOutput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     executive_summary: str = Field(..., description="3-5 sentence plain-language summary suitable for a first-time buyer")
-    overall_risk_score: int = Field(..., ge=1, le=100, description="Composite risk score, 1 (lowest risk) to 100 (highest risk)")
-    recommendation: Recommendation
     red_flags: List[RedFlag]
     green_flags: List[GreenFlag]
     section_summaries: SectionSummaries
     next_steps: List[NextStep]
     deal_terms_suggestion: str = Field(..., description="Suggested deal terms based on the analysis")
-    confidence: float = Field(..., ge=0, le=1)
-    data_completeness: DataCompleteness
 
 
 class AgingBucketName(str, Enum):
@@ -663,6 +883,9 @@ class PipelineInput(BaseModel):
     asking_price: Optional[float] = None
     business_type: Optional[str] = None
     location: Optional[str] = None
+    analysis_id: Optional[str] = None
+    clarifications: List[ClarificationAnswer] = Field(default_factory=list)
+    report_depth: Optional[str] = None
 
 
 class TokenUsage(BaseModel):
@@ -689,23 +912,157 @@ class AgentResult(BaseModel, Generic[T]):
     latency_ms: Optional[int] = None
 
 
+class PipelineStageMetric(BaseModel):
+    attempts: int = 1
+    status: str
+    latency_ms: int = 0
+    total_tokens: int = 0
+    estimated_cost: float = 0.0
+    timeout_seconds: Optional[float] = None
+    retries_applied: int = 0
+    error_type: Optional[str] = None
+    error_message: Optional[str] = None
+
+
 class PipelineMetadata(BaseModel):
     started_at: str
     completed_at: Optional[str] = None
     total_tokens: int = 0
     estimated_cost: float = 0.0
+    total_latency_ms: int = 0
+    partial_failures: List[str] = Field(default_factory=list)
+    stage_metrics: Dict[str, PipelineStageMetric] = Field(default_factory=dict)
+    rollout_flags: Dict[str, Any] = Field(default_factory=dict)
+
+
+class BuyerFacingDimension(ContractModel):
+    key: str
+    label: str
+    score: Optional[float] = None
+    status: Optional[str] = None
+    summary: Optional[str] = None
+
+
+class TechnicalScorecard(ContractModel):
+    name: str
+    score: Optional[float] = None
+    recommendation: Optional[str] = None
+    findings: List[NormalizedFinding] = Field(default_factory=list)
+    metrics: Dict[str, NormalizedMetric] = Field(default_factory=dict)
+
+
+class ScoreConflict(ContractModel):
+    key: str
+    description: str
+    conservative_value: Optional[float | int | str | bool] = None
+    conflicting_values: Dict[str, float | int | str | bool | None] = Field(default_factory=dict)
+    evidence: List[EvidenceReference] = Field(default_factory=list)
+
+
+class DeterministicScorecard(ContractModel):
+    overall_risk_score: Optional[int] = Field(None, ge=1, le=100)
+    overall_recommendation: Optional[str] = None
+    buyer_facing_dimensions: List[BuyerFacingDimension] = Field(default_factory=list)
+    technical_scorecards: List[TechnicalScorecard] = Field(default_factory=list)
+    deal_breakers: List[NormalizedFinding] = Field(default_factory=list)
+    conflicts: List[ScoreConflict] = Field(default_factory=list)
+    completeness_score: Optional[float] = Field(None, ge=0, le=1)
+    confidence_score: Optional[float] = Field(None, ge=0, le=1)
+    validated_metrics: Dict[str, NormalizedMetric] = Field(default_factory=dict)
+
+
+class AgentEnvelope(ContractModel):
+    agent_name: AgentName
+    status: AgentExecutionStatus
+    summary: Optional[str] = None
+    confidence: Optional[float] = Field(None, ge=0, le=1)
+    overall_score: Optional[int] = Field(None, ge=1, le=10)
+    normalized_metrics: Dict[str, NormalizedMetric] = Field(default_factory=dict)
+    findings: List[NormalizedFinding] = Field(default_factory=list)
+    missing_inputs: List[MissingInput] = Field(default_factory=list)
+    evidence: List[EvidenceReference] = Field(default_factory=list)
+    raw_domain_output: Optional[Any] = None
+
+
+class ReportModeAvailability(ContractModel):
+    summary: bool = True
+    deep: bool = False
+
+
+class ReportSummarySection(ContractModel):
+    headline: Optional[str] = None
+    overview: Optional[str] = None
+    key_findings: List[NormalizedFinding] = Field(default_factory=list)
+    recommended_actions: List[str] = Field(default_factory=list)
+
+
+class DeepReviewScoringImpact(ContractModel):
+    buyer_facing_dimensions: List[str] = Field(default_factory=list)
+    risk_contribution: Optional[float] = None
+
+
+class DeepReviewAgentReview(ContractModel):
+    agent_name: AgentName
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    technical_score: Optional[float] = None
+    confidence: Optional[float] = Field(None, ge=0, le=1)
+    key_metrics: Dict[str, NormalizedMetric] = Field(default_factory=dict)
+    findings: List[NormalizedFinding] = Field(default_factory=list)
+    evidence: List[EvidenceReference] = Field(default_factory=list)
+    missing_inputs: List[MissingInput] = Field(default_factory=list)
+    scoring_impact: DeepReviewScoringImpact = Field(default_factory=DeepReviewScoringImpact)
+
+
+class MissingDataDetail(ContractModel):
+    key: str
+    description: str
+    document_type: Optional[DocumentType] = None
+    required: bool = True
+    reason: Optional[str] = None
+    affected_agents: List[AgentName] = Field(default_factory=list)
+    related_findings: List[str] = Field(default_factory=list)
+    impact_summary: Optional[str] = None
+
+
+class DeepReviewSection(ContractModel):
+    agent_reviews: List[DeepReviewAgentReview] = Field(default_factory=list)
+    evidence_index: List[EvidenceReference] = Field(default_factory=list)
+    audit_trail: List[str] = Field(default_factory=list)
+    missing_data: List[MissingDataDetail] = Field(default_factory=list)
+
+
+class ReportMetadataV2(ContractModel):
+    contract_version: str = "2.0"
+    generated_at: Optional[str] = None
+    analysis_id: Optional[str] = None
+    pipeline_status: Optional[str] = None
+    source_document_count: Optional[int] = None
+    total_tokens: Optional[int] = None
+    estimated_cost: Optional[float] = None
+    total_latency_ms: Optional[int] = None
+    audit_metadata: Optional[Dict[str, Any]] = None
+
+
+class ReportOutputV2(ContractModel):
+    mode_available: ReportModeAvailability = Field(default_factory=ReportModeAvailability)
+    summary: ReportSummarySection = Field(default_factory=ReportSummarySection)
+    scorecard: DeterministicScorecard = Field(default_factory=DeterministicScorecard)
+    deep_review: Optional[DeepReviewSection] = None
+    metadata: ReportMetadataV2 = Field(default_factory=ReportMetadataV2)
 
 
 class PipelineState(BaseModel):
     input: PipelineInput
     ingestion: Optional[AgentResult[IngestionOutput]] = None
-    financial_analysis: Optional[AgentResult[FinancialAnalysisOutput]] = None
-    tax_compliance: Optional[AgentResult[TaxComplianceOutput]] = None
-    ar_collections: Optional[AgentResult[ARCollectionsOutput]] = None
-    customer_concentration: Optional[AgentResult[CustomerConcentrationOutput]] = None
-    operations_transferability: Optional[AgentResult[OpsTransferabilityOutput]] = None
-    lease_contract: Optional[AgentResult[LeaseContractOutput]] = None
-    market_macro: Optional[AgentResult[MarketMacroOutput]] = None
-    lending_affordability: Optional[AgentResult[LendingAffordabilityOutput]] = None
+    financial_analysis: Optional[AgentResult[AgentEnvelope]] = None
+    tax_compliance: Optional[AgentResult[AgentEnvelope]] = None
+    ar_collections: Optional[AgentResult[AgentEnvelope]] = None
+    customer_concentration: Optional[AgentResult[AgentEnvelope]] = None
+    operations_transferability: Optional[AgentResult[AgentEnvelope]] = None
+    lease_contract: Optional[AgentResult[AgentEnvelope]] = None
+    market_macro: Optional[AgentResult[AgentEnvelope]] = None
+    lending_affordability: Optional[AgentResult[AgentEnvelope]] = None
+    scorecard: DeterministicScorecard = Field(default_factory=DeterministicScorecard)
     synthesis_report: Optional[AgentResult[SynthesisReportOutput]] = None
     metadata: PipelineMetadata

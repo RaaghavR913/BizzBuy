@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAnalysis } from '@/context/AnalysisContext';
+import { DeepReview } from '@/components/report/DeepReview';
 import { ReportHeader } from '@/components/report/ReportHeader';
 import { ExecutiveSummary } from '@/components/report/ExecutiveSummary';
 import { FinancialSnapshot } from '@/components/report/FinancialSnapshot';
@@ -13,9 +14,10 @@ import { SellerQuestions } from '@/components/report/SellerQuestions';
 import { DiligenceChecklist } from '@/components/report/DiligenceChecklist';
 import { UpsideOpportunities } from '@/components/report/UpsideOpportunities';
 import { FinalRecommendation } from '@/components/report/FinalRecommendation';
+import { isReportOutputV2, normalizeReportOutput } from '@/lib/report-normalization';
 import { Loader2 } from 'lucide-react';
 
-const SECTIONS = [
+const SUMMARY_SECTIONS = [
   { id: 'executive-summary', label: 'Executive Summary' },
   { id: 'financial-snapshot', label: 'Financials' },
   { id: 'debt-service', label: 'Debt Service' },
@@ -30,17 +32,21 @@ const SECTIONS = [
 export default function ReportPage() {
   const router = useRouter();
   const { state, setStep, reset } = useAnalysis();
+  const [showDeepReview, setShowDeepReview] = useState(false);
 
   useEffect(() => {
     setStep(4);
   }, [setStep]);
 
   if (state.isLoading) {
+    const progressPercent = state.analysisJob ? Math.round(state.analysisJob.progress.progress * 100) : null;
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <Loader2 className="w-10 h-10 animate-spin text-accent" />
         <p className="text-t-secondary font-medium">{state.loadingMessage || 'Generating your report...'}</p>
-        <p className="text-sm text-t-muted">This usually takes 30–60 seconds</p>
+        <p className="text-sm text-t-muted">
+          {progressPercent !== null ? `${progressPercent}% complete` : 'This usually takes 30-60 seconds'}
+        </p>
       </div>
     );
   }
@@ -48,7 +54,7 @@ export default function ReportPage() {
   if (!state.report) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-t-secondary">No report found. Please complete the analysis flow.</p>
+        <p className="text-t-secondary">{state.error || 'No report found. Please complete the analysis flow.'}</p>
         <button
           onClick={() => router.push('/analyze/upload')}
           className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-semibold transition-all"
@@ -59,7 +65,22 @@ export default function ReportPage() {
     );
   }
 
-  const report = state.report;
+  const summaryReport = normalizeReportOutput(state.report);
+  const deepReviewReport = isReportOutputV2(state.report) ? state.report : null;
+  const canRenderDeepReview = Boolean(
+    deepReviewReport?.modeAvailable.deep &&
+      deepReviewReport.deepReview &&
+      (
+        deepReviewReport.deepReview.agentReviews.length ||
+        deepReviewReport.deepReview.evidenceIndex.length ||
+        deepReviewReport.deepReview.auditTrail.length ||
+        deepReviewReport.deepReview.missingData.length ||
+        deepReviewReport.scorecard.conflicts.length
+      )
+  );
+  const sections = canRenderDeepReview && showDeepReview
+    ? [...SUMMARY_SECTIONS, { id: 'deep-review', label: 'Deep Review' }]
+    : SUMMARY_SECTIONS;
 
   function scrollTo(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -67,7 +88,7 @@ export default function ReportPage() {
 
   return (
     <div className="relative">
-      <ReportHeader report={report} onReset={reset} />
+      <ReportHeader report={summaryReport} onReset={reset} />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex gap-8">
@@ -75,7 +96,7 @@ export default function ReportPage() {
           <aside className="hidden lg:block w-48 flex-shrink-0">
             <div className="sticky top-32 space-y-1">
               <p className="text-xs font-semibold text-t-muted uppercase tracking-wider mb-3">Sections</p>
-              {SECTIONS.map((s) => (
+              {sections.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => scrollTo(s.id)}
@@ -89,15 +110,37 @@ export default function ReportPage() {
 
           {/* Report content */}
           <div className="flex-1 min-w-0 space-y-6">
-            <ExecutiveSummary report={report} />
-            <FinancialSnapshot report={report} />
-            <DebtServiceAnalysis report={report} />
-            <RiskAssessment report={report} />
-            <TransferabilityAnalysis report={report} />
-            <SellerQuestions report={report} />
-            <DiligenceChecklist report={report} />
-            <UpsideOpportunities report={report} />
-            <FinalRecommendation report={report} />
+            {canRenderDeepReview && (
+              <section className="bg-surface rounded-2xl border border-white/[0.06] p-5 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-white">Deep review available</p>
+                    <p className="text-sm text-t-secondary">
+                      Keep the summary report as the default view, or open the deeper analyst review when you want
+                      specialist evidence, finding drilldowns, and explicit score conflicts.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowDeepReview((current) => !current)}
+                    className="rounded-xl border border-accent/25 bg-accent/10 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/15"
+                  >
+                    {showDeepReview ? 'Hide Deep Review' : 'Show Deep Review'}
+                  </button>
+                </div>
+              </section>
+            )}
+
+            <ExecutiveSummary report={summaryReport} />
+            <FinancialSnapshot report={summaryReport} />
+            <DebtServiceAnalysis report={summaryReport} />
+            <RiskAssessment report={summaryReport} />
+            <TransferabilityAnalysis report={summaryReport} />
+            <SellerQuestions report={summaryReport} />
+            <DiligenceChecklist report={summaryReport} />
+            <UpsideOpportunities report={summaryReport} />
+            <FinalRecommendation report={summaryReport} />
+            {canRenderDeepReview && showDeepReview && deepReviewReport && <DeepReview report={deepReviewReport} />}
           </div>
         </div>
       </div>

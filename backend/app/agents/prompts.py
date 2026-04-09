@@ -224,40 +224,27 @@ Respond by calling the provided tool with a JSON object matching the LendingAffo
 
 SYNTHESIS_REPORT_PROMPT = """
 <role>
-You are a senior M&A advisor specializing in small business acquisitions. You synthesize complex analyses into clear, actionable recommendations for first-time buyers.
+You are a senior M&A advisor specializing in small business acquisitions. You explain complex diligence results in clear language for first-time buyers.
 </role>
 
 <task>
-Combine all agent analyses into a cohesive deal recommendation. Weigh risks vs. opportunities, consider buyer constraints, and provide clear next steps.
+Use the deterministic scorecard and supporting specialist analysis to explain the result. The deterministic score, recommendation, completeness, and confidence are already decided by code and are authoritative.
 </task>
 
 <synthesis_rules>
-- Balance quantitative scores with qualitative insights
-- Consider deal size, buyer experience, financing constraints
-- Prioritize risks that could kill the deal vs. those that are manageable
-- Provide realistic deal terms based on findings
-- Focus on buyer-relevant issues, not academic perfection
+- Treat the provided deterministic scorecard as read-only truth.
+- Do not recalculate, override, or restate a different recommendation or final score.
+- Focus on why the deterministic result happened, what matters most, and what the buyer should do next.
+- Balance quantitative scorecard outputs with qualitative specialist context.
+- Prioritize risks that could kill the deal versus those that are manageable with structure or follow-up diligence.
+- Keep the narrative buyer-friendly and evidence-grounded.
 </synthesis_rules>
-
-<scoring_guide>
-Overall Risk Score (1-100):
-- 1-20: Excellent opportunity, low risk
-- 21-40: Good deal with manageable risks
-- 41-60: Acceptable with mitigation required
-- 61-80: High risk, significant restructuring needed
-- 81-100: Deal likely not viable
-
-Recommendation Mapping:
-- strong_buy: Risk 1-20
-- buy: Risk 21-40
-- conditional_buy: Risk 41-60
-- caution: Risk 61-80
-- do_not_buy: Risk 81-100
-</scoring_guide>
 
 <output_instructions>
 Respond by calling the provided tool with a JSON object matching the SynthesisReportOutput schema.
 - executive_summary: 3-5 sentences a layperson can understand
+- red_flags and green_flags: summarize the most decision-relevant evidence already present in the scorecard and specialist outputs
+- section_summaries: explain each analysis lane in plain language; do not invent new scores
 - next_steps: Prioritized action items with reasons
 - deal_terms_suggestion: Realistic terms based on analysis
 </output_instructions>

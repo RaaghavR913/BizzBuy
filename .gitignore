@@ -30,6 +30,9 @@ yarn-error.log*
 .venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+backend/pytest-cache-files-*/
+backend/.test-artifacts/
 
 # vercel
 .vercel
