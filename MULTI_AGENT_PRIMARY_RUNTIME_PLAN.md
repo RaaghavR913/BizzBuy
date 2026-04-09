@@ -1552,6 +1552,452 @@ Definition of done:
 - users can refresh and still recover their report
 - support/debugging is possible
 
+## 14.10 Codex execution breakdown
+
+The phases above are the right program-level milestones, but several are still too large for a single Codex implementation pass.
+
+For actual execution, use smaller sequential slices that can be reviewed and committed independently.
+
+Each slice should build on the checked-in output of the previous one.
+
+Recommended operating rules for every Codex run:
+
+- implement only the named slice
+- preserve existing behavior outside that slice
+- keep old endpoints working until the frontend cutover slice
+- avoid opportunistic refactors
+- update tests for any contract or policy changes introduced by the slice
+- stop short of switching user-facing flows unless the slice explicitly does that
+
+Recommended handoff rule between slices:
+
+- finish the slice
+- run the relevant tests or sanity checks
+- review the diff
+- commit
+- start the next Codex context from the updated branch state
+
+### Slice 0A: Contract backbone
+
+Builds on:
+
+- current repository state
+
+Scope:
+
+- define the canonical document taxonomy
+- define the shared agent envelope
+- define `NormalizedFinding`, evidence reference, and normalized metrics structures
+- define `ReportOutputV2`
+- align Python and TypeScript contracts
+
+Files likely touched:
+
+- `backend/app/agents/schemas.py`
+- `backend/app/models/schemas.py`
+- `lib/types.ts`
+- `lib/constants.ts`
+- docs
+
+Constraints:
+
+- do not change runtime behavior yet
+- do not switch orchestration order yet
+- do not modify the frontend flow yet
+
+Definition of done:
+
+- one canonical contract exists for document types, agent outputs, and reports
+- downstream slices can target these contracts without reinterpretation
+
+### Slice 0B: Orchestrator scoring hook
+
+Builds on:
+
+- Slice 0A
+
+Scope:
+
+- add `backend/app/services/scoring_engine.py` as a skeleton interface
+- wire the orchestrator to call deterministic scoring after specialist agents
+- keep existing scoring logic as fallback or placeholder where needed
+
+Files likely touched:
+
+- `backend/app/agents/orchestrator.py`
+- `backend/app/services/scoring_engine.py`
+- small supporting changes only
+
+Constraints:
+
+- do not replace existing `risk_engine.py` behavior wholesale
+- do not change the synthesis role yet
+- do not change frontend contracts beyond what Slice 0A already defined
+
+Definition of done:
+
+- pipeline execution has a stable place where deterministic scoring occurs after specialist analysis
+
+### Slice 1A: Ingestion foundations
+
+Builds on:
+
+- Slice 0B
+
+Scope:
+
+- add canonical document metadata normalization
+- improve preprocessing interfaces for PDFs, spreadsheets, and parsed sections
+- shape ingestion output around the new contracts
+
+Files likely touched:
+
+- `backend/app/services/intake_service.py`
+- `backend/app/services/ingestion_service.py`
+- `backend/app/services/document_parser.py`
+- related schemas/tests
+
+Constraints:
+
+- keep dependencies minimal unless clearly required
+- do not introduce the job system yet
+- prefer a thin vertical slice over full ingestion perfection
+
+Definition of done:
+
+- uploaded files can produce structured ingestion artifacts with explicit missing/failed tracking
+
+### Slice 1B: Ingestion confidence and persistence stubs
+
+Builds on:
+
+- Slice 1A
+
+Scope:
+
+- track ingestion confidence
+- persist enough ingestion artifacts for downstream scoring/report assembly
+- add artifact storage abstraction stubs if needed
+
+Files likely touched:
+
+- ingestion services
+- repository/storage abstraction files
+- tests
+
+Constraints:
+
+- keep persistence lightweight in dev
+- avoid full production storage design in this slice
+
+Definition of done:
+
+- downstream slices can consume stable ingestion artifacts instead of transient parsing state
+
+### Slice 2A: Normalized specialist outputs
+
+Builds on:
+
+- Slice 1B
+
+Scope:
+
+- update specialist schemas and runners to emit normalized findings
+- add normalized metrics, missing inputs, and evidence references
+- preserve domain-specific fields where already useful
+
+Files likely touched:
+
+- `backend/app/agents/schemas.py`
+- `backend/app/agents/runners.py`
+- runner tests
+
+Constraints:
+
+- keep agent prompts as stable as possible
+- do not redesign every domain schema unless required for normalization
+
+Definition of done:
+
+- deterministic code can consume specialist outputs without parsing prose
+
+### Slice 2B: Coverage pass across remaining agents
+
+Builds on:
+
+- Slice 2A
+
+Scope:
+
+- bring any remaining specialist agents onto the shared envelope
+- normalize naming inconsistencies across agent outputs
+- fill obvious gaps in evidence or missing-input declarations
+
+Constraints:
+
+- no scoring policy changes in this slice
+
+Definition of done:
+
+- all active specialist agents follow the shared downstream contract
+
+### Slice 3A: Deterministic scoring MVP
+
+Builds on:
+
+- Slice 2B
+
+Scope:
+
+- implement normalized metrics/findings ingestion in `scoring_engine.py`
+- compute initial scorecards, completeness, confidence, and recommendation
+- add conservative conflict handling
+
+Files likely touched:
+
+- `backend/app/services/scoring_engine.py`
+- `backend/app/agents/deterministic.py`
+- possibly `backend/app/services/risk_engine.py` for reuse only
+
+Constraints:
+
+- reuse existing deterministic math where practical
+- avoid mixing recommendation policy back into synthesis
+- keep questionnaire-based scoring path available for comparison
+
+Definition of done:
+
+- pipeline outputs can produce a deterministic scorecard and recommendation
+
+### Slice 3B: Scoring calibration and regression coverage
+
+Builds on:
+
+- Slice 3A
+
+Scope:
+
+- expand tests for scoring rules, overrides, conflicts, and missing-data penalties
+- compare selected fixture outputs against expected behavior
+
+Constraints:
+
+- focus on stability, not new product features
+
+Definition of done:
+
+- scorer behavior is test-backed enough to support report and frontend work
+
+### Slice 4A: Synthesis as narrative only
+
+Builds on:
+
+- Slice 3B
+
+Scope:
+
+- change synthesis inputs to consume deterministic scorecard outputs
+- remove synthesis authority over recommendation or final score
+- generate narrative sections only
+
+Files likely touched:
+
+- synthesis prompt/schema files
+- orchestrator wiring
+- tests
+
+Constraints:
+
+- preserve useful narrative output
+- do not let synthesis mutate deterministic decisions
+
+Definition of done:
+
+- synthesis explains the result but does not decide it
+
+### Slice 5A: Canonical summary report assembly
+
+Builds on:
+
+- Slice 4A
+
+Scope:
+
+- add `report_assembler.py`
+- transform ingestion, agent outputs, scoring outputs, and synthesis into summary-ready `ReportOutputV2`
+
+Files likely touched:
+
+- `backend/app/services/report_assembler.py`
+- `backend/app/agents/orchestrator.py`
+- report contract tests
+
+Constraints:
+
+- summary mode first
+- no frontend cutover yet
+
+Definition of done:
+
+- the pipeline can return a frontend-ready summary report payload
+
+### Slice 5B: Deep review assembly
+
+Builds on:
+
+- Slice 5A
+
+Scope:
+
+- add deep review sections, evidence index, audit trail, and missing-data detail
+
+Constraints:
+
+- use the same evidence base and scorecard as summary mode
+- do not build a second scoring path
+
+Definition of done:
+
+- backend can return summary and deep review variants from the same run
+
+### Slice 6A: Frontend report contract adoption
+
+Builds on:
+
+- Slice 5A
+
+Scope:
+
+- update frontend types and report rendering to the new summary contract
+- keep the old runtime path available during transition
+
+Files likely touched:
+
+- `lib/types.ts`
+- `components/report/*`
+- `app/analyze/report/page.tsx`
+
+Constraints:
+
+- do not switch uploads/questions flow yet
+- favor compatibility shims over broad UI rewrites
+
+Definition of done:
+
+- the frontend can render the new summary report shape
+
+### Slice 6B: Pipeline-first frontend cutover
+
+Builds on:
+
+- Slice 6A
+- Slice 5A
+
+Scope:
+
+- switch `lib/api-client.ts` and analysis context to pipeline-backed analysis
+- keep old endpoints only for fallback or comparison
+
+Files likely touched:
+
+- `lib/api-client.ts`
+- `context/AnalysisContext.tsx`
+- related analyze pages
+
+Constraints:
+
+- do not introduce clarifications redesign in the same slice
+- preserve basic report usability throughout the cutover
+
+Definition of done:
+
+- the default frontend analysis path uses the pipeline-backed summary report
+
+### Slice 7A: Clarifications conversion
+
+Builds on:
+
+- Slice 6B
+
+Scope:
+
+- convert the questionnaire concept into targeted clarifications
+- store clarification answers as supplemental evidence
+
+Files likely touched:
+
+- `app/analyze/questions/page.tsx`
+- clarification service files
+- related frontend state
+
+Constraints:
+
+- keep clarifications narrower than the current questionnaire
+- do not let user assertions become stronger than documentary evidence by default
+
+Definition of done:
+
+- the app asks targeted follow-ups instead of relying on a broad manual questionnaire
+
+### Slice 7B: Deep review UI
+
+Builds on:
+
+- Slice 5B
+- Slice 6B
+
+Scope:
+
+- render deep review sections, evidence drilldowns, and conflicts in the frontend
+
+Constraints:
+
+- do not rebuild summary mode
+- keep deep review optional
+
+Definition of done:
+
+- users can inspect the analyst-grade report without changing the scoring path
+
+### Slice 8A: Analysis jobs and progress
+
+Builds on:
+
+- Slice 6B
+
+Scope:
+
+- add job-based analysis endpoints or equivalent orchestration
+- add progress polling or events
+- persist analysis status and artifacts
+
+Constraints:
+
+- keep local development workflow simple
+- avoid bundling full observability and retry logic into the first jobs slice
+
+Definition of done:
+
+- long-running analyses survive refreshes and expose progress
+
+### Slice 8B: Reliability and observability
+
+Builds on:
+
+- Slice 8A
+
+Scope:
+
+- add retries, timeouts, partial-failure handling, cost/latency instrumentation, and rollout flags
+
+Constraints:
+
+- do not change core report contracts unless required for audit metadata
+
+Definition of done:
+
+- the pipeline is supportable, measurable, and safer to roll out
+
 ---
 
 ## 15. Clarifications Strategy
@@ -2001,4 +2447,3 @@ Recommended first PR scope:
 That creates the structural backbone for every later phase.
 
 The second PR should then focus on making the pipeline emit a frontend-ready summary report.
-
