@@ -6,6 +6,20 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DOCUMENT_TYPES } from '@/lib/constants';
 
+const ACCEPTED_FILE_TYPES = [
+  'application/pdf',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/plain',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+
+const ACCEPTED_FILE_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg', '.csv', '.txt', '.docx', '.xlsx'];
+
 export interface FileItem {
   file: File;
   id: string;
@@ -47,14 +61,6 @@ export function FileDropZone({
     (newFiles: File[]) => {
       setError(null);
       const valid: FileItem[] = [];
-      const acceptedTypes = [
-        'application/pdf',
-        'image/png',
-        'image/jpeg',
-        'image/jpg',
-        'text/csv',
-        'application/vnd.ms-excel',
-      ];
 
       for (const file of newFiles) {
         if (files.length + valid.length >= maxFiles) {
@@ -65,12 +71,12 @@ export function FileDropZone({
           setError(`${file.name} exceeds the ${maxSizeMB}MB size limit.`);
           continue;
         }
+        const lowerName = file.name.toLowerCase();
         const isAccepted =
-          acceptedTypes.includes(file.type) ||
-          file.name.endsWith('.csv') ||
-          file.name.endsWith('.pdf');
+          ACCEPTED_FILE_TYPES.includes(file.type) ||
+          ACCEPTED_FILE_EXTENSIONS.some((extension) => lowerName.endsWith(extension));
         if (!isAccepted) {
-          setError(`${file.name} is not a supported format. Use PDF, PNG, JPG, or CSV.`);
+          setError(`${file.name} is not a supported format. Use PDF, PNG, JPG, CSV, TXT, DOCX, or XLSX.`);
           continue;
         }
         valid.push({
@@ -131,7 +137,7 @@ export function FileDropZone({
           id="file-input"
           type="file"
           multiple
-          accept=".pdf,.png,.jpg,.jpeg,.csv"
+          accept={ACCEPTED_FILE_EXTENSIONS.join(',')}
           className="hidden"
           onChange={onInputChange}
         />
@@ -141,7 +147,7 @@ export function FileDropZone({
         </p>
         <p className="text-sm text-t-secondary mb-4">or click to browse</p>
         <div className="flex items-center justify-center gap-2">
-          {['PDF', 'PNG', 'JPG', 'CSV'].map((fmt) => (
+          {['PDF', 'PNG', 'JPG', 'CSV', 'TXT', 'DOCX', 'XLSX'].map((fmt) => (
             <span
               key={fmt}
               className="px-2.5 py-1 bg-raised text-t-secondary rounded text-xs font-medium border border-white/[0.06]"
