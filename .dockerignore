@@ -1,9 +1,12 @@
 node_modules
 .next
-coverage
 .git
-.gitignore
-backend
-backend/.venv
-backend/__pycache__
+.env*
 *.log
+backend
+docs
+sample company1
+sample company3 - LoneStar Plumbing
+coverage
+*.tsbuildinfo
+.vercel

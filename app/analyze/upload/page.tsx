@@ -1,20 +1,25 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, ChevronRight, PenLine, Zap } from 'lucide-react';
 import { FileDropZone, type FileItem } from '@/components/upload/FileDropZone';
+import { ClassificationReview } from '@/components/upload/ClassificationReview';
 import { useAnalysis } from '@/context/AnalysisContext';
-import { parseDocuments } from '@/lib/api-client';
+import { ingestDocuments, parseDocuments } from '@/lib/api-client';
 import { DEMO_FINANCIAL_DATA } from '@/lib/demo-data';
-import type { FinancialData } from '@/lib/types';
+import type { ClassifiedFileResult, FinancialData } from '@/lib/types';
 
 function UploadContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { state, setFinancialData, setStep, setLoading, setError, setAnalysisId, setAnalysisJob, setPipelineDocuments } = useAnalysis();
   const [files, setFiles] = useState<FileItem[]>([]);
+  const [classifiedFiles, setClassifiedFiles] = useState<ClassifiedFileResult[]>([]);
+  const [overrides, setOverrides] = useState<Record<string, string>>({});
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [isClassified, setIsClassified] = useState(false);
   const isDemo = searchParams.get('demo') === 'true';
 
   useEffect(() => {
@@ -35,20 +40,58 @@ function UploadContent() {
     router.push('/analyze/review?demo=true');
   }
 
-  async function handleUpload() {
-    const missingType = files.find((f) => !f.documentType);
-    if (missingType) {
-      setError('Please select a document type for each uploaded file.');
-      return;
-    }
+  const handleClassify = useCallback(async () => {
+    if (files.length === 0) return;
 
+    setIsClassifying(true);
+    setError(null);
+
+    setFiles((prev) =>
+      prev.map((f) => ({ ...f, classificationStatus: 'uploading' as const }))
+    );
+
+    try {
+      setFiles((prev) =>
+        prev.map((f) => ({ ...f, classificationStatus: 'classifying' as const }))
+      );
+
+      const result = await ingestDocuments(files.map((f) => f.file));
+
+      setFiles((prev) =>
+        prev.map((f) => {
+          const classified = result.files.find((cf) => cf.originalName === f.file.name);
+          return {
+            ...f,
+            classificationStatus: classified?.error ? 'error' as const : 'classified' as const,
+            documentType: classified?.detectedType || 'unknown',
+          };
+        })
+      );
+
+      setClassifiedFiles(result.files);
+      setIsClassified(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to classify documents.');
+      setFiles((prev) =>
+        prev.map((f) => ({ ...f, classificationStatus: 'error' as const }))
+      );
+    } finally {
+      setIsClassifying(false);
+    }
+  }, [files, setError]);
+
+  async function handleContinue() {
     setLoading(true, 'Reading your financials...');
     setError(null);
+
+    const effectiveTypes = classifiedFiles.map((cf) =>
+      overrides[cf.fileId] || cf.detectedType
+    );
 
     try {
       const result = await parseDocuments(
         files.map((f) => f.file),
-        files.map((f) => f.documentType)
+        effectiveTypes,
       );
       setAnalysisId(result.analysisId ?? null);
       setAnalysisJob(null);
@@ -80,7 +123,19 @@ function UploadContent() {
     router.push('/analyze/review');
   }
 
-  const canUpload = files.length > 0 && files.every((f) => f.documentType);
+  function handleOverride(fileId: string, newType: string) {
+    setOverrides((prev) => ({ ...prev, [fileId]: newType }));
+  }
+
+  function handleReset() {
+    setFiles([]);
+    setClassifiedFiles([]);
+    setOverrides({});
+    setIsClassified(false);
+    setError(null);
+  }
+
+  const canClassify = files.length > 0 && !isClassifying && !isClassified;
 
   return (
     <div className="animate-fade-in-up">
@@ -90,8 +145,8 @@ function UploadContent() {
         </div>
         <h1 className="text-2xl font-display font-bold text-white mb-2">Upload Your Documents</h1>
         <p className="text-t-secondary">
-          Upload the business&apos;s financial documents. We&apos;ll extract the data using AI and
-          ask you to confirm before analysis.
+          Upload the business&apos;s financial documents. AI will automatically detect what each
+          document is — no manual labeling needed.
         </p>
       </div>
 
@@ -114,30 +169,73 @@ function UploadContent() {
         </div>
       )}
 
-      <FileDropZone files={files} onFilesChange={setFiles} />
+      <FileDropZone
+        files={files}
+        onFilesChange={setFiles}
+        disabled={isClassifying || isClassified}
+      />
+
+      {isClassified && classifiedFiles.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">Classification Results</h2>
+            <button
+              onClick={handleReset}
+              className="text-sm text-t-secondary hover:text-white transition-colors"
+            >
+              Start over
+            </button>
+          </div>
+          <ClassificationReview
+            files={classifiedFiles}
+            overrides={overrides}
+            onOverride={handleOverride}
+          />
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col gap-3">
-        <button
-          onClick={handleUpload}
-          disabled={!canUpload || state.isLoading}
-          className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
-        >
-          {state.isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              {state.loadingMessage || 'Processing...'}
-            </>
-          ) : (
-            <>
-              Analyze Documents
-              <ChevronRight className="w-5 h-5" />
-            </>
-          )}
-        </button>
+        {!isClassified ? (
+          <button
+            onClick={handleClassify}
+            disabled={!canClassify || state.isLoading}
+            className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
+          >
+            {isClassifying ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Classifying documents...
+              </>
+            ) : (
+              <>
+                Upload & Classify
+                <ChevronRight className="w-5 h-5" />
+              </>
+            )}
+          </button>
+        ) : (
+          <button
+            onClick={handleContinue}
+            disabled={state.isLoading}
+            className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
+          >
+            {state.isLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {state.loadingMessage || 'Processing...'}
+              </>
+            ) : (
+              <>
+                Continue with these classifications
+                <ChevronRight className="w-5 h-5" />
+              </>
+            )}
+          </button>
+        )}
 
         <button
           onClick={handleSkip}
-          disabled={state.isLoading}
+          disabled={state.isLoading || isClassifying}
           className="w-full flex items-center justify-center gap-2 text-t-secondary hover:text-white border border-white/[0.08] hover:border-white/[0.15] bg-surface px-6 py-3 rounded-xl font-medium transition-all text-sm"
         >
           <PenLine className="w-4 h-4" />
@@ -146,7 +244,7 @@ function UploadContent() {
 
         <button
           onClick={handleDemo}
-          disabled={state.isLoading}
+          disabled={state.isLoading || isClassifying}
           className="w-full flex items-center justify-center gap-2 text-accent hover:text-accent-hover border border-accent/20 hover:border-accent/30 bg-accent/5 px-6 py-3 rounded-xl font-medium transition-all text-sm"
         >
           <Zap className="w-4 h-4" />

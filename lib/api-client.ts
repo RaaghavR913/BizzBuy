@@ -6,6 +6,7 @@ import type {
   ClarificationAnswer,
   DealInfo,
   FinancialData,
+  IngestResponse,
   PipelineDocumentPayload,
   QuestionnaireData,
   ReportOutput,
@@ -44,6 +45,21 @@ function backendUrl(path: string): string {
   const base = (process.env.NEXT_PUBLIC_BACKEND_URL || DEFAULT_BACKEND_URL).replace(/\/$/, '');
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${base}${normalizedPath}`;
+}
+
+export async function ingestDocuments(files: File[]): Promise<IngestResponse> {
+  const formData = new FormData();
+  files.forEach((file) => formData.append('files', file));
+
+  const res = await fetch(backendUrl('/documents/ingest'), {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.detail || err.error || 'Failed to classify documents');
+  }
+  return res.json();
 }
 
 export async function parseDocuments(

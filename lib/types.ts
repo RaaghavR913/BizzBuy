@@ -112,7 +112,33 @@ export type CanonicalDocumentType =
   | 'employee_roster'
   | 'insurance_policy'
   | 'equipment_list'
-  | 'other';
+  | 'other'
+  | 'unknown';
+
+export type ClassificationStatus = 'queued' | 'uploading' | 'classifying' | 'classified' | 'error';
+
+export interface ClassifiedFileResult {
+  fileId: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  detectedType: CanonicalDocumentType;
+  confidence: number;
+  rationale: string;
+  suggestedAlternatives: string[];
+  extractedMetadata: {
+    businessName: string | null;
+    periodStart: string | null;
+    periodEnd: string | null;
+    currency: string | null;
+  };
+  error?: string | null;
+}
+
+export interface IngestResponse {
+  runId: string;
+  files: ClassifiedFileResult[];
+}
 
 export type CanonicalAgentName =
   | 'ingestion'

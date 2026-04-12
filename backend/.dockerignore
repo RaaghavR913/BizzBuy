@@ -1,5 +1,9 @@
-.venv
 __pycache__
-.pytest_cache
 *.pyc
-*.pyo
+.venv
+.pytest_cache
+.test-artifacts
+bizbuy_backend.egg-info
+.git
+.env*
+*.log

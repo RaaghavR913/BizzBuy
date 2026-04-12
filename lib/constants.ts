@@ -71,6 +71,7 @@ export const CANONICAL_DOCUMENT_TYPES = [
   { value: 'insurance_policy', label: 'Insurance Policy' },
   { value: 'equipment_list', label: 'Equipment List' },
   { value: 'other', label: 'Other' },
+  { value: 'unknown', label: 'Unknown' },
 ] as const;
 
 // Legacy upload options remain in place until the pipeline-first document flow is switched over.
