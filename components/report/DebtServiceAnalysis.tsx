@@ -31,6 +31,7 @@ function DSCRGauge({ dscr }: { dscr: number }) {
 export function DebtServiceAnalysis({ report }: { report: ReportOutput }) {
   const { debtServiceAnalysis } = report;
   const { sbaLoanSizing } = report;
+  const estimatedStressDscr = sbaLoanSizing.estimatedDSCR;
 
   if (debtServiceAnalysis.annualDebtService === 0) {
     return (
@@ -73,7 +74,7 @@ export function DebtServiceAnalysis({ report }: { report: ReportOutput }) {
         <div className="bg-accent/10 rounded-xl p-4 text-center border border-accent/20">
           <p className="text-xs text-accent/70 font-medium mb-1">SBA Stress DSCR</p>
           <p className="text-2xl font-black font-mono text-accent">
-            {sbaLoanSizing.estimatedDSCR === Infinity ? '∞' : sbaLoanSizing.estimatedDSCR.toFixed(2)}
+            {estimatedStressDscr == null ? 'N/A' : estimatedStressDscr === Infinity ? '∞' : estimatedStressDscr.toFixed(2)}
           </p>
         </div>
       </div>

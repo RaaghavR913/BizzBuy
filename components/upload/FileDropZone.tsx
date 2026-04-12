@@ -1,16 +1,28 @@
 'use client';
 
 import React, { useCallback, useState } from 'react';
-import { Upload, X, FileText, Image, FileSpreadsheet, AlertCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Upload, X, FileText, Image, FileSpreadsheet, AlertCircle, Loader2, Check, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DOCUMENT_TYPES } from '@/lib/constants';
+import type { ClassificationStatus } from '@/lib/types';
+
+const ACCEPTED_FILE_TYPES = [
+  'application/pdf',
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp',
+  'text/csv',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+];
+
+const ACCEPTED_FILE_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg', '.webp', '.csv', '.xlsx', '.xls'];
 
 export interface FileItem {
   file: File;
   id: string;
-  documentType: string;
+  classificationStatus: ClassificationStatus;
+  documentType?: string;
   preview?: string;
 }
 
@@ -19,6 +31,7 @@ interface FileDropZoneProps {
   onFilesChange: (files: FileItem[]) => void;
   maxFiles?: number;
   maxSizeMB?: number;
+  disabled?: boolean;
 }
 
 function getFileIcon(file: File) {
@@ -26,6 +39,8 @@ function getFileIcon(file: File) {
   // eslint-disable-next-line jsx-a11y/alt-text
   if (file.type.startsWith('image/')) return <Image className="w-5 h-5 text-blue-400" aria-hidden="true" />;
   if (file.type.includes('csv') || file.name.endsWith('.csv')) return <FileSpreadsheet className="w-5 h-5 text-green-400" />;
+  if (file.type.includes('spreadsheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))
+    return <FileSpreadsheet className="w-5 h-5 text-green-400" />;
   return <FileText className="w-5 h-5 text-t-muted" />;
 }
 
@@ -35,11 +50,47 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function StatusIndicator({ status }: { status: ClassificationStatus }) {
+  switch (status) {
+    case 'queued':
+      return <span className="text-xs text-t-muted">Queued</span>;
+    case 'uploading':
+      return (
+        <span className="flex items-center gap-1.5 text-xs text-blue-400">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          Uploading
+        </span>
+      );
+    case 'classifying':
+      return (
+        <span className="flex items-center gap-1.5 text-xs text-accent">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          Classifying
+        </span>
+      );
+    case 'classified':
+      return (
+        <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+          <Check className="w-3.5 h-3.5" />
+          Classified
+        </span>
+      );
+    case 'error':
+      return (
+        <span className="flex items-center gap-1.5 text-xs text-risk-critical">
+          <AlertTriangle className="w-3.5 h-3.5" />
+          Error
+        </span>
+      );
+  }
+}
+
 export function FileDropZone({
   files,
   onFilesChange,
-  maxFiles = 6,
+  maxFiles = 10,
   maxSizeMB = 20,
+  disabled = false,
 }: FileDropZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,14 +99,6 @@ export function FileDropZone({
     (newFiles: File[]) => {
       setError(null);
       const valid: FileItem[] = [];
-      const acceptedTypes = [
-        'application/pdf',
-        'image/png',
-        'image/jpeg',
-        'image/jpg',
-        'text/csv',
-        'application/vnd.ms-excel',
-      ];
 
       for (const file of newFiles) {
         if (files.length + valid.length >= maxFiles) {
@@ -66,18 +109,18 @@ export function FileDropZone({
           setError(`${file.name} exceeds the ${maxSizeMB}MB size limit.`);
           continue;
         }
+        const lowerName = file.name.toLowerCase();
         const isAccepted =
-          acceptedTypes.includes(file.type) ||
-          file.name.endsWith('.csv') ||
-          file.name.endsWith('.pdf');
+          ACCEPTED_FILE_TYPES.includes(file.type) ||
+          ACCEPTED_FILE_EXTENSIONS.some((extension) => lowerName.endsWith(extension));
         if (!isAccepted) {
-          setError(`${file.name} is not a supported format. Use PDF, PNG, JPG, or CSV.`);
+          setError(`${file.name} is not a supported format. Use PDF, PNG, JPG, JPEG, WebP, CSV, XLSX, or XLS.`);
           continue;
         }
         valid.push({
           file,
           id: `${file.name}-${Date.now()}-${Math.random()}`,
-          documentType: '',
+          classificationStatus: 'queued',
         });
       }
       if (valid.length > 0) onFilesChange([...files, ...valid]);
@@ -89,17 +132,17 @@ export function FileDropZone({
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragOver(false);
-      addFiles(Array.from(e.dataTransfer.files));
+      if (!disabled) addFiles(Array.from(e.dataTransfer.files));
     },
-    [addFiles]
+    [addFiles, disabled]
   );
 
   const onInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files) addFiles(Array.from(e.target.files));
+      if (e.target.files && !disabled) addFiles(Array.from(e.target.files));
       e.target.value = '';
     },
-    [addFiles]
+    [addFiles, disabled]
   );
 
   const removeFile = useCallback(
@@ -107,50 +150,38 @@ export function FileDropZone({
     [files, onFilesChange]
   );
 
-  const updateDocumentType = useCallback(
-    (id: string, type: string) => {
-      onFilesChange(files.map((f) => (f.id === id ? { ...f, documentType: type } : f)));
-    },
-    [files, onFilesChange]
-  );
-
   return (
     <div className="space-y-4">
-      <div className={cn("relative rounded-2xl p-[2px] overflow-hidden group", isDragOver ? "bg-accent/20" : "")}>
-        {isDragOver && (
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[400%] bg-[conic-gradient(from_0deg,transparent_0_280deg,hsl(var(--accent))_360deg)] z-0 rounded-full"
-          />
+      <div
+        onDrop={onDrop}
+        onDragOver={(e) => { e.preventDefault(); if (!disabled) setIsDragOver(true); }}
+        onDragLeave={() => setIsDragOver(false)}
+        className={cn(
+          'relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200',
+          disabled
+            ? 'border-white/[0.05] bg-surface/50 cursor-not-allowed opacity-60'
+            : isDragOver
+              ? 'border-accent bg-accent/5 shadow-lg shadow-accent/10 cursor-pointer'
+              : 'border-white/[0.1] bg-surface hover:border-accent/30 hover:bg-surface cursor-pointer'
         )}
-        <div
-          onDrop={onDrop}
-          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-          onDragLeave={() => setIsDragOver(false)}
-          className={cn(
-            'relative z-10 border-2 border-dashed rounded-[14px] p-10 text-center transition-all duration-200 cursor-pointer',
-            isDragOver
-              ? 'border-transparent bg-surface/90 backdrop-blur-sm'
-              : 'border-white/[0.1] bg-surface hover:border-accent/30 hover:bg-surface'
-          )}
-          onClick={() => document.getElementById('file-input')?.click()}
-        >
-          <input
-            id="file-input"
-            type="file"
-            multiple
-            accept=".pdf,.png,.jpg,.jpeg,.csv"
-            className="hidden"
-            onChange={onInputChange}
-          />
-          <Upload className={cn('w-10 h-10 mx-auto mb-3 transition-colors', isDragOver ? 'text-accent animate-pulse' : 'text-t-muted')} />
-          <p className="text-base font-semibold text-white mb-1">
-            {isDragOver ? 'Drop files here' : 'Drag & drop your documents'}
-          </p>
-          <p className="text-sm text-t-secondary mb-4">or click to browse</p>
+        onClick={() => { if (!disabled) document.getElementById('file-input')?.click(); }}
+      >
+        <input
+          id="file-input"
+          type="file"
+          multiple
+          accept={ACCEPTED_FILE_EXTENSIONS.join(',')}
+          className="hidden"
+          onChange={onInputChange}
+          disabled={disabled}
+        />
+        <Upload className={cn('w-10 h-10 mx-auto mb-3 transition-colors', isDragOver ? 'text-accent' : 'text-t-muted')} />
+        <p className="text-base font-semibold text-white mb-1">
+          {isDragOver ? 'Drop files here' : 'Drag & drop your documents'}
+        </p>
+        <p className="text-sm text-t-secondary mb-4">or click to browse — AI will classify each file automatically</p>
         <div className="flex items-center justify-center gap-2">
-          {['PDF', 'PNG', 'JPG', 'CSV'].map((fmt) => (
+          {['PDF', 'PNG', 'JPG', 'WebP', 'CSV', 'XLSX', 'XLS'].map((fmt) => (
             <span
               key={fmt}
               className="px-2.5 py-1 bg-raised text-t-secondary rounded text-xs font-medium border border-white/[0.06]"
@@ -182,26 +213,13 @@ export function FileDropZone({
                 <p className="text-sm font-medium text-white truncate">{item.file.name}</p>
                 <p className="text-xs text-t-muted">{formatFileSize(item.file.size)}</p>
               </div>
-              <div className="flex-shrink-0 w-52">
-                <Select
-                  value={item.documentType}
-                  onValueChange={(v) => updateDocumentType(item.id, v ?? '')}
-                >
-                  <SelectTrigger className="h-8 text-xs bg-raised border-white/[0.08]">
-                    <SelectValue placeholder="Select document type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DOCUMENT_TYPES.map((dt) => (
-                      <SelectItem key={dt.value} value={dt.value} className="text-xs">
-                        {dt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex-shrink-0">
+                <StatusIndicator status={item.classificationStatus} />
               </div>
               <button
                 onClick={(e) => { e.stopPropagation(); removeFile(item.id); }}
-                className="flex-shrink-0 p-1.5 text-t-muted hover:text-risk-critical hover:bg-risk-critical/10 rounded-lg transition-colors"
+                disabled={disabled}
+                className="flex-shrink-0 p-1.5 text-t-muted hover:text-risk-critical hover:bg-risk-critical/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <X className="w-4 h-4" />
               </button>

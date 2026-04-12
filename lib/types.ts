@@ -64,6 +64,333 @@ export interface FinancialData {
   dataCompleteness: number;
 }
 
+export interface PipelineDocumentPayload {
+  document_id: string;
+  file_name: string;
+  mime_type: string;
+  document_type: CanonicalDocumentType;
+  declared_type?: CanonicalDocumentType | null;
+  canonical_type?: CanonicalDocumentType | null;
+  size_bytes?: number | null;
+  status?: string;
+  confidence?: number | null;
+  notes?: string[];
+  sections: Array<{
+    section_id?: string | null;
+    document_id: string;
+    document_type: CanonicalDocumentType;
+    timeframe?: {
+      start_date?: string | null;
+      end_date?: string | null;
+      fiscal_year?: number | null;
+    };
+    extracted_data: Record<string, unknown>;
+    raw_text: string;
+    confidence: number;
+    section_name?: string | null;
+    page?: number | null;
+    page_start?: number | null;
+    page_end?: number | null;
+    source_format?: string | null;
+    content_type?: string;
+    status?: string;
+    notes?: string[];
+  }>;
+}
+
+export type CanonicalDocumentType =
+  | 'profit_and_loss'
+  | 'balance_sheet'
+  | 'cash_flow_statement'
+  | 'tax_return_1120s'
+  | 'tax_return_1040'
+  | 'tax_return_schedule_c'
+  | 'ar_aging_report'
+  | 'customer_list'
+  | 'contract'
+  | 'lease_agreement'
+  | 'employee_roster'
+  | 'insurance_policy'
+  | 'equipment_list'
+  | 'other'
+  | 'unknown';
+
+export type ClassificationStatus = 'queued' | 'uploading' | 'classifying' | 'classified' | 'error';
+
+export interface ClassifiedFileResult {
+  fileId: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  detectedType: CanonicalDocumentType;
+  confidence: number;
+  rationale: string;
+  suggestedAlternatives: string[];
+  extractedMetadata: {
+    businessName: string | null;
+    periodStart: string | null;
+    periodEnd: string | null;
+    currency: string | null;
+  };
+  error?: string | null;
+}
+
+export interface IngestResponse {
+  runId: string;
+  files: ClassifiedFileResult[];
+}
+
+export type CanonicalAgentName =
+  | 'ingestion'
+  | 'financial_analysis'
+  | 'tax_compliance'
+  | 'ar_collections'
+  | 'customer_concentration'
+  | 'operations_transferability'
+  | 'lease_contract'
+  | 'market_macro'
+  | 'lending_affordability'
+  | 'synthesis_report';
+
+export type AgentExecutionStatus = 'success' | 'partial' | 'failed' | 'skipped';
+
+export type FindingCategory =
+  | 'earnings_quality'
+  | 'cash_flow'
+  | 'working_capital'
+  | 'tax_compliance'
+  | 'receivables'
+  | 'customer_concentration'
+  | 'contract_durability'
+  | 'owner_dependence'
+  | 'operational_transferability'
+  | 'lease_transferability'
+  | 'market_conditions'
+  | 'lending'
+  | 'legal_compliance'
+  | 'missing_data'
+  | 'conflict';
+
+export type DeterministicTag =
+  | 'deal_breaker_candidate'
+  | 'sde_adjustment'
+  | 'valuation_pressure'
+  | 'bankability_pressure'
+  | 'transferability_pressure'
+  | 'completeness_penalty';
+
+export type FindingSeverity = 'low' | 'medium' | 'high' | 'critical';
+
+export interface EvidenceReference {
+  documentId: string;
+  fileName?: string;
+  sectionId?: string;
+  page?: number;
+  snippet?: string;
+  extractedFields: Record<string, string | number | boolean | null>;
+  confidence?: number;
+}
+
+export interface NormalizedMetric {
+  value: string | number | boolean | null;
+  unit?: string;
+  displayValue?: string;
+  confidence?: number;
+  timeframe?: {
+    startDate?: string;
+    endDate?: string;
+    fiscalYear?: number;
+  };
+  evidence: EvidenceReference[];
+}
+
+export interface MissingInput {
+  key: string;
+  description: string;
+  documentType?: CanonicalDocumentType;
+  required: boolean;
+  reason?: string;
+}
+
+export type ClarificationAnswerType = 'boolean' | 'percent' | 'select';
+
+export interface ClarificationOption {
+  value: string;
+  label: string;
+  sublabel?: string;
+}
+
+export interface ClarificationQuestion {
+  id: string;
+  category:
+    | 'owner_dependence'
+    | 'customer_concentration'
+    | 'operational_transferability'
+    | 'financial_risk';
+  prompt: string;
+  helpText: string;
+  answerType: ClarificationAnswerType;
+  relatedDocumentTypes: CanonicalDocumentType[];
+  legacyFieldPath: string;
+  options?: ClarificationOption[];
+}
+
+export interface ClarificationAnswer {
+  questionId: string;
+  prompt: string;
+  category: ClarificationQuestion['category'];
+  answerType: ClarificationAnswerType;
+  value: string | number | boolean | null;
+  valueLabel?: string;
+  relatedDocumentTypes: CanonicalDocumentType[];
+  legacyFieldPath: string;
+  source: 'user_asserted';
+  confidence: number;
+  supplemental: true;
+}
+
+export interface NormalizedFinding {
+  findingId: string;
+  sourceAgent: CanonicalAgentName;
+  category: FindingCategory;
+  severity: FindingSeverity;
+  title: string;
+  description: string;
+  deterministicTags: DeterministicTag[];
+  metricImpact: Record<string, string | number | boolean | null>;
+  evidence: EvidenceReference[];
+  confidence: number;
+  missingData: boolean;
+}
+
+export interface AgentEnvelope {
+  agentName: CanonicalAgentName;
+  status: AgentExecutionStatus;
+  summary?: string;
+  confidence?: number;
+  overallScore?: number;
+  normalizedMetrics: Record<string, NormalizedMetric>;
+  findings: NormalizedFinding[];
+  missingInputs: MissingInput[];
+  evidence: EvidenceReference[];
+  rawDomainOutput?: Record<string, unknown>;
+}
+
+export interface BuyerFacingDimension {
+  key: string;
+  label: string;
+  score?: number;
+  status?: string;
+  summary?: string;
+}
+
+export interface TechnicalScorecard {
+  name: string;
+  score?: number;
+  recommendation?: string;
+  findings: NormalizedFinding[];
+  metrics: Record<string, NormalizedMetric>;
+}
+
+export interface DeepReviewScoringImpact {
+  buyerFacingDimensions: string[];
+  riskContribution?: number;
+}
+
+export interface DeepReviewAgentReview {
+  agentName: CanonicalAgentName;
+  headline?: string;
+  summary?: string;
+  technicalScore?: number;
+  confidence?: number;
+  keyMetrics: Record<string, NormalizedMetric>;
+  findings: NormalizedFinding[];
+  evidence: EvidenceReference[];
+  missingInputs: MissingInput[];
+  scoringImpact: DeepReviewScoringImpact;
+}
+
+export interface MissingDataDetail {
+  key: string;
+  description: string;
+  documentType?: CanonicalDocumentType;
+  required: boolean;
+  reason?: string;
+  affectedAgents: CanonicalAgentName[];
+  relatedFindings: string[];
+  impactSummary?: string;
+}
+
+export interface ScoreConflict {
+  key: string;
+  description: string;
+  conservativeValue?: string | number | boolean | null;
+  conflictingValues: Record<string, string | number | boolean | null>;
+  evidence: EvidenceReference[];
+}
+
+export interface DeterministicScorecard {
+  overallRiskScore?: number;
+  overallRecommendation?: string;
+  buyerFacingDimensions: BuyerFacingDimension[];
+  technicalScorecards: TechnicalScorecard[];
+  dealBreakers: NormalizedFinding[];
+  conflicts: ScoreConflict[];
+  completenessScore?: number;
+  confidenceScore?: number;
+  validatedMetrics: Record<string, NormalizedMetric>;
+}
+
+export interface ReportOutputV2 {
+  modeAvailable: {
+    summary: boolean;
+    deep: boolean;
+  };
+  summary: {
+    headline?: string;
+    overview?: string;
+    keyFindings: NormalizedFinding[];
+    recommendedActions: string[];
+  };
+  scorecard: DeterministicScorecard;
+  deepReview?: {
+    agentReviews: DeepReviewAgentReview[];
+    evidenceIndex: EvidenceReference[];
+    auditTrail: string[];
+    missingData: MissingDataDetail[];
+  };
+  metadata: {
+    contractVersion: string;
+    generatedAt?: string;
+    analysisId?: string;
+    pipelineStatus?: string;
+    sourceDocumentCount?: number;
+  };
+}
+
+export type AnyReportOutput = ReportOutput | ReportOutputV2;
+
+export type AnalysisJobStatus = 'queued' | 'running' | 'completed' | 'failed';
+
+export interface AnalysisJobProgress {
+  stage: string;
+  message: string;
+  progress: number;
+  updatedAt?: string;
+}
+
+export interface AnalysisJobSnapshot {
+  analysisId: string;
+  status: AnalysisJobStatus;
+  createdAt: string;
+  updatedAt: string;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  progress: AnalysisJobProgress;
+  error?: string | null;
+  report?: AnyReportOutput | null;
+}
+
 export type AgentId =
   | 'financial'
   | 'tax'
@@ -77,7 +404,7 @@ export interface AgentFlag {
   severity: 'info' | 'warning' | 'critical';
   message: string;
   dimension: string;
-  sourceAgent: AgentId;
+  sourceAgent?: AgentId | 'backend';
   metric?: string;
 }
 
@@ -248,9 +575,13 @@ export interface AnalysisState {
   step: 1 | 2 | 3 | 4;
   financialData: FinancialData | null;
   questionnaire: QuestionnaireData | null;
+  clarifications: ClarificationAnswer[];
   dealInfo: DealInfo | null;
+  analysisId: string | null;
+  analysisJob: AnalysisJobSnapshot | null;
+  pipelineDocuments: PipelineDocumentPayload[];
   sharedContext: SharedContext | null;
-  report: ReportOutput | null;
+  report: AnyReportOutput | null;
   isLoading: boolean;
   loadingMessage: string;
   error: string | null;

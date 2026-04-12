@@ -27,6 +27,19 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/pytest-cache-files-*/
+backend/.test-artifacts/
+
+# sample data (not needed in version control)
+sample company*/
+
+# docker
+uploads/
+backend/.artifacts/
 
 # vercel
 .vercel

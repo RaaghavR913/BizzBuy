@@ -1,0 +1,107 @@
+BizBuy Math Notes
+
+1. Seller's Discretionary Earnings
+
+SDE = NI + OS + AB + D + I
+
+where:
+NI = net income
+OS = owner salary
+AB = total add-backs
+D = depreciation / amortization
+I = interest expense
+
+2. EBITDA
+
+EBITDA = NI + I + T + D + A
+
+where:
+T = taxes
+A = amortization
+
+3. Gross Margin
+
+GM = ((R - COGS) / R) * 100
+
+4. Working Capital
+
+WC = CA - CL
+
+where:
+CA = current assets
+CL = current liabilities
+
+5. Monthly Debt Payment
+
+If r = 0:
+
+PMT = P / n
+
+Else:
+
+PMT = P * (m * (1 + m)^n) / ((1 + m)^n - 1)
+
+where:
+P = principal
+n = term in months
+m = annual_rate / 12
+
+6. Annual Debt Service Coverage Ratio
+
+DSCR = SDE / ADS
+
+where:
+ADS = annual debt service
+
+7. Valuation Multiple
+
+Multiple = AskingPrice / SDE
+
+8. Minimum Revenue Required
+
+R_min = ADS + OpEx + OwnerIncomeTarget
+
+9. Break-Even Monthly Revenue
+
+R_be = MonthlyDebtService + MonthlyOpEx
+
+10. Weighted Risk Score
+
+W = 0.25 * O
+  + 0.20 * C
+  + 0.20 * Q
+  + 0.15 * E
+  + 0.10 * S
+  + 0.10 * F
+
+OverallRisk = round(10 * W)
+
+where:
+O = owner dependence score
+C = customer concentration score
+Q = revenue quality score
+E = employee / operational score
+S = supplier score
+F = financial / add-back score
+
+11. Transferability Score
+
+T_raw = 0.35 * (10 - O)
+      + 0.25 * SOP
+      + 0.25 * Contract
+      + 0.15 * Mgmt
+
+Transferability = round(10 * T_raw)
+
+where:
+SOP in {5, 10}
+Contract in {3, 6, 10}
+Mgmt in {4, 10}
+
+12. Scenario Revenue
+
+R_s = R * (1 + g)
+
+CashFlow_s = R_s - OpEx - ADS
+
+DSCR_s = (R_s - OpEx) / ADS

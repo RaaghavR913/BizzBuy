@@ -56,6 +56,25 @@ export const BUSINESS_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
+export const CANONICAL_DOCUMENT_TYPES = [
+  { value: 'profit_and_loss', label: 'Profit & Loss Statement' },
+  { value: 'balance_sheet', label: 'Balance Sheet' },
+  { value: 'cash_flow_statement', label: 'Cash Flow Statement' },
+  { value: 'tax_return_1120s', label: 'Tax Return 1120-S' },
+  { value: 'tax_return_1040', label: 'Tax Return 1040' },
+  { value: 'tax_return_schedule_c', label: 'Tax Return Schedule C' },
+  { value: 'ar_aging_report', label: 'A/R Aging Report' },
+  { value: 'customer_list', label: 'Customer List' },
+  { value: 'contract', label: 'Contract' },
+  { value: 'lease_agreement', label: 'Lease Agreement' },
+  { value: 'employee_roster', label: 'Employee Roster' },
+  { value: 'insurance_policy', label: 'Insurance Policy' },
+  { value: 'equipment_list', label: 'Equipment List' },
+  { value: 'other', label: 'Other' },
+  { value: 'unknown', label: 'Unknown' },
+] as const;
+
+// Legacy upload options remain in place until the pipeline-first document flow is switched over.
 export const DOCUMENT_TYPES = [
   { value: 'income_statement', label: 'Income Statement / P&L' },
   { value: 'balance_sheet', label: 'Balance Sheet' },

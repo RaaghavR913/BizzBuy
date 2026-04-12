@@ -1,8 +1,13 @@
 import type {
+  AnalysisJobSnapshot,
   AgentId,
   AgentOutput,
+  AnyReportOutput,
+  ClarificationAnswer,
   DealInfo,
   FinancialData,
+  IngestResponse,
+  PipelineDocumentPayload,
   QuestionnaireData,
   ReportOutput,
   SharedContext,
@@ -13,50 +18,49 @@ export type { AgentId, AgentOutput, FinancialData, QuestionnaireData, DealInfo, 
 export interface ParseDocumentsResponse {
   success: boolean;
   extractedData: FinancialData;
+  analysisId?: string;
+  pipelineDocuments: PipelineDocumentPayload[];
   error?: string;
 }
 
 export interface AnalyzeResponse {
   success: boolean;
-  report: ReportOutput;
+  report: AnyReportOutput;
   error?: string;
 }
 
-export interface AgentRouteResponse {
-  success: boolean;
-  output: AgentOutput;
-  error?: string;
+export interface AnalysisRunContext {
+  analysisId?: string | null;
+  pipelineDocuments?: PipelineDocumentPayload[];
+  clarifications?: ClarificationAnswer[];
 }
 
-export interface MergeResponse {
-  success: boolean;
-  sharedContext: SharedContext;
-  error?: string;
+function hasUsablePipelineDocuments(documents: PipelineDocumentPayload[]): boolean {
+  return documents.some((document) => Array.isArray(document.sections) && document.sections.length > 0);
 }
 
-export type Phase2AgentName =
-  | 'financial'
-  | 'tax'
-  | 'arCollections'
-  | 'customer'
-  | 'operations'
-  | 'leaseContracts'
-  | 'marketMacro';
+const DEFAULT_BACKEND_URL = 'http://localhost:8000/api';
 
-export interface Phase2ProgressEvent {
-  agent: Phase2AgentName;
-  status: 'running' | 'completed' | 'failed';
+function backendUrl(path: string): string {
+  const base = (process.env.NEXT_PUBLIC_BACKEND_URL || DEFAULT_BACKEND_URL).replace(/\/$/, '');
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${normalizedPath}`;
 }
 
-const PHASE2_AGENTS: Array<{ agent: Phase2AgentName; endpoint: string }> = [
-  { agent: 'financial', endpoint: '/api/agents/financial' },
-  { agent: 'tax', endpoint: '/api/agents/tax' },
-  { agent: 'arCollections', endpoint: '/api/agents/ar-collections' },
-  { agent: 'customer', endpoint: '/api/agents/customer' },
-  { agent: 'operations', endpoint: '/api/agents/operations' },
-  { agent: 'leaseContracts', endpoint: '/api/agents/lease-contracts' },
-  { agent: 'marketMacro', endpoint: '/api/agents/market-macro' },
-];
+export async function ingestDocuments(files: File[]): Promise<IngestResponse> {
+  const formData = new FormData();
+  files.forEach((file) => formData.append('files', file));
+
+  const res = await fetch(backendUrl('/documents/ingest'), {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.detail || err.error || 'Failed to classify documents');
+  }
+  return res.json();
+}
 
 export async function parseDocuments(
   files: File[],
@@ -66,7 +70,7 @@ export async function parseDocuments(
   files.forEach((file) => formData.append('files', file));
   formData.append('fileTypes', JSON.stringify(fileTypes));
 
-  const res = await fetch('/api/parse-documents', {
+  const res = await fetch(backendUrl('/parse-documents'), {
     method: 'POST',
     body: formData,
   });
@@ -78,66 +82,87 @@ export async function parseDocuments(
 }
 
 export async function analyzeData(
-  sharedContext: SharedContext
+  financials: FinancialData,
+  questionnaire: QuestionnaireData,
+  dealInfo: DealInfo,
+  context?: AnalysisRunContext
 ): Promise<AnalyzeResponse> {
-  const res = await fetch('/api/analyze', {
+  const pipelineDocuments = context?.pipelineDocuments ?? [];
+  const clarifications = context?.clarifications ?? [];
+
+  if (hasUsablePipelineDocuments(pipelineDocuments)) {
+    const pipelineRes = await fetch(backendUrl('/pipeline'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        documents: pipelineDocuments,
+        asking_price: dealInfo.askingPrice,
+        business_type: dealInfo.businessType,
+        location: dealInfo.location,
+        analysis_id: context?.analysisId,
+        clarifications,
+        report_depth: 'summary',
+      }),
+    });
+
+    if (pipelineRes.ok) {
+      const report = await pipelineRes.json();
+      return { success: true, report };
+    }
+  }
+
+  const legacyRes = await fetch(backendUrl('/analyze'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sharedContext }),
+    body: JSON.stringify({ financials, questionnaire, dealInfo }),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+  if (!legacyRes.ok) {
+    const err = await legacyRes.json().catch(() => ({ error: 'Request failed' }));
     throw new Error(err.error || 'Failed to run analysis');
   }
+  return legacyRes.json();
+}
+
+export async function startAnalysisJob(
+  financials: FinancialData,
+  questionnaire: QuestionnaireData,
+  dealInfo: DealInfo,
+  context?: AnalysisRunContext
+): Promise<AnalysisJobSnapshot> {
+  const res = await fetch(backendUrl('/analyses'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      financials,
+      questionnaire,
+      dealInfo,
+      documents: context?.pipelineDocuments ?? [],
+      analysisId: context?.analysisId,
+      clarifications: context?.clarifications ?? [],
+      reportDepth: 'summary',
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || err.detail || 'Failed to start analysis job');
+  }
+
   return res.json();
 }
 
-export async function runPhase2Agents(
-  financialData: FinancialData,
-  questionnaire: QuestionnaireData,
-  dealInfo: DealInfo,
-  onProgress?: (event: Phase2ProgressEvent) => void
-): Promise<SharedContext> {
-  const payload = { financialData, questionnaire, dealInfo };
-
-  PHASE2_AGENTS.forEach(({ agent }) => onProgress?.({ agent, status: 'running' }));
-
-  const results = await Promise.all(
-    PHASE2_AGENTS.map(async ({ agent, endpoint }) => {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const body = await res.json().catch(() => ({ error: 'Request failed' }));
-      if (!res.ok || !body.success) {
-        onProgress?.({ agent, status: 'failed' });
-        throw new Error(body.error || `Failed to run ${agent} agent`);
-      }
-
-      onProgress?.({ agent, status: 'completed' });
-      return { agent, output: body.output as AgentOutput };
-    })
-  );
-
-  const agentOutputs = results.reduce<Partial<Record<AgentId, AgentOutput>>>((acc, result) => {
-    acc[result.agent] = result.output;
-    return acc;
-  }, {});
-
-  const mergeRes = await fetch('/api/agents/merge', {
-    method: 'POST',
+export async function getAnalysisJob(analysisId: string): Promise<AnalysisJobSnapshot> {
+  const res = await fetch(backendUrl(`/analyses/${analysisId}`), {
+    method: 'GET',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...payload, agentOutputs }),
   });
 
-  const mergeBody = await mergeRes.json().catch(() => ({ error: 'Merge failed' }));
-  if (!mergeRes.ok || !mergeBody.success) {
-    throw new Error(mergeBody.error || 'Failed to merge Phase 2 agent outputs');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || err.detail || 'Failed to load analysis job');
   }
 
-  return mergeBody.sharedContext as SharedContext;
+  return res.json();
 }
 
 export async function generatePDF(report: ReportOutput): Promise<void> {

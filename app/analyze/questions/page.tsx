@@ -1,52 +1,54 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, ChevronLeft, Loader2, HelpCircle, Users, UserCircle, TrendingUp, Truck, DollarSign, Building2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileSearch, HelpCircle, Loader2, ShieldAlert } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 import { useAnalysis } from '@/context/AnalysisContext';
-import type { QuestionnaireData } from '@/lib/types';
-import { analyzeData, runPhase2Agents, type Phase2AgentName } from '@/lib/api-client';
+import { analyzeData, startAnalysisJob } from '@/lib/api-client';
+import {
+  buildClarificationAnswers,
+  DEFAULT_QUESTIONNAIRE,
+  generateClarificationQuestions,
+  questionnaireFromClarifications,
+} from '@/lib/clarification-service';
+import type { ClarificationQuestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Slider } from '@/components/ui/slider';
 import { BlurText } from '@/components/ui/blur-text';
 
-type RadioOption = { value: string; label: string; sublabel?: string };
+type ResponseValue = string | number | boolean | null;
 
-function RadioGroup({
-  label,
-  options,
+function ToggleQuestion({
+  question,
   value,
   onChange,
-  includeUnknown = true,
 }: {
-  label: string;
-  options: RadioOption[];
-  value: string | null;
-  onChange: (v: string) => void;
-  includeUnknown?: boolean;
+  question: ClarificationQuestion;
+  value: boolean | null;
+  onChange: (next: boolean | null) => void;
 }) {
-  const allOptions = includeUnknown
-    ? [...options, { value: 'unknown', label: "I don't know" }]
-    : options;
-
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium text-t-secondary">{label}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {allOptions.map((opt) => (
+    <div className="space-y-3">
+      <p className="text-sm font-medium text-t-secondary">{question.prompt}</p>
+      <div className="flex gap-2">
+        {[
+          { value: true, label: 'Yes' },
+          { value: false, label: 'No' },
+          { value: null, label: "Don't know" },
+        ].map((option) => (
           <button
-            key={opt.value}
+            key={String(option.value)}
             type="button"
-            onClick={() => onChange(opt.value)}
+            onClick={() => onChange(option.value)}
             className={cn(
-              'flex flex-col items-start px-4 py-3 rounded-xl border text-left transition-all',
-              value === opt.value
+              'flex-1 rounded-xl border px-4 py-3 text-sm font-medium transition-all',
+              value === option.value
                 ? 'border-accent bg-accent/10 text-accent'
-                : 'border-white/[0.08] bg-surface text-t-secondary hover:border-accent/30 hover:bg-surface'
+                : 'border-white/[0.08] bg-raised text-t-secondary hover:border-accent/30'
             )}
           >
-            <span className="text-sm font-medium">{opt.label}</span>
-            {opt.sublabel && <span className="text-xs text-t-muted mt-0.5">{opt.sublabel}</span>}
+            {option.label}
           </button>
         ))}
       </div>
@@ -54,233 +56,132 @@ function RadioGroup({
   );
 }
 
-function SliderQuestion({
-  label,
+function SelectQuestion({
+  question,
   value,
   onChange,
-  hint,
 }: {
-  label: string;
-  value: number | null;
-  onChange: (v: number | null) => void;
-  hint?: string;
+  question: ClarificationQuestion;
+  value: string | null;
+  onChange: (next: string | null) => void;
 }) {
-  const displayValue = value ?? 50;
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-t-secondary">{label}</p>
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold font-mono text-accent">{value ?? '—'}%</span>
+      <p className="text-sm font-medium text-t-secondary">{question.prompt}</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {(question.options ?? []).map((option) => (
           <button
+            key={option.value}
             type="button"
-            onClick={() => onChange(null)}
-            className="text-xs text-t-muted hover:text-t-secondary flex items-center gap-1 transition-colors"
+            onClick={() => onChange(option.value)}
+            className={cn(
+              'rounded-xl border px-4 py-3 text-left transition-all',
+              value === option.value
+                ? 'border-accent bg-accent/10 text-accent'
+                : 'border-white/[0.08] bg-raised text-t-secondary hover:border-accent/30'
+            )}
           >
-            <HelpCircle className="w-3.5 h-3.5" />
-            Unknown
+            <span className="block text-sm font-medium">{option.label}</span>
+            {option.sublabel ? <span className="mt-1 block text-xs text-t-muted">{option.sublabel}</span> : null}
           </button>
-        </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className={cn(
+            'rounded-xl border px-4 py-3 text-left transition-all',
+            value === null
+              ? 'border-accent bg-accent/10 text-accent'
+              : 'border-white/[0.08] bg-raised text-t-secondary hover:border-accent/30'
+          )}
+        >
+          <span className="block text-sm font-medium">I don&apos;t know</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PercentQuestion({
+  question,
+  value,
+  onChange,
+}: {
+  question: ClarificationQuestion;
+  value: number | null;
+  onChange: (next: number | null) => void;
+}) {
+  const sliderValue = value ?? 25;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm font-medium text-t-secondary">{question.prompt}</p>
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="flex items-center gap-1 text-xs text-t-muted transition-colors hover:text-t-secondary"
+        >
+          <HelpCircle className="h-3.5 w-3.5" />
+          Unknown
+        </button>
       </div>
       <Slider
-        value={[displayValue]}
-        onValueChange={(vals) => onChange(Array.isArray(vals) ? vals[0] : vals)}
+        value={[sliderValue]}
+        onValueChange={(values) => onChange(Array.isArray(values) ? values[0] : values)}
         min={0}
         max={100}
         step={5}
-        className="w-full"
       />
-      <div className="flex justify-between text-xs text-t-muted">
+      <div className="flex items-center justify-between text-xs text-t-muted">
         <span>0%</span>
-        <span>50%</span>
+        <span className="font-mono text-accent">{value === null ? 'Unspecified' : `${value}%`}</span>
         <span>100%</span>
       </div>
-      {hint && <p className="text-xs text-t-muted">{hint}</p>}
     </div>
   );
 }
 
-function TriStateToggle({
-  label,
-  value,
-  onChange,
-  trueLabel = 'Yes',
-  falseLabel = 'No',
-}: {
-  label: string;
-  value: boolean | null;
-  onChange: (v: boolean | null) => void;
-  trueLabel?: string;
-  falseLabel?: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <p className="text-sm font-medium text-t-secondary">{label}</p>
-      <div className="flex gap-2">
-        {[
-          { val: true, label: trueLabel },
-          { val: false, label: falseLabel },
-          { val: null, label: "Don't know" },
-        ].map(({ val, label: lbl }) => (
-          <button
-            key={String(val)}
-            type="button"
-            onClick={() => onChange(val)}
-            className={cn(
-              'flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-all',
-              value === val
-                ? 'border-accent bg-accent/10 text-accent'
-                : 'border-white/[0.08] bg-surface text-t-secondary hover:border-accent/30'
-            )}
-          >
-            {lbl}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+function renderQuestion(
+  question: ClarificationQuestion,
+  value: ResponseValue,
+  onChange: (next: ResponseValue) => void
+) {
+  if (question.answerType === 'boolean') {
+    return <ToggleQuestion question={question} value={typeof value === 'boolean' ? value : null} onChange={onChange} />;
+  }
+
+  if (question.answerType === 'percent') {
+    return <PercentQuestion question={question} value={typeof value === 'number' ? value : null} onChange={onChange} />;
+  }
+
+  return <SelectQuestion question={question} value={typeof value === 'string' ? value : null} onChange={onChange} />;
 }
-
-const SECTIONS = [
-  {
-    id: 'ownerDependence',
-    title: 'Owner Dependence',
-    icon: UserCircle,
-    description: 'How much does the business rely on the current owner to operate and generate revenue?',
-    color: 'text-purple-400',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/20',
-  },
-  {
-    id: 'customerConcentration',
-    title: 'Customer Concentration',
-    icon: Users,
-    description: 'How concentrated is revenue among a few key customers? Losing one big client could be devastating.',
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/20',
-  },
-  {
-    id: 'revenueQuality',
-    title: 'Revenue Quality',
-    icon: TrendingUp,
-    description: 'Is revenue predictable and recurring, or lumpy and project-based?',
-    color: 'text-emerald-400',
-    bgColor: 'bg-emerald-500/10',
-    borderColor: 'border-emerald-500/20',
-  },
-  {
-    id: 'employeeRisk',
-    title: 'Employee & Operational Risk',
-    icon: Building2,
-    description: 'Does the business have documented processes and a team that can operate without the owner?',
-    color: 'text-orange-400',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/20',
-  },
-  {
-    id: 'supplierRisk',
-    title: 'Supplier & Vendor Risk',
-    icon: Truck,
-    description: 'Are there critical supplier dependencies that could disrupt operations after acquisition?',
-    color: 'text-red-400',
-    bgColor: 'bg-red-500/10',
-    borderColor: 'border-red-500/20',
-  },
-  {
-    id: 'financialRisk',
-    title: 'Financial & Add-Back Risk',
-    icon: DollarSign,
-    description: 'Are the financial statements reliable? Are add-backs reasonable and documented?',
-    color: 'text-yellow-400',
-    bgColor: 'bg-yellow-500/10',
-    borderColor: 'border-yellow-500/20',
-  },
-];
-
-const DEFAULT_QUESTIONNAIRE: QuestionnaireData = {
-  ownerDependence: {
-    ownerSalesPercentage: null,
-    ownerInvolvement: 'unknown',
-    ownerHoldsRelationships: null,
-    survives90DayAbsence: 'unknown',
-  },
-  customerConcentration: {
-    topCustomerRevenuePercent: null,
-    top5CustomersRevenuePercent: null,
-    contractType: 'unknown',
-    averageCustomerTenure: 'unknown',
-  },
-  revenueQuality: {
-    recurringRevenuePercent: null,
-    projectBasedPercent: null,
-    revenueTrend: 'unknown',
-    knownUpcomingLosses: null,
-  },
-  employeeRisk: {
-    totalEmployees: null,
-    missionCriticalEmployees: null,
-    hasSOPs: null,
-    hasManagementLayer: null,
-  },
-  supplierRisk: {
-    singleSupplierOver30Pct: null,
-    supplierAgreementsDocumented: null,
-    exclusiveVendorRelationships: null,
-  },
-  financialRisk: {
-    hasAddBacks: null,
-    addBacksExceed30Pct: null,
-    pendingLiabilities: null,
-  },
-};
-
-const PHASE2_AGENT_LABELS: Record<Phase2AgentName, string> = {
-  financial: 'Financial',
-  tax: 'Tax',
-  arCollections: 'AR / Collections',
-  customer: 'Customer',
-  operations: 'Operations',
-  leaseContracts: 'Lease & Contracts',
-  marketMacro: 'Market & Macro',
-};
 
 export default function QuestionsPage() {
   const router = useRouter();
-  const { state, setQuestionnaire, setSharedContext, setReport, setStep, setLoading, setError } = useAnalysis();
-  const [currentSection, setCurrentSection] = useState(0);
-  const [q, setQ] = useState<QuestionnaireData>(state.questionnaire ?? DEFAULT_QUESTIONNAIRE);
-  const [phase2Progress, setPhase2Progress] = useState<Record<Phase2AgentName, 'running' | 'completed' | 'failed'>>({
-    financial: 'running',
-    tax: 'running',
-    arCollections: 'running',
-    customer: 'running',
-    operations: 'running',
-    leaseContracts: 'running',
-    marketMacro: 'running',
-  });
+  const {
+    state,
+    setClarifications,
+    setQuestionnaire,
+    setSharedContext,
+    setReport,
+    setStep,
+    setLoading,
+    setError,
+    setAnalysisJob,
+  } = useAnalysis();
+  const clarificationQuestions = generateClarificationQuestions(state.pipelineDocuments, state.financialData);
+  const [responses, setResponses] = useState<Record<string, ResponseValue>>(
+    () => Object.fromEntries(state.clarifications.map((clarification) => [clarification.questionId, clarification.value]))
+  );
 
   useEffect(() => {
     setStep(3);
   }, [setStep]);
 
-  function updateOwner(updates: Partial<QuestionnaireData['ownerDependence']>) {
-    setQ((prev) => ({ ...prev, ownerDependence: { ...prev.ownerDependence, ...updates } }));
-  }
-  function updateCustomer(updates: Partial<QuestionnaireData['customerConcentration']>) {
-    setQ((prev) => ({ ...prev, customerConcentration: { ...prev.customerConcentration, ...updates } }));
-  }
-  function updateRevenue(updates: Partial<QuestionnaireData['revenueQuality']>) {
-    setQ((prev) => ({ ...prev, revenueQuality: { ...prev.revenueQuality, ...updates } }));
-  }
-  function updateEmployee(updates: Partial<QuestionnaireData['employeeRisk']>) {
-    setQ((prev) => ({ ...prev, employeeRisk: { ...prev.employeeRisk, ...updates } }));
-  }
-  function updateSupplier(updates: Partial<QuestionnaireData['supplierRisk']>) {
-    setQ((prev) => ({ ...prev, supplierRisk: { ...prev.supplierRisk, ...updates } }));
-  }
-  function updateFinancial(updates: Partial<QuestionnaireData['financialRisk']>) {
-    setQ((prev) => ({ ...prev, financialRisk: { ...prev.financialRisk, ...updates } }));
+  function updateResponse(questionId: string, value: ResponseValue) {
+    setResponses((current) => ({ ...current, [questionId]: value }));
   }
 
   async function handleGenerate() {
@@ -288,338 +189,135 @@ export default function QuestionsPage() {
       setError('Missing financial data. Please go back and re-enter your financials.');
       return;
     }
-    setQuestionnaire(q);
+
+    const hasPipelineDocuments = state.pipelineDocuments.some((document) => document.sections.length > 0);
+    const clarificationAnswers = buildClarificationAnswers(clarificationQuestions, responses);
+    const questionnaire = questionnaireFromClarifications(
+      clarificationAnswers,
+      state.questionnaire ?? DEFAULT_QUESTIONNAIRE
+    );
+
+    setClarifications(clarificationAnswers);
+    setQuestionnaire(questionnaire);
     setSharedContext(null);
-    setPhase2Progress({
-      financial: 'running',
-      tax: 'running',
-      arCollections: 'running',
-      customer: 'running',
-      operations: 'running',
-      leaseContracts: 'running',
-      marketMacro: 'running',
-    });
-    setLoading(true, 'Running Phase 2 parallel agents...');
+    setLoading(true, hasPipelineDocuments ? 'Running document-first analysis...' : 'Running deterministic backend analysis...');
     setError(null);
 
     try {
-      const sharedContext = await runPhase2Agents(
-        state.financialData,
-        q,
-        state.dealInfo,
-        ({ agent, status }) => setPhase2Progress((prev) => ({ ...prev, [agent]: status }))
-      );
-      setSharedContext(sharedContext);
-      setLoading(true, 'Synthesizing lending and report analysis...');
-      const result = await analyzeData(sharedContext);
+      if (hasPipelineDocuments) {
+        const job = await startAnalysisJob(state.financialData, questionnaire, state.dealInfo, {
+          analysisId: state.analysisId,
+          pipelineDocuments: state.pipelineDocuments,
+          clarifications: clarificationAnswers,
+        });
+        setAnalysisJob(job);
+        setStep(4);
+        router.push('/analyze/report');
+        return;
+      }
+
+      const result = await analyzeData(state.financialData, questionnaire, state.dealInfo, {
+        analysisId: state.analysisId,
+        pipelineDocuments: state.pipelineDocuments,
+        clarifications: clarificationAnswers,
+      });
+      setAnalysisJob(null);
       setReport(result.report);
       setStep(4);
       router.push('/analyze/report');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed. Please try again.');
     } finally {
-      setLoading(false);
+      if (!hasPipelineDocuments) {
+        setLoading(false);
+      }
     }
   }
-
-  const section = SECTIONS[currentSection];
-  const Icon = section.icon;
-  const progress = ((currentSection + 1) / SECTIONS.length) * 100;
 
   return (
     <div className="animate-fade-in-up">
       <div className="mb-6">
-        <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-xs text-accent font-medium mb-3">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
           Step 3 of 4
         </div>
-        <h1 className="text-2xl font-bold text-white mb-1">
-          <BlurText text="Risk Assessment" delay={0.03} />
-        </h1>
-        <p className="text-t-secondary text-sm">Section {currentSection + 1} of {SECTIONS.length}</p>
-        <div className="mt-3 h-1.5 bg-raised rounded-full overflow-hidden">
-          <div
-            className="h-full bg-accent rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        <h1 className="mb-2 text-2xl font-display font-bold text-white">Targeted Clarifications</h1>
+        <p className="max-w-2xl text-sm text-t-secondary">
+          We only ask for follow-ups where the uploaded package leaves a meaningful gap. Your answers are stored as supplemental evidence and do not outweigh the documents by default.
+        </p>
       </div>
 
-      <div className="bg-surface border border-white/[0.06] rounded-2xl p-6 space-y-6">
-        <div className="flex items-start gap-4">
-          <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border', section.bgColor, section.borderColor)}>
-            <Icon className={cn('w-6 h-6', section.color)} />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-white">{section.title}</h2>
-            <p className="text-sm text-t-secondary mt-1">{section.description}</p>
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-white/[0.06] bg-surface p-5">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-amber-300">
+              <ShieldAlert className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-white">Evidence handling</p>
+              <p className="text-sm text-t-secondary">
+                Clarifications help close document gaps, but they remain tagged as buyer-provided assertions until corroborated.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {currentSection === 0 && (
-            <>
-              <SliderQuestion
-                label="What percentage of sales does the owner personally generate or close?"
-                value={q.ownerDependence.ownerSalesPercentage}
-                onChange={(v) => updateOwner({ ownerSalesPercentage: v })}
-              />
-              <RadioGroup
-                label="How involved is the owner in day-to-day operations?"
-                value={q.ownerDependence.ownerInvolvement}
-                onChange={(v) => updateOwner({ ownerInvolvement: v as QuestionnaireData['ownerDependence']['ownerInvolvement'] })}
-                options={[
-                  { value: 'full_time', label: 'Full-time', sublabel: 'Owner is essential to daily ops' },
-                  { value: 'part_time', label: 'Part-time', sublabel: 'Some involvement required' },
-                  { value: 'minimal', label: 'Minimal', sublabel: 'Largely hands-off' },
-                ]}
-              />
-              <TriStateToggle
-                label="Does the owner hold key customer relationships not shared with staff?"
-                value={q.ownerDependence.ownerHoldsRelationships}
-                onChange={(v) => updateOwner({ ownerHoldsRelationships: v })}
-              />
-              <RadioGroup
-                label="If the owner disappeared for 90 days, would the business survive?"
-                value={q.ownerDependence.survives90DayAbsence}
-                onChange={(v) => updateOwner({ survives90DayAbsence: v as QuestionnaireData['ownerDependence']['survives90DayAbsence'] })}
-                options={[
-                  { value: 'yes', label: 'Yes, definitely' },
-                  { value: 'likely', label: 'Likely' },
-                  { value: 'unlikely', label: 'Unlikely' },
-                  { value: 'no', label: 'No, it would struggle' },
-                ]}
-              />
-            </>
-          )}
-
-          {currentSection === 1 && (
-            <>
-              <SliderQuestion
-                label="What % of total revenue comes from the top 1 customer?"
-                value={q.customerConcentration.topCustomerRevenuePercent}
-                onChange={(v) => updateCustomer({ topCustomerRevenuePercent: v })}
-                hint="A single customer over 20% is a concentration risk"
-              />
-              <SliderQuestion
-                label="What % of total revenue comes from the top 5 customers?"
-                value={q.customerConcentration.top5CustomersRevenuePercent}
-                onChange={(v) => updateCustomer({ top5CustomersRevenuePercent: v })}
-              />
-              <RadioGroup
-                label="Are customer relationships contractual or handshake-based?"
-                value={q.customerConcentration.contractType}
-                onChange={(v) => updateCustomer({ contractType: v as QuestionnaireData['customerConcentration']['contractType'] })}
-                options={[
-                  { value: 'mostly_contracted', label: 'Mostly contracted', sublabel: 'Formal agreements in place' },
-                  { value: 'mixed', label: 'Mixed', sublabel: 'Some contracts, some informal' },
-                  { value: 'mostly_handshake', label: 'Mostly handshake', sublabel: 'Informal relationships' },
-                ]}
-              />
-              <RadioGroup
-                label="What is the average customer tenure?"
-                value={q.customerConcentration.averageCustomerTenure}
-                onChange={(v) => updateCustomer({ averageCustomerTenure: v as QuestionnaireData['customerConcentration']['averageCustomerTenure'] })}
-                options={[
-                  { value: 'less_than_1_year', label: 'Less than 1 year' },
-                  { value: '1_to_3_years', label: '1–3 years' },
-                  { value: '3_plus_years', label: '3+ years' },
-                ]}
-              />
-            </>
-          )}
-
-          {currentSection === 2 && (
-            <>
-              <SliderQuestion
-                label="What % of revenue is recurring (subscriptions, contracts, retainers)?"
-                value={q.revenueQuality.recurringRevenuePercent}
-                onChange={(v) => updateRevenue({ recurringRevenuePercent: v })}
-                hint="Higher recurring revenue = more predictable cash flow"
-              />
-              <SliderQuestion
-                label="What % of revenue is project-based or one-time?"
-                value={q.revenueQuality.projectBasedPercent}
-                onChange={(v) => updateRevenue({ projectBasedPercent: v })}
-              />
-              <RadioGroup
-                label="Has revenue grown, stayed flat, or declined over the past 3 years?"
-                value={q.revenueQuality.revenueTrend}
-                onChange={(v) => updateRevenue({ revenueTrend: v as QuestionnaireData['revenueQuality']['revenueTrend'] })}
-                options={[
-                  { value: 'growing', label: 'Growing' },
-                  { value: 'flat', label: 'Flat' },
-                  { value: 'declining', label: 'Declining' },
-                ]}
-              />
-              <TriStateToggle
-                label="Are there any known upcoming customer losses or contract expirations?"
-                value={q.revenueQuality.knownUpcomingLosses}
-                onChange={(v) => updateRevenue({ knownUpcomingLosses: v })}
-              />
-            </>
-          )}
-
-          {currentSection === 3 && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <p className="text-sm font-medium text-t-secondary">Total employees</p>
-                  <input
-                    type="number"
-                    value={q.employeeRisk.totalEmployees ?? ''}
-                    onChange={(e) => updateEmployee({ totalEmployees: parseInt(e.target.value) || null })}
-                    placeholder="e.g. 8"
-                    className="w-full bg-raised border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-t-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/30 transition-all"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-sm font-medium text-t-secondary">Mission-critical employees</p>
-                  <input
-                    type="number"
-                    value={q.employeeRisk.missionCriticalEmployees ?? ''}
-                    onChange={(e) => updateEmployee({ missionCriticalEmployees: parseInt(e.target.value) || null })}
-                    placeholder="e.g. 2"
-                    className="w-full bg-raised border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder:text-t-muted focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent/30 transition-all"
-                  />
-                </div>
+        {clarificationQuestions.length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.06] bg-surface p-8 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-500/25 bg-emerald-500/10 text-emerald-300">
+              <FileSearch className="h-5 w-5" />
+            </div>
+            <h2 className="text-lg font-semibold text-white">No follow-up questions required</h2>
+            <p className="mt-2 text-sm text-t-secondary">
+              The current package already covers the main diligence inputs needed for this pass. You can continue straight to report generation.
+            </p>
+          </div>
+        ) : (
+          clarificationQuestions.map((question, index) => (
+            <div key={question.id} className="rounded-2xl border border-white/[0.06] bg-surface p-6">
+              <div className="mb-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent/80">
+                  Clarification {index + 1}
+                </p>
+                <p className="mt-2 text-sm text-t-muted">{question.helpText}</p>
               </div>
-              <TriStateToggle
-                label="Are there documented standard operating procedures (SOPs)?"
-                value={q.employeeRisk.hasSOPs}
-                onChange={(v) => updateEmployee({ hasSOPs: v })}
-                trueLabel="Yes, documented"
-                falseLabel="No, not documented"
-              />
-              <TriStateToggle
-                label="Is there a management layer between the owner and frontline staff?"
-                value={q.employeeRisk.hasManagementLayer}
-                onChange={(v) => updateEmployee({ hasManagementLayer: v })}
-                trueLabel="Yes, managers in place"
-                falseLabel="No, owner manages directly"
-              />
-            </>
-          )}
-
-          {currentSection === 4 && (
-            <>
-              <TriStateToggle
-                label="Is there a single supplier that accounts for >30% of COGS or operations?"
-                value={q.supplierRisk.singleSupplierOver30Pct}
-                onChange={(v) => updateSupplier({ singleSupplierOver30Pct: v })}
-              />
-              <TriStateToggle
-                label="Are supplier agreements documented and transferable to a new owner?"
-                value={q.supplierRisk.supplierAgreementsDocumented}
-                onChange={(v) => updateSupplier({ supplierAgreementsDocumented: v })}
-                trueLabel="Yes, transferable"
-                falseLabel="No, not transferable"
-              />
-              <TriStateToggle
-                label="Are there exclusive or hard-to-replace vendor relationships?"
-                value={q.supplierRisk.exclusiveVendorRelationships}
-                onChange={(v) => updateSupplier({ exclusiveVendorRelationships: v })}
-              />
-            </>
-          )}
-
-          {currentSection === 5 && (
-            <>
-              <TriStateToggle
-                label="Has the seller presented add-backs to adjusted EBITDA (owner salary, one-time expenses)?"
-                value={q.financialRisk.hasAddBacks}
-                onChange={(v) => updateFinancial({ hasAddBacks: v })}
-              />
-              <TriStateToggle
-                label="Do the add-backs exceed 30% of stated EBITDA?"
-                value={q.financialRisk.addBacksExceed30Pct}
-                onChange={(v) => updateFinancial({ addBacksExceed30Pct: v })}
-              />
-              <TriStateToggle
-                label="Are there any pending lawsuits, tax liabilities, or environmental issues?"
-                value={q.financialRisk.pendingLiabilities}
-                onChange={(v) => updateFinancial({ pendingLiabilities: v })}
-              />
-            </>
-          )}
-        </div>
+              {renderQuestion(question, responses[question.id] ?? null, (next) => updateResponse(question.id, next))}
+            </div>
+          ))
+        )}
       </div>
 
-      {state.error && (
-        <div className="mt-4 text-sm text-risk-critical bg-risk-critical/10 border border-risk-critical/20 rounded-lg px-4 py-3">
+      {state.error ? (
+        <div className="mt-4 rounded-lg border border-risk-critical/20 bg-risk-critical/10 px-4 py-3 text-sm text-risk-critical">
           {state.error}
         </div>
-      )}
-
-      {state.isLoading && (
-        <div className="mt-4 bg-surface border border-white/[0.06] rounded-2xl p-4">
-          <p className="text-sm font-semibold text-white mb-3">
-            <BlurText text="Phase 2 Agent Progress" delay={0.04} />
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {Object.entries(PHASE2_AGENT_LABELS).map(([agent, label]) => {
-              const status = phase2Progress[agent as Phase2AgentName];
-              return (
-                <div key={agent} className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-raised px-3 py-2">
-                  <span className="text-sm text-t-secondary">{label}</span>
-                  <div className="flex items-center gap-2">
-                    <span className={cn(
-                      'w-2 h-2 rounded-full',
-                      status === 'completed' && 'bg-emerald-400',
-                      status === 'failed' && 'bg-red-400',
-                      status === 'running' && 'bg-accent animate-pulse'
-                    )} />
-                    <span className={cn(
-                      'text-xs font-semibold uppercase tracking-wide',
-                      status === 'completed' && 'text-emerald-400',
-                      status === 'failed' && 'text-red-400',
-                      status === 'running' && 'text-accent'
-                    )}>
-                      {status}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      ) : null}
 
       <div className="mt-6 flex gap-3">
         <button
-          onClick={() => currentSection > 0 ? setCurrentSection(s => s - 1) : router.push('/analyze/review')}
-          className="flex items-center gap-2 border border-white/[0.08] bg-surface text-t-secondary hover:text-white hover:border-white/[0.15] px-5 py-3 rounded-xl font-medium transition-all text-sm"
+          onClick={() => router.push('/analyze/review')}
+          className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-surface px-5 py-3 text-sm font-medium text-t-secondary transition-all hover:border-white/[0.15] hover:text-white"
         >
-          <ChevronLeft className="w-4 h-4" />
-          {currentSection === 0 ? 'Back to Review' : 'Previous'}
+          <ChevronLeft className="h-4 w-4" />
+          Back to Review
         </button>
 
-        {currentSection < SECTIONS.length - 1 ? (
-          <button
-            onClick={() => setCurrentSection(s => s + 1)}
-            className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-semibold transition-all"
-          >
-            Next Section
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        ) : (
-          <button
-            onClick={handleGenerate}
-            disabled={state.isLoading}
-            className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-all"
-          >
-            {state.isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                {state.loadingMessage || 'Generating report...'}
-              </>
-            ) : (
-              <>
-                Generate Report
-                <ChevronRight className="w-5 h-5" />
-              </>
-            )}
-          </button>
-        )}
+        <button
+          onClick={handleGenerate}
+          disabled={state.isLoading}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 font-semibold text-white transition-all hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-raised disabled:text-t-muted"
+        >
+          {state.isLoading ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              {state.loadingMessage || 'Generating report...'}
+            </>
+          ) : (
+            <>
+              Generate Report
+              <ChevronRight className="h-5 w-5" />
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
