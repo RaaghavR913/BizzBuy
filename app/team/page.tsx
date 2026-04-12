@@ -69,7 +69,7 @@ export default function TeamPage() {
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-16">
-          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-white mb-4">
+          <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4">
             Meet the Founders
           </h1>
           <p className="text-lg text-t-secondary max-w-2xl mx-auto">

@@ -167,7 +167,7 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-14"
           >
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">What you get in the report</h2>
+            <h2 className="font-sans text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">What you get in the report</h2>
             <p className="text-t-secondary text-lg">
               A complete acquisition analysis report with 9 sections designed for the non-expert buyer.
             </p>
@@ -207,7 +207,7 @@ export default function HomePage() {
             <div className="w-12 h-12 bg-accent/10 border border-accent/20 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Lock className="w-6 h-6 text-accent" />
             </div>
-            <h2 className="font-display text-2xl font-bold text-white mb-2">Welcome back</h2>
+            <h2 className="font-sans text-2xl font-bold tracking-tight text-white mb-2">Welcome back</h2>
             <p className="text-sm text-t-secondary">Sign in to your account to access saved reports</p>
           </div>
           <LoginCard />
@@ -224,7 +224,7 @@ export default function HomePage() {
           transition={{ duration: 0.7 }}
           className="max-w-3xl mx-auto text-center relative"
         >
-          <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="font-sans text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
             Ready to evaluate your deal?
           </h2>
           <p className="text-lg text-t-secondary mb-8">
