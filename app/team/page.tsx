@@ -8,52 +8,58 @@ export const metadata: Metadata = {
 
 const FOUNDERS = [
   {
-    name: 'Founder 1',
-    role: 'CEO & Co-Founder',
-    initials: 'F1',
-    bio: 'Passionate about democratizing business acquisition intelligence.',
+    name: 'Jainam Manot',
+    role: 'UI/UX & Business Logic',
+    initials: 'JM',
+    bio: '',
     gradient: 'from-accent to-violet-400',
-    linkedin: '#',
+    linkedin: 'https://www.linkedin.com/in/jainam-manot/',
+    image: '',
   },
   {
-    name: 'Founder 2',
-    role: 'CTO & Co-Founder',
-    initials: 'F2',
-    bio: 'Building the AI engine that powers every BizzBuy report.',
+    name: 'Akshat Lunia',
+    role: 'Lead Backend Developer',
+    initials: 'AL',
+    bio: '',
     gradient: 'from-violet-400 to-purple-400',
-    linkedin: '#',
+    linkedin: 'https://www.linkedin.com/in/akshat-lunia/',
+    image: '',
   },
   {
-    name: 'Founder 3',
-    role: 'COO & Co-Founder',
-    initials: 'F3',
-    bio: 'Expert in business valuations and acquisition workflows.',
+    name: 'Raaghav Ramji',
+    role: 'Agent creator & AI Wizard',
+    initials: 'RR',
+    bio: '',
     gradient: 'from-purple-400 to-pink-400',
-    linkedin: '#',
+    linkedin: 'https://www.linkedin.com/in/raaghavramji/',
+    image: '',
   },
   {
-    name: 'Founder 4',
-    role: 'Head of Product',
-    initials: 'F4',
-    bio: 'Designing intuitive experiences for complex financial decisions.',
+    name: '',
+    role: '',
+    initials: '',
+    bio: '',
     gradient: 'from-pink-400 to-rose-400',
-    linkedin: '#',
+    linkedin: '',
+    image: '',
   },
   {
-    name: 'Founder 5',
-    role: 'Lead Engineer',
-    initials: 'F5',
-    bio: 'Full-stack builder turning AI research into reliable products.',
+    name: '',
+    role: '',
+    initials: '',
+    bio: '',
     gradient: 'from-rose-400 to-orange-400',
-    linkedin: '#',
+    linkedin: '',
+    image: '',
   },
   {
-    name: 'Founder 6',
-    role: 'Head of Growth',
-    initials: 'F6',
-    bio: 'Connecting BizzBuy with buyers who need it most.',
+    name: '',
+    role: '',
+    initials: '',
+    bio: '',
     gradient: 'from-orange-400 to-amber-400',
-    linkedin: '#',
+    linkedin: '',
+    image: '',
   },
 ];
 
@@ -63,7 +69,7 @@ export default function TeamPage() {
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-16">
-          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-white mb-4">
+          <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4">
             Meet the Founders
           </h1>
           <p className="text-lg text-t-secondary max-w-2xl mx-auto">
@@ -73,34 +79,50 @@ export default function TeamPage() {
 
         {/* Founders Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {FOUNDERS.map((founder, i) => (
-            <div
-              key={founder.name}
-              className="group bg-surface border border-white/[0.06] rounded-2xl p-6 hover:border-accent/30 hover:-translate-y-1 transition-all duration-300"
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
-              {/* Avatar */}
-              <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${founder.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:shadow-xl transition-shadow`}>
-                <span className="text-lg font-bold text-white">{founder.initials}</span>
-              </div>
-
-              {/* Info */}
-              <h3 className="text-base font-bold text-white mb-0.5">{founder.name}</h3>
-              <p className="text-sm text-accent font-medium mb-3">{founder.role}</p>
-              <p className="text-sm text-t-secondary leading-relaxed mb-4">{founder.bio}</p>
-
-              {/* LinkedIn */}
-              <a
-                href={founder.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-t-muted hover:text-accent transition-colors"
+          {FOUNDERS.map((founder, i) => 
+            founder.name ? (
+              <div
+                key={founder.name}
+                className="group bg-surface border border-white/[0.06] rounded-2xl p-6 hover:border-accent/30 hover:-translate-y-1 transition-all duration-300"
+                style={{ animationDelay: `${i * 80}ms` }}
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                LinkedIn
-              </a>
-            </div>
-          ))}
+                {/* Avatar */}
+                {founder.image ? (
+                  <div className="w-16 h-16 rounded-full overflow-hidden mb-4 shadow-lg group-hover:shadow-xl transition-shadow border-2 border-white/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={founder.image} alt={founder.name} className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${founder.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:shadow-xl transition-shadow`}>
+                    <span className="text-lg font-bold text-white">{founder.initials}</span>
+                  </div>
+                )}
+                
+                {/* Info */}
+                <h3 className="text-base font-bold text-white mb-0.5">{founder.name}</h3>
+                <p className="text-sm text-accent font-medium mb-3">{founder.role}</p>
+                <p className="text-sm text-t-secondary leading-relaxed mb-4">{founder.bio}</p>
+
+                {/* LinkedIn */}
+                {founder.linkedin && (
+                  <a
+                    href={founder.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-t-muted hover:text-accent transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    LinkedIn
+                  </a>
+                )}
+              </div>
+            ) : (
+              <div
+                key={`empty-${i}`}
+                className="bg-surface/50 border border-white/[0.02] border-dashed rounded-2xl p-6 opacity-50"
+              />
+            )
+          )}
         </div>
       </div>
     </div>

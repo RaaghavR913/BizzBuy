@@ -14,6 +14,8 @@ import {
 } from '@/lib/clarification-service';
 import type { ClarificationQuestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Slider } from '@/components/ui/slider';
+import { BlurText } from '@/components/ui/blur-text';
 
 type ResponseValue = string | number | boolean | null;
 

@@ -26,7 +26,7 @@ export default function PricingPage() {
       <div className="max-w-3xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-16">
-          <h1 className="font-display text-4xl sm:text-5xl font-extrabold text-white mb-4">
+          <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4">
             Simple, transparent pricing
           </h1>
           <p className="text-lg text-t-secondary max-w-xl mx-auto">

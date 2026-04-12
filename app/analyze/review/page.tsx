@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, ChevronLeft, Info, AlertCircle, Plus, Trash2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Info, AlertCircle, Plus, Trash2, CheckCircle2, Calculator } from 'lucide-react';
 import { useAnalysis } from '@/context/AnalysisContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SpotlightCard } from '@/components/ui/spotlight-card';
+import { ShinyText } from '@/components/ui/shiny-text';
 import type { FinancialData, IncomeStatement, BalanceSheet, LoanTerms, AddBack } from '@/lib/types';
 import { formatCurrency } from '@/lib/calculations';
 
@@ -32,10 +34,10 @@ function NumericInput({
 
   return (
     <div className="space-y-1.5">
-      <Label className="text-sm font-medium text-t-secondary">{label}</Label>
-      <div className="relative">
+      <Label className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">{label}</Label>
+      <div className="relative group">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-t-muted text-sm">{prefix}</span>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-blue-400 transition-colors z-10">{prefix}</span>
         )}
         <Input
           type="number"
@@ -45,11 +47,11 @@ function NumericInput({
             const num = parseFloat(e.target.value);
             onChange(isNaN(num) ? null : num);
           }}
-          className={`bg-raised border-white/[0.08] text-white placeholder:text-t-muted focus:ring-accent/50 focus:border-accent/30 ${prefix ? 'pl-7' : ''}`}
-          placeholder="0"
+          className={`h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white placeholder:text-slate-500 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 shadow-inner rounded-xl transition-all duration-200 ${prefix ? 'pl-8' : 'pl-4'}`}
+          placeholder="0.00"
         />
       </div>
-      {hint && <p className="text-xs text-t-muted">{hint}</p>}
+      {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
     </div>
   );
 }
@@ -59,11 +61,11 @@ function ConfidenceBadge({ confidence }: { confidence?: number }) {
   const pct = Math.round(confidence * 100);
   const color = pct >= 85 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' :
     pct >= 70 ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20' :
-      'text-red-400 bg-red-500/10 border-red-500/20';
+      'text-red-400 bg-red-400/10 border-red-500/20';
   return (
-    <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded border font-medium ${color}`}>
-      <Info className="w-3 h-3" />
-      {pct}% confidence — please verify
+    <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border shadow-sm ${color}`}>
+      {pct >= 85 ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Info className="w-3.5 h-3.5" />}
+      <span className="font-semibold">{pct}% confidence</span>
     </span>
   );
 }
@@ -162,45 +164,56 @@ export default function ReviewPage() {
   ];
 
   return (
-    <div className="animate-fade-in-up">
-      <div className="mb-8">
-        <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-xs text-accent font-medium mb-3">
+    <div className="max-w-4xl mx-auto w-full pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Header Section */}
+      <div className="mb-10 text-center space-y-4">
+        <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 text-xs text-blue-400 font-semibold uppercase tracking-wider backdrop-blur-sm">
+          <Calculator className="w-4 h-4" />
           Step 2 of 4
         </div>
-        <h1 className="text-2xl font-display font-bold text-white mb-2">Review Financial Data</h1>
-        <p className="text-t-secondary">
-          Confirm or fill in the financial data below. This is used for all calculations.
+        <h1 className="text-4xl font-extrabold tracking-tight">
+          <ShinyText text="Review Financial Data" className="text-white" />
+        </h1>
+        <p className="text-slate-400 max-w-xl mx-auto text-lg">
+          Please verify or fill in the financial details below to refine our analysis.
         </p>
       </div>
 
       {data.parsingNotes && data.parsingNotes.length > 0 && (
-        <div className="mb-6 space-y-2">
+        <div className="mb-8 space-y-3">
           {data.parsingNotes.map((note, i) => (
-            <div key={i} className="flex items-start gap-2 text-sm text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-4 py-3">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              {note}
+            <div key={i} className="flex items-start gap-3 text-sm text-yellow-200 bg-yellow-500/10 border border-yellow-500/20 shadow-lg rounded-xl px-5 py-4 backdrop-blur-md">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-yellow-500" />
+              <div className="leading-relaxed">{note}</div>
             </div>
           ))}
         </div>
       )}
 
-      <Tabs defaultValue="income" className="space-y-6">
-        <TabsList className="grid grid-cols-4 w-full bg-raised border border-white/[0.06]">
-          <TabsTrigger value="income" className="data-[state=active]:bg-accent data-[state=active]:text-white text-t-secondary">Income</TabsTrigger>
-          <TabsTrigger value="balance" className="data-[state=active]:bg-accent data-[state=active]:text-white text-t-secondary">Balance Sheet</TabsTrigger>
-          <TabsTrigger value="loan" className="data-[state=active]:bg-accent data-[state=active]:text-white text-t-secondary">Loan Terms</TabsTrigger>
-          <TabsTrigger value="deal" className="data-[state=active]:bg-accent data-[state=active]:text-white text-t-secondary">Deal Info</TabsTrigger>
+      {/* Main Tabs UI */}
+      <Tabs defaultValue="income" className="flex flex-col space-y-8 w-full">
+        <TabsList className="flex flex-row flex-wrap w-full bg-white/[0.03] p-1.5 rounded-2xl border border-white/10 shadow-inner overflow-hidden">
+          <TabsTrigger value="income" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Income</TabsTrigger>
+          <TabsTrigger value="balance" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Balance Sheet</TabsTrigger>
+          <TabsTrigger value="loan" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Loan Terms</TabsTrigger>
+          <TabsTrigger value="deal" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Deal Info</TabsTrigger>
         </TabsList>
 
-        {/* Income Statement */}
-        <TabsContent value="income" className="space-y-6">
-          <div className="bg-surface border border-white/[0.06] rounded-xl p-6 space-y-5">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-white">Income Statement / P&L</h3>
+        <SpotlightCard className="p-8">
+          {/* Subtle accent glow */}
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          {/* Income Statement */}
+          <TabsContent value="income" className="space-y-8 m-0 w-full animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                Income Statement / P&L
+              </h3>
               {/* @ts-expect-error confidence is on parsed data */}
               {data.incomeStatement?.confidence && <ConfidenceBadge confidence={data.incomeStatement.confidence as number} />}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <NumericInput label="Total Revenue" value={data.incomeStatement?.revenue} onChange={(v) => updateIS({ revenue: v ?? 0 })} hint="Trailing 12 months or most recent annual" />
               <NumericInput label="Cost of Goods Sold (COGS)" value={data.incomeStatement?.cogs} onChange={(v) => updateIS({ cogs: v ?? 0 })} />
               <NumericInput label="Operating Expenses" value={data.incomeStatement?.operatingExpenses} onChange={(v) => updateIS({ operatingExpenses: v ?? 0 })} hint="Excludes COGS and owner salary" />
@@ -209,57 +222,74 @@ export default function ReviewPage() {
               <NumericInput label="Depreciation & Amortization" value={data.incomeStatement?.depreciationAmortization} onChange={(v) => updateIS({ depreciationAmortization: v ?? undefined })} />
             </div>
 
-            <div className="space-y-3">
+            <div className="pt-6 border-t border-white/10 space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium text-t-secondary">Add-Backs</Label>
-                <button onClick={addAddBack} className="text-sm text-accent hover:text-accent-hover flex items-center gap-1 transition-colors">
-                  <Plus className="w-3.5 h-3.5" />Add add-back
+                <h4 className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">Add-Backs</h4>
+                <button onClick={addAddBack} className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors font-semibold px-3 py-1.5 hover:bg-blue-500/10 rounded-lg">
+                  <Plus className="w-4 h-4" /> Add Add-back
                 </button>
               </div>
-              {(data.incomeStatement?.addBacks ?? []).map((ab, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <Input
-                    placeholder="Description"
-                    value={ab.description}
-                    onChange={(e) => updateAddBack(i, { description: e.target.value })}
-                    className="flex-1 bg-raised border-white/[0.08] text-white placeholder:text-t-muted"
-                  />
-                  <div className="relative w-32">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-t-muted text-sm">$</span>
-                    <Input
-                      type="number"
-                      value={ab.amount}
-                      onChange={(e) => updateAddBack(i, { amount: parseFloat(e.target.value) || 0 })}
-                      className="pl-7 w-32 bg-raised border-white/[0.08] text-white"
-                    />
-                  </div>
-                  <button onClick={() => removeAddBack(i)} className="text-t-muted hover:text-risk-critical transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+              
+              {(!data.incomeStatement?.addBacks || data.incomeStatement.addBacks.length === 0) && (
+                <div className="text-center py-6 bg-white/[0.02] border border-dashed border-white/10 rounded-xl text-slate-500 text-sm">
+                  No add-backs specified. Click "Add Add-back" to include one.
                 </div>
-              ))}
+              )}
+
+              <div className="space-y-3">
+                {(data.incomeStatement?.addBacks ?? []).map((ab, i) => (
+                  <div key={i} className="flex flex-col sm:flex-row items-center gap-3 bg-white/[0.02] p-2 rounded-xl border border-white/5">
+                    <Input
+                      placeholder="Description (e.g. Personal Vehicle)"
+                      value={ab.description}
+                      onChange={(e) => updateAddBack(i, { description: e.target.value })}
+                      className="flex-1 h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white placeholder:text-slate-500 focus:bg-white/[0.06] rounded-lg transition-all"
+                    />
+                    <div className="relative w-full sm:w-40">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
+                      <Input
+                        type="number"
+                        value={ab.amount}
+                        onChange={(e) => updateAddBack(i, { amount: parseFloat(e.target.value) || 0 })}
+                        className="pl-8 h-11 w-full bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-lg transition-all"
+                        placeholder="Amount"
+                      />
+                    </div>
+                    <button onClick={() => removeAddBack(i)} className="p-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all" title="Remove">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {data.incomeStatement?.revenue && data.incomeStatement.revenue > 0 && (
-              <div className="bg-accent/10 border border-accent/20 rounded-lg px-4 py-3 text-sm text-accent">
-                <strong>SDE estimate:</strong>{' '}
-                {formatCurrency(
-                  (data.incomeStatement.netIncome ?? 0) +
-                  (data.incomeStatement.ownerSalary ?? 0) +
-                  (data.incomeStatement.addBacks?.reduce((s, a) => s + a.amount, 0) ?? 0) +
-                  (data.incomeStatement.depreciationAmortization ?? 0)
-                )}{' '}
-                (net income + owner salary + add-backs + D&A)
+              <div className="bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/30 rounded-xl p-5 flex items-start gap-4">
+                <div className="bg-blue-500/20 p-2.5 rounded-lg text-blue-400">
+                  <Calculator className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm text-slate-300 font-medium mb-1">Estimated SDE (Seller\'s Discretionary Earnings)</div>
+                  <div className="text-2xl font-bold text-white tracking-tight">
+                    {formatCurrency(
+                      (data.incomeStatement.netIncome ?? 0) +
+                      (data.incomeStatement.ownerSalary ?? 0) +
+                      (data.incomeStatement.addBacks?.reduce((s, a) => s + a.amount, 0) ?? 0) +
+                      (data.incomeStatement.depreciationAmortization ?? 0)
+                    )}
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1">Calculated as: Net income + Owner salary + Add-backs + D&A</div>
+                </div>
               </div>
             )}
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Balance Sheet */}
-        <TabsContent value="balance" className="space-y-6">
-          <div className="bg-surface border border-white/[0.06] rounded-xl p-6 space-y-5">
-            <h3 className="font-semibold text-white">Balance Sheet (optional but recommended)</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Balance Sheet */}
+          <TabsContent value="balance" className="space-y-8 m-0 w-full animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+               <h3 className="text-xl font-bold text-white">Balance Sheet <span className="text-sm font-normal text-slate-400 ml-2">(Optional but recommended)</span></h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <NumericInput label="Current Assets" value={data.balanceSheet?.currentAssets} onChange={(v) => updateBS({ currentAssets: v ?? 0 })} hint="Cash + receivables + inventory" />
               <NumericInput label="Current Liabilities" value={data.balanceSheet?.currentLiabilities} onChange={(v) => updateBS({ currentLiabilities: v ?? 0 })} hint="Payables + short-term debt" />
               <NumericInput label="Total Assets" value={data.balanceSheet?.totalAssets} onChange={(v) => updateBS({ totalAssets: v ?? 0 })} />
@@ -268,93 +298,102 @@ export default function ReviewPage() {
               <NumericInput label="Cash & Equivalents" value={data.balanceSheet?.cashAndEquivalents} onChange={(v) => updateBS({ cashAndEquivalents: v ?? undefined })} />
             </div>
             {data.balanceSheet?.currentAssets && data.balanceSheet.currentLiabilities ? (
-              <div className="bg-accent/10 border border-accent/20 rounded-lg px-4 py-3 text-sm text-accent">
-                <strong>Working capital:</strong>{' '}
-                {formatCurrency(data.balanceSheet.currentAssets - data.balanceSheet.currentLiabilities)}
-                {data.balanceSheet.currentAssets < data.balanceSheet.currentLiabilities && (
-                  <span className="text-risk-critical font-medium ml-1">(negative — flag!)</span>
-                )}
+              <div className="bg-slate-800/50 border border-white/10 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-slate-300 font-medium mb-1">Working Capital</div>
+                  <div className="text-xl font-bold flex items-center gap-2">
+                    <span className="text-white">{formatCurrency(data.balanceSheet.currentAssets - data.balanceSheet.currentLiabilities)}</span>
+                    {data.balanceSheet.currentAssets < data.balanceSheet.currentLiabilities && (
+                      <span className="text-red-400 text-sm font-medium bg-red-400/10 border border-red-500/20 px-2.5 py-0.5 rounded-md ml-2">Negative Warning</span>
+                    )}
+                  </div>
+                </div>
               </div>
             ) : null}
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Loan Terms */}
-        <TabsContent value="loan" className="space-y-6">
-          <div className="bg-surface border border-white/[0.06] rounded-xl p-6 space-y-5">
-            <h3 className="font-semibold text-white">Loan Terms / Financing</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Loan Terms */}
+          <TabsContent value="loan" className="space-y-8 m-0 w-full animate-in fade-in zoom-in-95 duration-300">
+             <div className="flex items-center justify-between border-b border-white/10 pb-4">
+               <h3 className="text-xl font-bold text-white">Loan Terms / Financing</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <NumericInput label="Loan Amount" value={data.loanTerms?.loanAmount} onChange={(v) => updateLT({ loanAmount: v ?? 0 })} />
               <NumericInput label="Down Payment" value={data.loanTerms?.downPayment} onChange={(v) => updateLT({ downPayment: v ?? undefined })} />
               <NumericInput
-                label="Interest Rate (%)"
+                label="Interest Rate"
                 value={data.loanTerms?.interestRate ? data.loanTerms.interestRate * 100 : undefined}
                 onChange={(v) => updateLT({ interestRate: v !== null ? v / 100 : 0 })}
                 prefix="%"
                 hint="Annual interest rate, e.g. 8.5"
               />
               <NumericInput label="Loan Term (months)" value={data.loanTerms?.termMonths} onChange={(v) => updateLT({ termMonths: v ?? 0 })} prefix="" hint="e.g. 120 for 10 years" />
-              <NumericInput label="Monthly Payment (if known)" value={data.loanTerms?.monthlyPayment} onChange={(v) => updateLT({ monthlyPayment: v ?? undefined })} hint="Leave blank to auto-calculate" />
+              <NumericInput label="Monthly Payment" value={data.loanTerms?.monthlyPayment} onChange={(v) => updateLT({ monthlyPayment: v ?? undefined })} hint="Leave blank to auto-calculate" />
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Deal Info */}
-        <TabsContent value="deal" className="space-y-6">
-          <div className="bg-surface border border-white/[0.06] rounded-xl p-6 space-y-5">
-            <h3 className="font-semibold text-white">Deal Information</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Deal Info */}
+          <TabsContent value="deal" className="space-y-8 m-0 w-full animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+               <h3 className="text-xl font-bold text-white">Deal Information</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               <NumericInput label="Asking Price" value={askingPrice} onChange={(v) => setAskingPrice(v)} />
               <NumericInput label="Years in Operation" value={yearsOp} onChange={(v) => setYearsOp(v)} prefix="" />
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-t-secondary">Business Type</Label>
+                <Label className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">Business Type</Label>
                 <Select value={businessType} onValueChange={(v) => setBusinessType(v ?? '')}>
-                  <SelectTrigger className="bg-raised border-white/[0.08] text-white"><SelectValue placeholder="Select type..." /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-xl focus:ring-2 focus:ring-blue-500/40">
+                    <SelectValue placeholder="Select industry..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-white/10 text-white rounded-xl backdrop-blur-xl">
                     {BUSINESS_TYPES.map((t) => (
-                      <SelectItem key={t} value={t.toLowerCase().replace(/ /g, '_')}>{t}</SelectItem>
+                      <SelectItem key={t} value={t.toLowerCase().replace(/ /g, '_')} className="hover:bg-white/5 focus:bg-white/10 cursor-pointer">{t}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-t-secondary">Reason for Sale</Label>
+                <Label className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">Reason for Sale</Label>
                 <Select value={reasonForSale} onValueChange={(v) => setReasonForSale(v ?? '')}>
-                  <SelectTrigger className="bg-raised border-white/[0.08] text-white"><SelectValue placeholder="Select reason..." /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-xl focus:ring-2 focus:ring-blue-500/40">
+                    <SelectValue placeholder="Select reason..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-800 border-white/10 text-white rounded-xl backdrop-blur-xl">
                     {['Retirement', 'New Opportunity', 'Health Reasons', 'Partnership Dispute', 'Financial Difficulties', 'Relocating', 'Unknown'].map((r) => (
-                      <SelectItem key={r} value={r.toLowerCase()}>{r}</SelectItem>
+                      <SelectItem key={r} value={r.toLowerCase()} className="hover:bg-white/5 focus:bg-white/10 cursor-pointer">{r}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-          </div>
-        </TabsContent>
+          </TabsContent>
+        </SpotlightCard>
       </Tabs>
 
-      <div className="mt-8 flex gap-3">
+      <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center w-full">
         <button
           onClick={() => router.push('/analyze/upload')}
-          className="flex items-center gap-2 border border-white/[0.08] bg-surface text-t-secondary hover:text-white hover:border-white/[0.15] px-5 py-3 rounded-xl font-medium transition-all text-sm"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-slate-300 hover:text-white px-6 py-4 rounded-2xl font-medium transition-all text-sm shadow-sm"
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-5 h-5" />
           Back
         </button>
         <button
           onClick={handleContinue}
           disabled={!hasIncomeData}
-          className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl font-semibold transition-all"
+          className="w-full sm:flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-blue-900/20 hover:shadow-blue-900/40 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
         >
           Continue to Risk Assessment
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-6 h-6" />
         </button>
       </div>
       {!hasIncomeData && (
-        <p className="text-center text-xs text-t-muted mt-3">
-          Enter at least Revenue and Net Income in the Income tab to continue.
+        <p className="text-center text-sm font-medium text-slate-400 mt-6 animate-pulse">
+          Please enter <strong className="text-white">Revenue</strong> and <strong className="text-white">Net Income</strong> to proceed.
         </p>
       )}
     </div>
   );
 }
+

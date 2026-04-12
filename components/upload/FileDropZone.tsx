@@ -191,6 +191,7 @@ export function FileDropZone({
           ))}
         </div>
         <p className="text-xs text-t-muted mt-3">Max {maxFiles} files · {maxSizeMB}MB per file</p>
+        </div>
       </div>
 
       {error && (
