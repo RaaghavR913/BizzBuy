@@ -192,7 +192,6 @@ export function FileDropZone({
         </div>
         <p className="text-xs text-t-muted mt-3">Max {maxFiles} files · {maxSizeMB}MB per file</p>
         </div>
-      </div>
 
       {error && (
         <div className="flex items-center gap-2 text-risk-critical text-sm bg-risk-critical/10 border border-risk-critical/20 rounded-lg px-4 py-3">
