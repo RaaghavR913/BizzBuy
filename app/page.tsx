@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArrowRight, ShieldCheck, TrendingUp, Users, FileText, BarChart3, CheckCircle2, Lock, Mail, Eye, EyeOff } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { TiltedCard } from '@/components/ui/tilted-card';
 import { SplitText } from '@/components/ui/split-text';
 import { BlurText } from '@/components/ui/blur-text';
@@ -120,37 +120,68 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-surface/50">
-        <div className="max-w-4xl mx-auto">
+      <section className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-surface/50">
+        <div className="max-w-7xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="flex justify-center w-full mb-16"
+            className="flex justify-center w-full mb-12"
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-white text-center">
-              <SplitText text="From documents to decision in 4 steps" delay={0.04} />
+              <SplitText text="From documents to decision in 5 steps" delay={0.04} />
             </h2>
           </motion.div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+          {/* Desktop/Tablet Horizontal Timeline */}
+          <div className="hidden md:flex relative items-start justify-between w-full mt-12 px-8">
+             {/* Connecting Line */}
+             <div className="absolute top-[32px] left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-accent/0 via-accent/40 to-accent/0 z-0" />
+             
+             {/* Nodes */}
+             {[
+               { step: '01', title: 'Upload Financials', desc: 'Drop in your P&L, balance sheet, and loan term sheet. Our AI extracts the data.' },
+               { step: '02', title: 'Confirm Data', desc: 'Review extracted figures and correct any mistakes before analysis.' },
+               { step: '03', title: 'Risk Questions', desc: '6 sections covering ownership, customers, revenue, employees, suppliers, and financials.' },
+               { step: '04', title: 'AI & Monte Carlo', desc: '10 AI agents review your deal, running 10,000 Monte Carlo scenarios modeled 5 years into the future showing down, mid, and up cases.' },
+               { step: '05', title: 'Get Your Report', desc: 'A complete acquisition analysis with scores, seller questions, and a final recommendation.' },
+             ].map((step, i) => (
+                <motion.div 
+                  key={step.step}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="flex-1 flex justify-center"
+                >
+                  <TimelineNode {...step} index={i} />
+                </motion.div>
+             ))}
+          </div>
+
+          {/* Mobile Vertical Timeline */}
+          <div className="flex md:hidden flex-col gap-6 mt-12 w-full">
             {[
-              { step: '01', title: 'Upload Financials', desc: 'Drop in your P&L, balance sheet, and loan term sheet. Our AI extracts the data.' },
-              { step: '02', title: 'Confirm Data', desc: 'Review extracted figures and correct any mistakes before analysis.' },
-              { step: '03', title: 'Answer Risk Questions', desc: '6 sections covering ownership, customers, revenue, employees, suppliers, and financials.' },
-              { step: '04', title: 'Get Your Report', desc: 'A complete acquisition analysis with scores, seller questions, and a final recommendation.' },
-            ].map(({ step, title, desc }, i) => (
+               { step: '01', title: 'Upload Financials', desc: 'Drop in your P&L, balance sheet, and loan term sheet. Our AI extracts the data.' },
+               { step: '02', title: 'Confirm Data', desc: 'Review extracted figures and correct any mistakes before analysis.' },
+               { step: '03', title: 'Risk Questions', desc: '6 sections covering ownership, customers, revenue, employees, suppliers, and financials.' },
+               { step: '04', title: 'AI & Monte Carlo', desc: '10 AI agents review your deal, running 10,000 Monte Carlo scenarios modeled 5 years into the future showing down, mid, and up cases.' },
+               { step: '05', title: 'Get Your Report', desc: 'A complete acquisition analysis with scores, seller questions, and a final recommendation.' },
+             ].map((step, i) => (
               <motion.div 
-                key={step} 
-                initial={{ opacity: 0, y: 30 }}
+                key={step.step} 
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="flex flex-col items-start gap-3"
+                className="flex gap-4 items-start bg-surface p-5 rounded-2xl border border-white/[0.05]"
               >
-                <span className="text-5xl font-sans font-black tracking-tight text-accent/30 leading-none">{step}</span>
-                <h3 className="text-base font-bold text-white">{title}</h3>
-                <p className="text-sm text-t-secondary leading-relaxed">{desc}</p>
+                <div className="w-12 h-12 shrink-0 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-accent font-bold text-lg">{step.step}</div>
+                <div>
+                  <h3 className="text-white font-bold mb-2">{step.title}</h3>
+                  <p className="text-sm text-t-secondary leading-relaxed">{step.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -361,6 +392,45 @@ function LoginCard() {
           Create one
         </button>
       </p>
+    </div>
+  );
+}
+
+function TimelineNode({ step, title, desc, index }: { step: string, title: string, desc: string, index: number }) {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  return (
+    <div 
+      className="relative flex flex-col items-center w-full max-w-[200px] z-10 cursor-pointer group"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div 
+        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-accent bg-surface flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-accent group-hover:shadow-[0_0_30px_rgba(109,40,217,0.4)]"
+      >
+        <span className="font-sans font-black text-lg sm:text-xl text-accent group-hover:text-white transition-colors">{step}</span>
+      </div>
+      
+      <h3 
+        className="mt-6 text-xs sm:text-sm font-bold text-center uppercase tracking-wider transition-all duration-300 text-white/60 group-hover:text-white group-hover:-translate-y-1 px-2"
+      >
+        {title}
+      </h3>
+
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 15, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute top-28 w-64 p-5 bg-surface border border-white/[0.08] rounded-2xl shadow-2xl z-50 pointer-events-none"
+          >
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-surface border-t border-l border-white/[0.08] rotate-45" />
+            <p className="text-sm text-t-secondary leading-relaxed text-center relative z-10">{desc}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
