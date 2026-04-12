@@ -4,6 +4,8 @@ import './globals.css';
 import { AnalysisProvider } from '@/context/AnalysisContext';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { FluidBackground } from '@/components/ui/fluid-background';
+import { SmoothScroll } from '@/components/layout/SmoothScroll';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const syne = Syne({ subsets: ['latin'], variable: '--font-display', weight: ['700', '800'] });
@@ -26,12 +28,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${syne.variable} ${jetbrainsMono.variable}`}>
-      <body className="font-sans antialiased min-h-screen flex flex-col">
-        <AnalysisProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </AnalysisProvider>
+      <body className="font-sans antialiased min-h-screen flex flex-col bg-transparent text-slate-100">
+        <SmoothScroll>
+          <FluidBackground />
+          <AnalysisProvider>
+            <Header />
+            <main className="flex-1 w-full">{children}</main>
+            <Footer />
+          </AnalysisProvider>
+        </SmoothScroll>
       </body>
     </html>
   );

@@ -79,7 +79,7 @@ function UploadContent() {
         <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-xs text-accent font-medium mb-3">
           Step 1 of 4
         </div>
-        <h1 className="text-2xl font-display font-bold text-white mb-2">Upload Your Documents</h1>
+        <h1 className="text-2xl font-sans tracking-tight font-bold text-white mb-2">Upload Your Documents</h1>
         <p className="text-t-secondary">
           Upload the business&apos;s financial documents. We&apos;ll extract the data using AI and
           ask you to confirm before analysis.
