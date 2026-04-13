@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 from app.agents.schemas import DocumentType
 
-CLASSIFIER_MODEL = "claude-haiku-4-5-20251001"
+CLASSIFIER_MODEL = "claude-sonnet-4-6"
 MAX_RETRIES = 1
 MAX_TEXT_PREVIEW_CHARS = 8000
 MAX_CSV_ROWS = 30
