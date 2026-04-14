@@ -11,6 +11,38 @@ import { ingestDocuments, parseDocuments } from '@/lib/api-client';
 import { DEMO_FINANCIAL_DATA } from '@/lib/demo-data';
 import type { ClassifiedFileResult, FinancialData } from '@/lib/types';
 
+/**
+ * Pair each local file row with a classification by original name and size.
+ * Each server result is consumed at most once so duplicate filenames map correctly.
+ */
+function pairUploadsWithClassifications(
+  items: FileItem[],
+  classifiedFiles: ClassifiedFileResult[],
+): Array<{ item: FileItem; classified: ClassifiedFileResult | null }> {
+  const used = new Set<number>();
+  return items.map((item, itemIndex) => {
+    let idx = classifiedFiles.findIndex(
+      (cf, i) =>
+        !used.has(i) &&
+        cf.originalName === item.file.name &&
+        cf.sizeBytes === item.file.size,
+    );
+    // Backend exception stubs use sizeBytes=0 while the browser File still has the real size.
+    if (idx === -1 && itemIndex < classifiedFiles.length && !used.has(itemIndex)) {
+      const atIndex = classifiedFiles[itemIndex];
+      if (
+        atIndex.originalName === item.file.name &&
+        (atIndex.sizeBytes === item.file.size || atIndex.sizeBytes === 0)
+      ) {
+        idx = itemIndex;
+      }
+    }
+    if (idx === -1) return { item, classified: null };
+    used.add(idx);
+    return { item, classified: classifiedFiles[idx] };
+  });
+}
+
 function UploadContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -57,16 +89,23 @@ function UploadContent() {
 
       const result = await ingestDocuments(files.map((f) => f.file));
 
-      setFiles((prev) =>
-        prev.map((f) => {
-          const classified = result.files.find((cf) => cf.originalName === f.file.name);
+      setFiles((prev) => {
+        const pairs = pairUploadsWithClassifications(prev, result.files);
+        return pairs.map(({ item: f, classified }) => {
+          if (!classified) {
+            return {
+              ...f,
+              classificationStatus: 'error' as const,
+              documentType: 'unknown',
+            };
+          }
           return {
             ...f,
-            classificationStatus: classified?.error ? 'error' as const : 'classified' as const,
-            documentType: classified?.detectedType || 'unknown',
+            classificationStatus: classified.error ? ('error' as const) : ('classified' as const),
+            documentType: classified.detectedType || 'unknown',
           };
-        })
-      );
+        });
+      });
 
       setClassifiedFiles(result.files);
       setIsClassified(true);
