@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+import base64
 import json
+import mimetypes
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, Iterable
+from uuid import uuid4
 
 from app.agents.claude_client import call_agent
+from app.agents.mistral_ocr_client import (
+    IngestionResult,
+    MistralOCRError,
+    ocr_document,
+)
 from app.agents.deterministic import (
     AGENT_DISPLAY_NAMES,
     SBA_DEFAULTS,
@@ -39,10 +48,14 @@ from app.agents.schemas import (
     AgentResult,
     CustomerConcentrationOutput,
     DeterministicTag,
+    DocumentInfo,
+    DocumentSection,
+    DocumentStatus,
     DocumentType,
     EvidenceReference,
     FinancialAnalysisOutput,
     FindingCategory,
+    IngestionMetadata,
     IngestionOutput,
     LeaseContractOutput,
     LendingAffordabilityOutput,
@@ -52,9 +65,11 @@ from app.agents.schemas import (
     NormalizedMetric,
     OpsTransferabilityOutput,
     DeterministicScorecard,
+    SectionContentType,
     Severity,
     SynthesisReportOutput,
     TaxComplianceOutput,
+    Timeframe,
 )
 from app.services.ingestion_service import ingest_and_persist_document_payloads
 
@@ -189,6 +204,7 @@ def _copy_result(result: AgentResult[Any], data: Any) -> AgentResult[Any]:
         error=result.error,
         token_usage=result.token_usage,
         latency_ms=result.latency_ms,
+        cost_usd=result.cost_usd,
     )
 
 
@@ -808,21 +824,208 @@ def _normalize_lending_output(
     )
 
 
+_OCR_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tiff"}
+_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls"}
+
+_OCR_MIME_PREFIXES = ("application/pdf", "image/")
+_STRUCTURED_MIMES = {
+    "text/csv",
+    "text/tab-separated-values",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+}
+
+_MISTRAL_TO_DOCUMENT_TYPE: dict[str, DocumentType] = {
+    "pnl_income_statement": DocumentType.PROFIT_AND_LOSS,
+    "balance_sheet": DocumentType.BALANCE_SHEET,
+    "cash_flow_statement": DocumentType.CASH_FLOW_STATEMENT,
+    "tax_return": DocumentType.TAX_RETURN_1120S,
+    "lease_contract": DocumentType.LEASE_AGREEMENT,
+    "ar_aging_report": DocumentType.AR_AGING_REPORT,
+    "bank_statement": DocumentType.OTHER,
+    "business_acquisition_document": DocumentType.CONTRACT,
+    "other": DocumentType.OTHER,
+}
+
+
+def _classify_file_route(filename: str, mime: str) -> str:
+    """Return 'ocr', 'structured', or 'unsupported'."""
+    ext = Path(filename).suffix.lower()
+    if ext in _OCR_EXTENSIONS:
+        return "ocr"
+    if ext in _STRUCTURED_EXTENSIONS:
+        return "structured"
+    if any(mime.startswith(prefix) for prefix in _OCR_MIME_PREFIXES):
+        return "ocr"
+    if mime in _STRUCTURED_MIMES:
+        return "structured"
+    return "unsupported"
+
+
+def _bridge_ocr_to_document_info(
+    ocr_result: IngestionResult,
+    doc_payload: dict[str, Any],
+) -> DocumentInfo:
+    """Convert Mistral IngestionResult to pipeline DocumentInfo.
+
+    Creates one DocumentSection per OCR page, populating raw_text with the
+    page markdown. extracted_data is left empty because OCR produces
+    markdown, not structured key-value pairs. Phase 2 Claude agents
+    compensate by reading raw_text directly.
+    """
+    document_id = doc_payload.get("id") or doc_payload.get("document_id") or str(uuid4())
+    doc_type = _MISTRAL_TO_DOCUMENT_TYPE.get(
+        ocr_result.classification.document_type, DocumentType.OTHER,
+    )
+    mime = doc_payload.get("mime_type") or doc_payload.get("mimeType") or "application/pdf"
+
+    sections: list[DocumentSection] = []
+    for page in ocr_result.pages:
+        sections.append(
+            DocumentSection(
+                section_id=f"{document_id}:page-{page.page_number}",
+                document_id=document_id,
+                document_type=doc_type,
+                timeframe=Timeframe(),
+                extracted_data={},
+                raw_text=page.markdown,
+                confidence=ocr_result.classification.confidence,
+                section_name=f"Page {page.page_number}",
+                page=page.page_number,
+                page_start=page.page_number,
+                page_end=page.page_number,
+                source_format="pdf",
+                content_type=SectionContentType.TEXT,
+                status=DocumentStatus.PARSED,
+                notes=[],
+            )
+        )
+
+    return DocumentInfo(
+        document_id=document_id,
+        file_name=ocr_result.filename,
+        mime_type=mime,
+        document_type=doc_type,
+        declared_type=None,
+        canonical_type=doc_type,
+        size_bytes=None,
+        status=DocumentStatus.PARSED if sections else DocumentStatus.FAILED,
+        confidence=ocr_result.classification.confidence,
+        notes=[
+            f"OCR model: {ocr_result.ocr_model}",
+            f"Classification: {ocr_result.classification.document_type} "
+            f"(confidence={ocr_result.classification.confidence:.2f})",
+            f"Processing time: {ocr_result.processing_time_ms}ms",
+        ],
+        sections=sections,
+    )
+
+
 def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[IngestionOutput]:
     if not documents:
         return AgentResult(
             status="success",
             data=IngestionOutput(
                 documents=[],
-                metadata={
-                    "total_documents": 0,
-                    "successfully_parsed": 0,
-                    "failed_documents": [],
-                    "warnings": ["No documents were provided for ingestion."],
-                },
+                metadata=IngestionMetadata(
+                    total_documents=0,
+                    successfully_parsed=0,
+                    ingestion_source="structured",
+                    failed_documents=[],
+                    warnings=["No documents were provided for ingestion."],
+                ),
             ),
         )
-    return AgentResult(status="success", data=ingest_and_persist_document_payloads(documents))
+
+    ocr_docs: list[dict[str, Any]] = []
+    structured_docs: list[dict[str, Any]] = []
+    unsupported: list[str] = []
+
+    for doc in documents:
+        filename = doc.get("filename") or doc.get("file_name") or "unknown"
+        mime = doc.get("mime_type") or doc.get("mimeType") or ""
+        route = _classify_file_route(filename, mime)
+        if route == "ocr":
+            ocr_docs.append(doc)
+        elif route == "structured":
+            structured_docs.append(doc)
+        else:
+            unsupported.append(filename)
+
+    if unsupported and not ocr_docs and not structured_docs:
+        return AgentResult(
+            status="error",
+            error=AgentErrorPayload(
+                agent_name="document-ingestion",
+                error_type="validation",
+                message=f"Unsupported file type(s): {', '.join(unsupported)}. "
+                        f"Supported: PDF, images (PNG/JPG/WEBP/TIFF), and spreadsheets (XLSX/CSV/TSV).",
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                retry_count=0,
+            ),
+        )
+
+    total_cost_usd = 0.0
+    all_document_infos: list[DocumentInfo] = []
+    all_warnings: list[str] = []
+    ingestion_source = "structured"
+
+    for doc in ocr_docs:
+        filename = doc.get("filename") or doc.get("file_name") or "unknown"
+        raw_content = doc.get("content") or doc.get("file_bytes") or b""
+        if isinstance(raw_content, str):
+            file_bytes = base64.b64decode(raw_content)
+        else:
+            file_bytes = raw_content
+
+        try:
+            result = ocr_document(file_bytes, filename)
+        except MistralOCRError as exc:
+            all_warnings.append(f"OCR failed for {filename}: {exc}")
+            doc_id = doc.get("id") or doc.get("document_id") or str(uuid4())
+            all_document_infos.append(
+                DocumentInfo(
+                    document_id=doc_id,
+                    file_name=filename,
+                    mime_type=doc.get("mime_type") or doc.get("mimeType") or "application/octet-stream",
+                    document_type=DocumentType.OTHER,
+                    status=DocumentStatus.FAILED,
+                    confidence=0.0,
+                    notes=[f"OCR error: {exc}"],
+                    sections=[],
+                )
+            )
+            continue
+
+        total_cost_usd += result.cost_usd
+        ingestion_source = "ocr"
+        all_document_infos.append(_bridge_ocr_to_document_info(result, doc))
+
+    if structured_docs:
+        structured_output = ingest_and_persist_document_payloads(structured_docs)
+        all_document_infos.extend(structured_output.documents)
+        all_warnings.extend(structured_output.metadata.warnings)
+
+    if unsupported:
+        all_warnings.append(f"Skipped unsupported file type(s): {', '.join(unsupported)}")
+
+    output = IngestionOutput(
+        documents=all_document_infos,
+        metadata=IngestionMetadata(
+            total_documents=len(all_document_infos),
+            successfully_parsed=sum(
+                1 for d in all_document_infos
+                if d.status in {DocumentStatus.PARSED, DocumentStatus.PARTIAL}
+            ),
+            ingestion_source=ingestion_source,
+            failed_documents=[
+                d.document_id for d in all_document_infos
+                if d.status == DocumentStatus.FAILED
+            ],
+            warnings=all_warnings,
+        ),
+    )
+    return AgentResult(status="success", data=output, cost_usd=total_cost_usd)
 
 
 def run_financial_analysis(ingestion_output: IngestionOutput) -> AgentResult[Any]:
