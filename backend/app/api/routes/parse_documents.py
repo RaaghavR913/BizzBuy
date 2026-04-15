@@ -1,13 +1,52 @@
 from __future__ import annotations
 
+import io
 import json
+from pathlib import Path
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from app.models.schemas import ParseDocumentsResponse
 from app.services.document_parser import parse_documents
 
 router = APIRouter()
+
+MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
+MAX_PAGES = 1000
+
+
+async def _validate_upload(upload: UploadFile) -> bytes:
+    """Read upload bytes, reject if too large or too many pages."""
+    file_bytes = await upload.read()
+    if len(file_bytes) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "file_too_large",
+                "detail": f"{upload.filename} exceeds {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB limit.",
+                "limit_mb": MAX_FILE_SIZE_BYTES // (1024 * 1024),
+            },
+        )
+    suffix = Path(upload.filename or "").suffix.lower()
+    if suffix == ".pdf":
+        try:
+            from pypdf import PdfReader
+            page_count = len(PdfReader(io.BytesIO(file_bytes)).pages)
+            if page_count > MAX_PAGES:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "too_many_pages",
+                        "detail": f"{upload.filename} has {page_count} pages (limit: {MAX_PAGES}).",
+                        "limit": MAX_PAGES,
+                    },
+                )
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+    await upload.seek(0)
+    return file_bytes
 
 
 @router.post("/parse-documents", response_model=ParseDocumentsResponse)
@@ -15,6 +54,9 @@ async def parse_documents_route(
     files: list[UploadFile] = File(...),
     file_types: str = Form(default="[]"),
 ) -> ParseDocumentsResponse:
+    for upload in files:
+        await _validate_upload(upload)
+
     parsed_file_types = json.loads(file_types) if file_types else []
     extracted, ingestion_output = await parse_documents(files, parsed_file_types)
     return ParseDocumentsResponse(

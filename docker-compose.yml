@@ -36,7 +36,6 @@ services:
       - ./tsconfig.json:/app/tsconfig.json
       - ./postcss.config.mjs:/app/postcss.config.mjs
       - ./next.config.mjs:/app/next.config.mjs
-      - frontend-node-modules:/app/node_modules
       - frontend-next-cache:/app/.next
     depends_on:
       backend:
@@ -44,5 +43,4 @@ services:
 
 volumes:
   backend-packages:
-  frontend-node-modules:
   frontend-next-cache:

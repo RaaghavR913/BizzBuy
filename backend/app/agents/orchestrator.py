@@ -32,9 +32,9 @@ from app.services.report_assembler import assemble_summary_report
 from app.services.scoring_engine import compute_pipeline_scorecard
 
 MODEL_PRICING = {
-    "claude-haiku-4-5-20251001": {"input": 0.80, "output": 4.00},
-    "claude-sonnet-4-20250514": {"input": 3.00, "output": 15.00},
-    "claude-opus-4-20250514": {"input": 15.00, "output": 75.00},
+    "claude-sonnet-4-6": {"type": "per_token", "input": 3.00, "output": 15.00},
+    "claude-opus-4-6":   {"type": "per_token", "input": 5.00, "output": 25.00},
+    "mistral-ocr-2512":  {"type": "per_page",  "rate": 0.002},
 }
 
 
@@ -82,9 +82,11 @@ def _result_tokens(result: AgentResult[Any] | None) -> int:
 def _estimate_result_cost(result: AgentResult[Any] | None, registry_key: str) -> float:
     if not result or result.status != "success":
         return 0.0
+    if result.cost_usd > 0.0:
+        return result.cost_usd
     model_name = AGENT_REGISTRY[registry_key].model
     pricing = MODEL_PRICING.get(model_name)
-    if not pricing:
+    if not pricing or pricing.get("type") != "per_token":
         return 0.0
     return (
         (result.token_usage.input / 1_000_000) * pricing["input"]

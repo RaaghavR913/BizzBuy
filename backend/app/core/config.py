@@ -53,6 +53,7 @@ class Settings(BaseModel):
         os.getenv("BIZBUY_PIPELINE_STAGE_TIMEOUT_SECONDS"),
         90.0,
     )
+    use_mistral_batch: bool = _parse_bool(os.getenv("USE_MISTRAL_BATCH"), False)
 
 
 @lru_cache

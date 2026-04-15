@@ -57,7 +57,7 @@ def _guess_mime_type(file_name: str | None) -> str:
     return guessed or "application/octet-stream"
 
 
-def _decode_text_content(content: bytes) -> str:
+def decode_text_content(content: bytes) -> str:
     try:
         return content.decode("utf-8")
     except UnicodeDecodeError:
@@ -86,7 +86,7 @@ def _extract_docx_text(content: bytes) -> str:
     return "\n".join(paragraphs)
 
 
-def _extract_xlsx_workbook(content: bytes) -> tuple[list[dict[str, Any]], list[str]]:
+def extract_xlsx_workbook(content: bytes) -> tuple[list[dict[str, Any]], list[str]]:
     try:
         with ZipFile(BytesIO(content)) as archive:
             shared_strings = _read_xlsx_shared_strings(archive)
@@ -262,14 +262,14 @@ async def normalize_upload_files(files: list[UploadFile], file_types: list[str])
                 if not document.raw_text:
                     document.notes.append("DOCX upload could not be fully parsed into text.")
             else:
-                document.raw_text = _decode_text_content(content)
+                document.raw_text = decode_text_content(content)
         elif (
             suffix == ".xlsx"
             or document.mime_type == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ):
             content = await upload.read()
             document.size_bytes = len(content)
-            document.sheets, extraction_notes = _extract_xlsx_workbook(content)
+            document.sheets, extraction_notes = extract_xlsx_workbook(content)
             document.notes.extend(extraction_notes)
         documents.append(document)
     return documents

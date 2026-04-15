@@ -1,24 +1,39 @@
 from __future__ import annotations
 
 import asyncio
+import csv
+import io
 import mimetypes
 import os
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
-from app.agents.document_classifier import (
-    DocumentClassification,
-    classify_single_file,
-    detected_type_to_document_type,
-)
+from app.agents.mistral_ocr_client import MistralOCRError, ocr_document
+from app.services.intake_service import decode_text_content, extract_xlsx_workbook
 
 router = APIRouter()
 
 UPLOAD_ROOT = Path(os.getenv("BIZBUY_UPLOAD_DIR", "uploads"))
+MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
+MAX_PAGES = 1000
+
+_OCR_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tiff"}
+
+_MISTRAL_TO_DETECTED_TYPE: dict[str, str] = {
+    "pnl_income_statement": "profit_and_loss",
+    "balance_sheet": "balance_sheet",
+    "cash_flow_statement": "cash_flow_statement",
+    "tax_return": "tax_return_1120s",
+    "lease_contract": "lease_agreement",
+    "ar_aging_report": "ar_aging_report",
+    "bank_statement": "other",
+    "business_acquisition_document": "contract",
+    "other": "other",
+}
 
 
 class ClassifiedFile(BaseModel):
@@ -50,6 +65,21 @@ def _guess_mime(filename: str | None) -> str:
     return guessed or "application/octet-stream"
 
 
+def _is_ocr_file(filename: str, mime_type: str) -> bool:
+    ext = Path(filename).suffix.lower()
+    return ext in _OCR_EXTENSIONS or mime_type.startswith("image/") or mime_type == "application/pdf"
+
+
+def _count_pdf_pages(file_bytes: bytes) -> int | None:
+    """Return page count for PDFs, None for non-PDFs."""
+    try:
+        from pypdf import PdfReader
+        reader = PdfReader(io.BytesIO(file_bytes))
+        return len(reader.pages)
+    except Exception:
+        return None
+
+
 async def _classify_one(
     upload: UploadFile,
     run_dir: Path,
@@ -62,30 +92,86 @@ async def _classify_one(
     file_bytes = await upload.read()
     size_bytes = len(file_bytes)
 
+    if size_bytes > MAX_FILE_SIZE_BYTES:
+        return ClassifiedFile(
+            fileId=file_id,
+            originalName=original_name,
+            mimeType=mime_type,
+            sizeBytes=size_bytes,
+            detectedType="unknown",
+            confidence=0.0,
+            rationale=f"File exceeds {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB size limit.",
+            suggestedAlternatives=[],
+            extractedMetadata={},
+            error="file_too_large",
+        )
+
+    if mime_type == "application/pdf" or Path(original_name).suffix.lower() == ".pdf":
+        page_count = _count_pdf_pages(file_bytes)
+        if page_count is not None and page_count > MAX_PAGES:
+            return ClassifiedFile(
+                fileId=file_id,
+                originalName=original_name,
+                mimeType=mime_type,
+                sizeBytes=size_bytes,
+                detectedType="unknown",
+                confidence=0.0,
+                rationale=f"PDF exceeds {MAX_PAGES} page limit ({page_count} pages).",
+                suggestedAlternatives=[],
+                extractedMetadata={},
+                error="too_many_pages",
+            )
+
     dest = run_dir / original_name
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(file_bytes)
 
+    if not _is_ocr_file(original_name, mime_type):
+        ext = Path(original_name).suffix.lower()
+        if ext in _STRUCTURED_EXTENSIONS or mime_type.startswith("text/"):
+            detected_type, confidence, rationale, metadata = _parse_structured_file(
+                file_bytes, original_name, mime_type,
+            )
+        else:
+            detected_type, confidence, rationale, metadata = (
+                "unknown", 0.2, f"Unsupported file extension ({ext}).",
+                {"businessName": None, "periodStart": None, "periodEnd": None, "currency": None},
+            )
+        return ClassifiedFile(
+            fileId=file_id,
+            originalName=original_name,
+            mimeType=mime_type,
+            sizeBytes=size_bytes,
+            detectedType=detected_type,
+            confidence=confidence,
+            rationale=rationale,
+            suggestedAlternatives=[],
+            extractedMetadata=metadata,
+        )
+
+    # TODO: cache OCR result by file hash so the pipeline doesn't re-process
     try:
-        classification = await loop.run_in_executor(
-            None,
-            classify_single_file,
-            file_bytes,
-            original_name,
-            mime_type,
+        result = await loop.run_in_executor(None, ocr_document, file_bytes, original_name)
+        detected = _MISTRAL_TO_DETECTED_TYPE.get(
+            result.classification.document_type, "other",
         )
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
             mimeType=mime_type,
             sizeBytes=size_bytes,
-            detectedType=classification.detected_type,
-            confidence=classification.confidence,
-            rationale=classification.rationale,
-            suggestedAlternatives=classification.suggested_alternatives,
-            extractedMetadata=classification.extracted_metadata.model_dump(by_alias=True),
+            detectedType=detected,
+            confidence=result.classification.confidence,
+            rationale=result.classification.reasoning,
+            suggestedAlternatives=[],
+            extractedMetadata={
+                "businessName": None,
+                "periodStart": result.classification.detected_period or None,
+                "periodEnd": None,
+                "currency": None,
+            },
         )
-    except Exception as exc:
+    except (MistralOCRError, Exception) as exc:
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
@@ -95,14 +181,112 @@ async def _classify_one(
             confidence=0.0,
             rationale=f"Classification failed: {exc}",
             suggestedAlternatives=[],
-            extractedMetadata={
-                "businessName": None,
-                "periodStart": None,
-                "periodEnd": None,
-                "currency": None,
-            },
+            extractedMetadata={},
             error=str(exc),
         )
+
+
+_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls"}
+
+_KEYWORD_TYPE_RULES: list[tuple[set[str], str]] = [
+    ({"revenue", "cogs", "net income", "gross profit", "operating expenses"}, "profit_and_loss"),
+    ({"revenue", "net income", "ebitda"}, "profit_and_loss"),
+    ({"total assets", "total liabilities", "equity"}, "balance_sheet"),
+    ({"assets", "liabilities", "owners equity"}, "balance_sheet"),
+    ({"operating activities", "investing activities", "financing activities"}, "cash_flow_statement"),
+    ({"cash flow", "net cash"}, "cash_flow_statement"),
+    ({"taxable income", "tax return", "form 1120"}, "tax_return_1120s"),
+    ({"current", "30 days", "60 days", "90 days", "aging"}, "ar_aging_report"),
+    ({"lease", "rent", "landlord", "tenant"}, "lease_agreement"),
+]
+
+
+def _classify_by_keywords(text: str) -> tuple[str, float]:
+    """Classify a structured file by scanning its text for financial keywords.
+
+    Returns (detected_type, confidence).
+    """
+    lower = text.lower()
+    for required_keywords, doc_type in _KEYWORD_TYPE_RULES:
+        if all(kw in lower for kw in required_keywords):
+            return doc_type, 0.7
+    return "other", 0.4
+
+
+def _empty_extracted_metadata() -> dict[str, Any]:
+    return {"businessName": None, "periodStart": None, "periodEnd": None, "currency": None}
+
+
+def _parse_structured_file(
+    file_bytes: bytes, filename: str, mime_type: str,
+) -> tuple[str, float, str, dict[str, Any]]:
+    """Parse a CSV/TSV/XLSX file and classify it by content.
+
+    Returns (detected_type, confidence, rationale, extracted_metadata).
+    """
+    ext = Path(filename).suffix.lower()
+    text_content = ""
+    row_count = 0
+    columns: list[str] = []
+    sheet_count = 0
+
+    try:
+        if ext in {".csv", ".tsv"} or mime_type.startswith("text/"):
+            decoded = decode_text_content(file_bytes)
+            text_content = decoded
+            delimiter = "\t" if ext == ".tsv" or "tab" in mime_type else ","
+            reader = csv.reader(io.StringIO(decoded), delimiter=delimiter)
+            rows = list(reader)
+            if rows:
+                columns = [str(c).strip() for c in rows[0]]
+                row_count = len(rows) - 1  # exclude header
+
+        elif ext == ".xlsx" or "spreadsheetml" in mime_type:
+            sheets, _notes = extract_xlsx_workbook(file_bytes)
+            sheet_count = len(sheets)
+            for sheet in sheets:
+                if sheet.get("text"):
+                    text_content += sheet["text"] + "\n"
+                sheet_rows = sheet.get("rows", [])
+                row_count += len(sheet_rows)
+                if sheet_rows and not columns:
+                    columns = [str(v) for v in sheet_rows[0].values() if v not in {None, ""}]
+
+        elif ext == ".xls":
+            text_content = decode_text_content(file_bytes)
+
+    except Exception as exc:
+        return "other", 0.2, f"Failed to parse {ext} file: {exc}", _empty_extracted_metadata()
+
+    if not text_content.strip() and row_count == 0:
+        return "other", 0.2, f"File appears empty or could not be parsed ({ext}).", _empty_extracted_metadata()
+
+    combined = " ".join(columns).lower() + " " + text_content.lower()
+    detected_type, confidence = _classify_by_keywords(combined)
+
+    parts = [f"Parsed {ext} file"]
+    if row_count > 0:
+        parts.append(f"with {row_count} data row(s)")
+    if columns:
+        parts.append(f"columns: {', '.join(columns[:8])}")
+    if sheet_count > 1:
+        parts.append(f"across {sheet_count} sheet(s)")
+    rationale = "; ".join(parts) + "."
+
+    metadata: dict[str, Any] = {
+        "businessName": None,
+        "periodStart": None,
+        "periodEnd": None,
+        "currency": None,
+    }
+    if columns:
+        metadata["columns"] = columns[:20]
+    if row_count:
+        metadata["rowCount"] = row_count
+    if sheet_count:
+        metadata["sheetCount"] = sheet_count
+
+    return detected_type, confidence, rationale, metadata
 
 
 @router.post("/documents/ingest", response_model=IngestResponse)
@@ -131,12 +315,7 @@ async def ingest_documents(
                     confidence=0.0,
                     rationale=f"Unexpected error: {result}",
                     suggestedAlternatives=[],
-                    extractedMetadata={
-                        "businessName": None,
-                        "periodStart": None,
-                        "periodEnd": None,
-                        "currency": None,
-                    },
+                    extractedMetadata={},
                     error=str(result),
                 )
             )

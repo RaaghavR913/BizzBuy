@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -246,6 +246,7 @@ class ArtifactReference(BaseModel):
 class IngestionMetadata(BaseModel):
     total_documents: int
     successfully_parsed: int
+    ingestion_source: Literal["structured", "ocr"] = "structured"
     failed_documents: List[str] = Field(..., description="Document IDs that could not be parsed")
     failed_artifacts: List[IngestionIssue] = Field(default_factory=list)
     missing_inputs: List[MissingInput] = Field(default_factory=list)
@@ -910,6 +911,7 @@ class AgentResult(BaseModel, Generic[T]):
     error: Optional[AgentErrorPayload] = None
     token_usage: TokenUsage = Field(default_factory=TokenUsage)
     latency_ms: Optional[int] = None
+    cost_usd: float = 0.0
 
 
 class PipelineStageMetric(BaseModel):
