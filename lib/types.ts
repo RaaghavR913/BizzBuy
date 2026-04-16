@@ -131,7 +131,10 @@ export interface ClassifiedFileResult {
     periodStart: string | null;
     periodEnd: string | null;
     currency: string | null;
+    sheetKinds?: CanonicalDocumentType[];
   };
+  fileHash?: string | null;
+  ocrArtifactRef?: string | null;
   error?: string | null;
 }
 

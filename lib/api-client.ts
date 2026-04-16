@@ -64,11 +64,19 @@ export async function ingestDocuments(files: File[]): Promise<IngestResponse> {
 
 export async function parseDocuments(
   files: File[],
-  fileTypes: string[]
+  fileTypes: string[],
+  fileHashes: Array<string | null | undefined> = [],
+  ocrArtifactRefs: Array<string | null | undefined> = []
 ): Promise<ParseDocumentsResponse> {
   const formData = new FormData();
   files.forEach((file) => formData.append('files', file));
   formData.append('fileTypes', JSON.stringify(fileTypes));
+  if (fileHashes.length > 0) {
+    formData.append('fileHashes', JSON.stringify(fileHashes));
+  }
+  if (ocrArtifactRefs.length > 0) {
+    formData.append('ocrArtifactRefs', JSON.stringify(ocrArtifactRefs));
+  }
 
   const res = await fetch(backendUrl('/parse-documents'), {
     method: 'POST',

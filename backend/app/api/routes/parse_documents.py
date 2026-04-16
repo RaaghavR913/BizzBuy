@@ -52,13 +52,37 @@ async def _validate_upload(upload: UploadFile) -> bytes:
 @router.post("/parse-documents", response_model=ParseDocumentsResponse)
 async def parse_documents_route(
     files: list[UploadFile] = File(...),
-    file_types: str = Form(default="[]"),
+    file_types: str | None = Form(default=None),
+    fileTypes: str | None = Form(default=None),
+    file_hashes: str | None = Form(default=None),
+    fileHashes: str | None = Form(default=None),
+    ocr_artifact_refs: str | None = Form(default=None),
+    ocrArtifactRefs: str | None = Form(default=None),
 ) -> ParseDocumentsResponse:
     for upload in files:
         await _validate_upload(upload)
 
-    parsed_file_types = json.loads(file_types) if file_types else []
-    extracted, ingestion_output = await parse_documents(files, parsed_file_types)
+    raw_file_types = fileTypes if isinstance(fileTypes, str) else file_types
+    if not isinstance(raw_file_types, str):
+        raw_file_types = None
+    parsed_file_types = json.loads(raw_file_types) if raw_file_types else []
+
+    raw_file_hashes = fileHashes if isinstance(fileHashes, str) else file_hashes
+    if not isinstance(raw_file_hashes, str):
+        raw_file_hashes = None
+    parsed_file_hashes = json.loads(raw_file_hashes) if raw_file_hashes else []
+
+    raw_ocr_refs = ocrArtifactRefs if isinstance(ocrArtifactRefs, str) else ocr_artifact_refs
+    if not isinstance(raw_ocr_refs, str):
+        raw_ocr_refs = None
+    parsed_ocr_refs = json.loads(raw_ocr_refs) if raw_ocr_refs else []
+
+    extracted, ingestion_output = await parse_documents(
+        files,
+        parsed_file_types,
+        file_hashes=parsed_file_hashes,
+        ocr_artifact_refs=parsed_ocr_refs,
+    )
     return ParseDocumentsResponse(
         success=True,
         extracted_data=extracted,
