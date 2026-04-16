@@ -13,7 +13,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from app.agents.mistral_ocr_client import MistralOCRError, ocr_document
-from app.services.intake_service import decode_text_content, extract_xlsx_workbook
+from app.services.intake_service import decode_text_content, extract_docx_text, extract_xlsx_workbook
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ UPLOAD_ROOT = Path(os.getenv("BIZBUY_UPLOAD_DIR", "uploads"))
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 MAX_PAGES = 1000
 
-_OCR_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tiff"}
+_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls", ".docx"}
 
 _MISTRAL_TO_DETECTED_TYPE: dict[str, str] = {
     "pnl_income_statement": "profit_and_loss",
@@ -63,11 +63,6 @@ class IngestResponse(BaseModel):
 def _guess_mime(filename: str | None) -> str:
     guessed, _ = mimetypes.guess_type(filename or "")
     return guessed or "application/octet-stream"
-
-
-def _is_ocr_file(filename: str, mime_type: str) -> bool:
-    ext = Path(filename).suffix.lower()
-    return ext in _OCR_EXTENSIONS or mime_type.startswith("image/") or mime_type == "application/pdf"
 
 
 def _count_pdf_pages(file_bytes: bytes) -> int | None:
@@ -126,28 +121,10 @@ async def _classify_one(
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(file_bytes)
 
-    if not _is_ocr_file(original_name, mime_type):
-        ext = Path(original_name).suffix.lower()
-        if ext in _STRUCTURED_EXTENSIONS or mime_type.startswith("text/"):
-            detected_type, confidence, rationale, metadata = _parse_structured_file(
-                file_bytes, original_name, mime_type,
-            )
-        else:
-            detected_type, confidence, rationale, metadata = (
-                "unknown", 0.2, f"Unsupported file extension ({ext}).",
-                {"businessName": None, "periodStart": None, "periodEnd": None, "currency": None},
-            )
-        return ClassifiedFile(
-            fileId=file_id,
-            originalName=original_name,
-            mimeType=mime_type,
-            sizeBytes=size_bytes,
-            detectedType=detected_type,
-            confidence=confidence,
-            rationale=rationale,
-            suggestedAlternatives=[],
-            extractedMetadata=metadata,
-        )
+    ext = Path(original_name).suffix.lower()
+    structured_fallback: tuple[str, float, str, dict[str, Any]] | None = None
+    if ext in _STRUCTURED_EXTENSIONS or mime_type.startswith("text/"):
+        structured_fallback = _parse_structured_file(file_bytes, original_name, mime_type)
 
     # TODO: cache OCR result by file hash so the pipeline doesn't re-process
     try:
@@ -155,6 +132,16 @@ async def _classify_one(
         detected = _MISTRAL_TO_DETECTED_TYPE.get(
             result.classification.document_type, "other",
         )
+        metadata: dict[str, Any] = {
+            "businessName": None,
+            "periodStart": result.classification.detected_period or None,
+            "periodEnd": None,
+            "currency": None,
+        }
+        # Keep spreadsheet metadata (columns/rowCount/sheetCount) when available.
+        if structured_fallback is not None:
+            metadata.update(structured_fallback[3])
+
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
@@ -164,14 +151,23 @@ async def _classify_one(
             confidence=result.classification.confidence,
             rationale=result.classification.reasoning,
             suggestedAlternatives=[],
-            extractedMetadata={
-                "businessName": None,
-                "periodStart": result.classification.detected_period or None,
-                "periodEnd": None,
-                "currency": None,
-            },
+            extractedMetadata=metadata,
         )
     except (MistralOCRError, Exception) as exc:
+        if structured_fallback is not None:
+            detected_type, confidence, rationale, metadata = structured_fallback
+            return ClassifiedFile(
+                fileId=file_id,
+                originalName=original_name,
+                mimeType=mime_type,
+                sizeBytes=size_bytes,
+                detectedType=detected_type,
+                confidence=confidence,
+                rationale=f"OCR attempt failed ({exc}). Falling back to structured parser. {rationale}",
+                suggestedAlternatives=[],
+                extractedMetadata=metadata,
+            )
+
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
@@ -185,8 +181,6 @@ async def _classify_one(
             error=str(exc),
         )
 
-
-_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls"}
 
 _KEYWORD_TYPE_RULES: list[tuple[set[str], str]] = [
     ({"revenue", "cogs", "net income", "gross profit", "operating expenses"}, "profit_and_loss"),
@@ -254,6 +248,8 @@ def _parse_structured_file(
 
         elif ext == ".xls":
             text_content = decode_text_content(file_bytes)
+        elif ext == ".docx":
+            text_content = extract_docx_text(file_bytes)
 
     except Exception as exc:
         return "other", 0.2, f"Failed to parse {ext} file: {exc}", _empty_extracted_metadata()

@@ -86,6 +86,11 @@ def _extract_docx_text(content: bytes) -> str:
     return "\n".join(paragraphs)
 
 
+def extract_docx_text(content: bytes) -> str:
+    """Parse DOCX bytes into newline-delimited text paragraphs."""
+    return _extract_docx_text(content)
+
+
 def extract_xlsx_workbook(content: bytes) -> tuple[list[dict[str, Any]], list[str]]:
     try:
         with ZipFile(BytesIO(content)) as archive:
@@ -258,7 +263,7 @@ async def normalize_upload_files(files: list[UploadFile], file_types: list[str])
             content = await upload.read()
             document.size_bytes = len(content)
             if suffix == ".docx" or document.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                document.raw_text = _extract_docx_text(content)
+                document.raw_text = extract_docx_text(content)
                 if not document.raw_text:
                     document.notes.append("DOCX upload could not be fully parsed into text.")
             else:

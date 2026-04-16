@@ -825,7 +825,7 @@ def _normalize_lending_output(
 
 
 _OCR_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tiff"}
-_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls"}
+_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls", ".docx"}
 
 _OCR_MIME_PREFIXES = ("application/pdf", "image/")
 _STRUCTURED_MIMES = {
@@ -833,6 +833,7 @@ _STRUCTURED_MIMES = {
     "text/tab-separated-values",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }
 
 _MISTRAL_TO_DOCUMENT_TYPE: dict[str, DocumentType] = {
@@ -959,7 +960,7 @@ def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[Inges
                 agent_name="document-ingestion",
                 error_type="validation",
                 message=f"Unsupported file type(s): {', '.join(unsupported)}. "
-                        f"Supported: PDF, images (PNG/JPG/WEBP/TIFF), and spreadsheets (XLSX/CSV/TSV).",
+                        f"Supported: PDF, DOCX, images (PNG/JPG/WEBP/TIFF), and spreadsheets (XLSX/CSV/TSV).",
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 retry_count=0,
             ),

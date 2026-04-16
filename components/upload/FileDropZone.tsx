@@ -14,9 +14,10 @@ const ACCEPTED_FILE_TYPES = [
   'text/csv',
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
 
-const ACCEPTED_FILE_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg', '.webp', '.csv', '.xlsx', '.xls'];
+const ACCEPTED_FILE_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg', '.webp', '.csv', '.xlsx', '.xls', '.docx'];
 
 export interface FileItem {
   file: File;
@@ -114,7 +115,7 @@ export function FileDropZone({
           ACCEPTED_FILE_TYPES.includes(file.type) ||
           ACCEPTED_FILE_EXTENSIONS.some((extension) => lowerName.endsWith(extension));
         if (!isAccepted) {
-          setError(`${file.name} is not a supported format. Use PDF, PNG, JPG, JPEG, WebP, CSV, XLSX, or XLS.`);
+          setError(`${file.name} is not a supported format. Use PDF, DOCX, PNG, JPG, JPEG, WebP, CSV, XLSX, or XLS.`);
           continue;
         }
         valid.push({
@@ -181,7 +182,7 @@ export function FileDropZone({
         </p>
         <p className="text-sm text-t-secondary mb-4">or click to browse — AI will classify each file automatically</p>
         <div className="flex items-center justify-center gap-2">
-          {['PDF', 'PNG', 'JPG', 'WebP', 'CSV', 'XLSX', 'XLS'].map((fmt) => (
+          {['PDF', 'DOCX', 'PNG', 'JPG', 'WebP', 'CSV', 'XLSX', 'XLS'].map((fmt) => (
             <span
               key={fmt}
               className="px-2.5 py-1 bg-raised text-t-secondary rounded text-xs font-medium border border-white/[0.06]"
