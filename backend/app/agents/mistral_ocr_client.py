@@ -11,9 +11,10 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import mimetypes
 import os
 import time
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -40,6 +41,10 @@ class DocumentClassification(BaseModel):
         "tax_return",
         "lease_contract",
         "ar_aging_report",
+        "customer_list",
+        "employee_roster",
+        "insurance_policy",
+        "equipment_list",
         "bank_statement",
         "business_acquisition_document",
         "other",
@@ -70,6 +75,15 @@ class IngestionResult(BaseModel):
 _client = None
 
 
+def _ocr_process_options(filename: str) -> dict[str, Any]:
+    """Return per-file OCR options for Mistral process calls."""
+    options: dict[str, Any] = {"include_image_base64": False}
+    # DOCX requests can fail unless images are disabled explicitly.
+    if filename.lower().endswith(".docx"):
+        options["image_limit"] = 0
+    return options
+
+
 def get_mistral_client():
     """Lazy-initialized Mistral client reading MISTRAL_API_KEY from env."""
     global _client
@@ -84,7 +98,7 @@ def get_mistral_client():
 
 
 def ocr_document(file_bytes: bytes, filename: str) -> IngestionResult:
-    """OCR a single document (PDF or image) via Mistral OCR.
+    """OCR a single document via Mistral OCR.
 
     All files are sent as inline base64. The upload route caps files at
     50 MB, so inline encoding covers 100 % of valid inputs.
@@ -104,21 +118,14 @@ def ocr_document(file_bytes: bytes, filename: str) -> IngestionResult:
     start_ns = time.perf_counter_ns()
 
     encoded = base64.b64encode(file_bytes).decode("ascii")
-    mime = "application/pdf"
-    lower = filename.lower()
-    if lower.endswith((".png",)):
-        mime = "image/png"
-    elif lower.endswith((".jpg", ".jpeg")):
-        mime = "image/jpeg"
-    elif lower.endswith((".webp",)):
-        mime = "image/webp"
-    elif lower.endswith((".tiff",)):
-        mime = "image/tiff"
+    guessed_mime, _ = mimetypes.guess_type(filename)
+    mime = guessed_mime or "application/pdf"
 
     document = {
         "type": "document_url",
         "document_url": f"data:{mime};base64,{encoded}",
     }
+    process_options = _ocr_process_options(filename)
 
     try:
         response = client.ocr.process(
@@ -127,7 +134,7 @@ def ocr_document(file_bytes: bytes, filename: str) -> IngestionResult:
             document_annotation_format=response_format_from_pydantic_model(
                 DocumentClassification,
             ),
-            include_image_base64=False,
+            **process_options,
         )
     except Exception as exc:
         raise MistralOCRError(

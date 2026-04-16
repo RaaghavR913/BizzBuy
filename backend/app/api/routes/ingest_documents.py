@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import csv
+import hashlib
 import io
+import json
 import mimetypes
 import os
 from pathlib import Path
@@ -13,15 +15,17 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel, Field
 
 from app.agents.mistral_ocr_client import MistralOCRError, ocr_document
-from app.services.intake_service import decode_text_content, extract_xlsx_workbook
+from app.services.intake_service import decode_text_content, extract_docx_text, extract_xlsx_workbook
+from app.services.section_kind import infer_sheet_kinds
 
 router = APIRouter()
 
 UPLOAD_ROOT = Path(os.getenv("BIZBUY_UPLOAD_DIR", "uploads"))
+OCR_ARTIFACT_ROOT = Path(os.getenv("BIZBUY_ARTIFACT_DIR", "backend/.artifacts")) / "ocr"
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 MAX_PAGES = 1000
 
-_OCR_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tiff"}
+_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls", ".docx"}
 
 _MISTRAL_TO_DETECTED_TYPE: dict[str, str] = {
     "pnl_income_statement": "profit_and_loss",
@@ -30,6 +34,10 @@ _MISTRAL_TO_DETECTED_TYPE: dict[str, str] = {
     "tax_return": "tax_return_1120s",
     "lease_contract": "lease_agreement",
     "ar_aging_report": "ar_aging_report",
+    "customer_list": "customer_list",
+    "employee_roster": "employee_roster",
+    "insurance_policy": "insurance_policy",
+    "equipment_list": "equipment_list",
     "bank_statement": "other",
     "business_acquisition_document": "contract",
     "other": "other",
@@ -46,6 +54,8 @@ class ClassifiedFile(BaseModel):
     rationale: str
     suggested_alternatives: list[str] = Field(default_factory=list, alias="suggestedAlternatives")
     extracted_metadata: dict[str, Any] = Field(default_factory=dict, alias="extractedMetadata")
+    file_hash: str | None = Field(default=None, alias="fileHash")
+    ocr_artifact_ref: str | None = Field(default=None, alias="ocrArtifactRef")
     error: str | None = None
 
     class Config:
@@ -65,11 +75,6 @@ def _guess_mime(filename: str | None) -> str:
     return guessed or "application/octet-stream"
 
 
-def _is_ocr_file(filename: str, mime_type: str) -> bool:
-    ext = Path(filename).suffix.lower()
-    return ext in _OCR_EXTENSIONS or mime_type.startswith("image/") or mime_type == "application/pdf"
-
-
 def _count_pdf_pages(file_bytes: bytes) -> int | None:
     """Return page count for PDFs, None for non-PDFs."""
     try:
@@ -78,6 +83,31 @@ def _count_pdf_pages(file_bytes: bytes) -> int | None:
         return len(reader.pages)
     except Exception:
         return None
+
+
+def _ocr_artifact_path(file_hash: str) -> Path:
+    return OCR_ARTIFACT_ROOT / f"{file_hash}.json"
+
+
+def _load_cached_ocr_result(file_hash: str):
+    artifact_path = _ocr_artifact_path(file_hash)
+    if not artifact_path.exists():
+        return None
+    try:
+        raw = artifact_path.read_text(encoding="utf-8")
+        from app.agents.mistral_ocr_client import IngestionResult
+
+        return IngestionResult.model_validate_json(raw)
+    except Exception:
+        return None
+
+
+def _save_ocr_result(file_hash: str, result: Any) -> str:
+    artifact_path = _ocr_artifact_path(file_hash)
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = result.model_dump(mode="json")
+    artifact_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    return str(artifact_path)
 
 
 async def _classify_one(
@@ -91,6 +121,7 @@ async def _classify_one(
 
     file_bytes = await upload.read()
     size_bytes = len(file_bytes)
+    file_hash = hashlib.sha256(file_bytes).hexdigest()
 
     if size_bytes > MAX_FILE_SIZE_BYTES:
         return ClassifiedFile(
@@ -103,6 +134,7 @@ async def _classify_one(
             rationale=f"File exceeds {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB size limit.",
             suggestedAlternatives=[],
             extractedMetadata={},
+            fileHash=file_hash,
             error="file_too_large",
         )
 
@@ -120,41 +152,41 @@ async def _classify_one(
                 suggestedAlternatives=[],
                 extractedMetadata={},
                 error="too_many_pages",
+                fileHash=file_hash,
             )
 
     dest = run_dir / original_name
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(file_bytes)
 
-    if not _is_ocr_file(original_name, mime_type):
-        ext = Path(original_name).suffix.lower()
-        if ext in _STRUCTURED_EXTENSIONS or mime_type.startswith("text/"):
-            detected_type, confidence, rationale, metadata = _parse_structured_file(
-                file_bytes, original_name, mime_type,
-            )
-        else:
-            detected_type, confidence, rationale, metadata = (
-                "unknown", 0.2, f"Unsupported file extension ({ext}).",
-                {"businessName": None, "periodStart": None, "periodEnd": None, "currency": None},
-            )
-        return ClassifiedFile(
-            fileId=file_id,
-            originalName=original_name,
-            mimeType=mime_type,
-            sizeBytes=size_bytes,
-            detectedType=detected_type,
-            confidence=confidence,
-            rationale=rationale,
-            suggestedAlternatives=[],
-            extractedMetadata=metadata,
-        )
+    ext = Path(original_name).suffix.lower()
+    structured_fallback: tuple[str, float, str, dict[str, Any]] | None = None
+    if ext in _STRUCTURED_EXTENSIONS or mime_type.startswith("text/"):
+        structured_fallback = _parse_structured_file(file_bytes, original_name, mime_type)
 
-    # TODO: cache OCR result by file hash so the pipeline doesn't re-process
     try:
-        result = await loop.run_in_executor(None, ocr_document, file_bytes, original_name)
+        result = _load_cached_ocr_result(file_hash)
+        cached = result is not None
+        if result is None:
+            result = await loop.run_in_executor(None, ocr_document, file_bytes, original_name)
+            artifact_ref = _save_ocr_result(file_hash, result)
+        else:
+            artifact_ref = str(_ocr_artifact_path(file_hash))
         detected = _MISTRAL_TO_DETECTED_TYPE.get(
             result.classification.document_type, "other",
         )
+        metadata: dict[str, Any] = {
+            "businessName": None,
+            "periodStart": result.classification.detected_period or None,
+            "periodEnd": None,
+            "currency": None,
+        }
+        # Keep spreadsheet metadata (columns/rowCount/sheetCount) when available.
+        if structured_fallback is not None:
+            for key, value in structured_fallback[3].items():
+                if value is not None or key not in metadata:
+                    metadata[key] = value
+
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
@@ -162,16 +194,28 @@ async def _classify_one(
             sizeBytes=size_bytes,
             detectedType=detected,
             confidence=result.classification.confidence,
-            rationale=result.classification.reasoning,
+            rationale=("Cached OCR result. " if cached else "") + result.classification.reasoning,
             suggestedAlternatives=[],
-            extractedMetadata={
-                "businessName": None,
-                "periodStart": result.classification.detected_period or None,
-                "periodEnd": None,
-                "currency": None,
-            },
+            extractedMetadata=metadata,
+            fileHash=file_hash,
+            ocrArtifactRef=artifact_ref,
         )
     except (MistralOCRError, Exception) as exc:
+        if structured_fallback is not None:
+            detected_type, confidence, rationale, metadata = structured_fallback
+            return ClassifiedFile(
+                fileId=file_id,
+                originalName=original_name,
+                mimeType=mime_type,
+                sizeBytes=size_bytes,
+                detectedType=detected_type,
+                confidence=confidence,
+                rationale=f"OCR attempt failed ({exc}). Falling back to structured parser. {rationale}",
+                suggestedAlternatives=[],
+                extractedMetadata=metadata,
+                fileHash=file_hash,
+            )
+
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
@@ -182,13 +226,19 @@ async def _classify_one(
             rationale=f"Classification failed: {exc}",
             suggestedAlternatives=[],
             extractedMetadata={},
+            fileHash=file_hash,
             error=str(exc),
         )
 
 
-_STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls"}
-
 _KEYWORD_TYPE_RULES: list[tuple[set[str], str]] = [
+    ({"customer name", "contract type", "% of total rev"}, "customer_list"),
+    ({"customer list", "owner contact"}, "customer_list"),
+    ({"asset description", "book value", "fmv"}, "equipment_list"),
+    ({"property, plant", "equipment schedule"}, "equipment_list"),
+    ({"employee", "technician", "salary"}, "employee_roster"),
+    ({"employee", "non-compete"}, "employee_roster"),
+    ({"insurance policy", "premium", "coverage"}, "insurance_policy"),
     ({"revenue", "cogs", "net income", "gross profit", "operating expenses"}, "profit_and_loss"),
     ({"revenue", "net income", "ebitda"}, "profit_and_loss"),
     ({"total assets", "total liabilities", "equity"}, "balance_sheet"),
@@ -196,6 +246,8 @@ _KEYWORD_TYPE_RULES: list[tuple[set[str], str]] = [
     ({"operating activities", "investing activities", "financing activities"}, "cash_flow_statement"),
     ({"cash flow", "net cash"}, "cash_flow_statement"),
     ({"taxable income", "tax return", "form 1120"}, "tax_return_1120s"),
+    ({"tax return", "schedule c"}, "tax_return_schedule_c"),
+    ({"gross receipts", "schedule c"}, "tax_return_schedule_c"),
     ({"current", "30 days", "60 days", "90 days", "aging"}, "ar_aging_report"),
     ({"lease", "rent", "landlord", "tenant"}, "lease_agreement"),
 ]
@@ -229,6 +281,7 @@ def _parse_structured_file(
     row_count = 0
     columns: list[str] = []
     sheet_count = 0
+    sheet_kinds: list[str] = []
 
     try:
         if ext in {".csv", ".tsv"} or mime_type.startswith("text/"):
@@ -244,6 +297,7 @@ def _parse_structured_file(
         elif ext == ".xlsx" or "spreadsheetml" in mime_type:
             sheets, _notes = extract_xlsx_workbook(file_bytes)
             sheet_count = len(sheets)
+            sheet_kinds = infer_sheet_kinds(sheets)
             for sheet in sheets:
                 if sheet.get("text"):
                     text_content += sheet["text"] + "\n"
@@ -254,6 +308,8 @@ def _parse_structured_file(
 
         elif ext == ".xls":
             text_content = decode_text_content(file_bytes)
+        elif ext == ".docx":
+            text_content = extract_docx_text(file_bytes)
 
     except Exception as exc:
         return "other", 0.2, f"Failed to parse {ext} file: {exc}", _empty_extracted_metadata()
@@ -285,6 +341,8 @@ def _parse_structured_file(
         metadata["rowCount"] = row_count
     if sheet_count:
         metadata["sheetCount"] = sheet_count
+    if sheet_kinds:
+        metadata["sheetKinds"] = sheet_kinds
 
     return detected_type, confidence, rationale, metadata
 

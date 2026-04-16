@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import mimetypes
+import os
 from dataclasses import dataclass, field
 from io import BytesIO
 from pathlib import Path
@@ -12,6 +14,7 @@ from zipfile import BadZipFile, ZipFile
 from fastapi import UploadFile
 
 from app.agents.schemas import DocumentType, MissingInput
+from app.services.section_kind import infer_section_kind, infer_sheet_kinds
 
 
 LEGACY_DOCUMENT_TYPE_ALIASES: dict[str, DocumentType] = {
@@ -84,6 +87,11 @@ def _extract_docx_text(content: bytes) -> str:
         if text:
             paragraphs.append(text)
     return "\n".join(paragraphs)
+
+
+def extract_docx_text(content: bytes) -> str:
+    """Parse DOCX bytes into newline-delimited text paragraphs."""
+    return _extract_docx_text(content)
 
 
 def extract_xlsx_workbook(content: bytes) -> tuple[list[dict[str, Any]], list[str]]:
@@ -236,10 +244,19 @@ def normalize_document_payload(document: dict[str, Any], index: int) -> IntakeDo
     )
 
 
-async def normalize_upload_files(files: list[UploadFile], file_types: list[str]) -> list[IntakeDocument]:
+async def _normalize_upload_files(
+    files: list[UploadFile],
+    file_types: list[str],
+    *,
+    file_hashes: list[str] | None,
+    ocr_artifact_refs: list[str] | None,
+) -> list[IntakeDocument]:
     documents: list[IntakeDocument] = []
     for index, upload in enumerate(files):
         declared = file_types[index] if index < len(file_types) else None
+        file_hash = file_hashes[index] if file_hashes and index < len(file_hashes) else None
+        ocr_ref = ocr_artifact_refs[index] if ocr_artifact_refs and index < len(ocr_artifact_refs) else None
+        cached_ocr_text = _load_cached_ocr_text(file_hash=file_hash, artifact_ref=ocr_ref)
         document = IntakeDocument(
             document_id=str(uuid4()),
             file_name=upload.filename or f"upload_{index + 1}",
@@ -258,7 +275,7 @@ async def normalize_upload_files(files: list[UploadFile], file_types: list[str])
             content = await upload.read()
             document.size_bytes = len(content)
             if suffix == ".docx" or document.mime_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-                document.raw_text = _extract_docx_text(content)
+                document.raw_text = extract_docx_text(content)
                 if not document.raw_text:
                     document.notes.append("DOCX upload could not be fully parsed into text.")
             else:
@@ -271,12 +288,96 @@ async def normalize_upload_files(files: list[UploadFile], file_types: list[str])
             document.size_bytes = len(content)
             document.sheets, extraction_notes = extract_xlsx_workbook(content)
             document.notes.extend(extraction_notes)
+        if cached_ocr_text and (suffix == ".pdf" or not document.raw_text):
+            document.raw_text = cached_ocr_text
+            document.notes.append("Reused cached OCR artifact text for ingestion.")
         documents.append(document)
     return documents
 
 
+async def normalize_upload_files(
+    files: list[UploadFile],
+    file_types: list[str],
+    *,
+    file_hashes: list[str] | None = None,
+    ocr_artifact_refs: list[str] | None = None,
+) -> list[IntakeDocument]:
+    return await _normalize_upload_files(
+        files,
+        file_types,
+        file_hashes=file_hashes,
+        ocr_artifact_refs=ocr_artifact_refs,
+    )
+
+
+def _load_cached_ocr_text(*, file_hash: str | None, artifact_ref: str | None) -> str:
+    artifact_path = _safe_ocr_artifact_path(file_hash=file_hash, artifact_ref=artifact_ref)
+    if artifact_path is None or not artifact_path.exists():
+        return ""
+    try:
+        payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+    except Exception:
+        return ""
+    full_markdown = payload.get("full_markdown") or payload.get("fullMarkdown")
+    if isinstance(full_markdown, str) and full_markdown.strip():
+        return full_markdown
+    pages = payload.get("pages")
+    if isinstance(pages, list):
+        return "\n\n---\n\n".join(
+            page.get("markdown", "")
+            for page in pages
+            if isinstance(page, dict) and isinstance(page.get("markdown"), str)
+        ).strip()
+    return ""
+
+
+def _safe_ocr_artifact_path(*, file_hash: str | None, artifact_ref: str | None) -> Path | None:
+    root = (Path(os.getenv("BIZBUY_ARTIFACT_DIR", "backend/.artifacts")) / "ocr").resolve()
+    if file_hash and len(file_hash) == 64 and all(char in "0123456789abcdefABCDEF" for char in file_hash):
+        return root / f"{file_hash.lower()}.json"
+    if artifact_ref:
+        candidate = Path(artifact_ref)
+        if not candidate.is_absolute():
+            candidate = Path.cwd() / candidate
+        try:
+            resolved = candidate.resolve()
+            resolved.relative_to(root)
+            if resolved.suffix == ".json":
+                return resolved
+        except Exception:
+            return None
+    return None
+
+
 def infer_missing_document_inputs(documents: list[IntakeDocument]) -> list[MissingInput]:
     available_types = {document.canonical_type for document in documents}
+    available_kinds = {document_type.value for document_type in available_types}
+    for document in documents:
+        available_kinds.update(infer_sheet_kinds(document.sheets))
+        if document.raw_text:
+            available_kinds.add(
+                infer_section_kind(
+                    document_type=document.canonical_type,
+                    raw_text=document.raw_text,
+                )
+            )
+        for section in document.sections:
+            explicit_kind = section.get("section_kind") or section.get("sectionKind")
+            if explicit_kind:
+                available_kinds.add(str(explicit_kind))
+                continue
+            rows = []
+            extracted = section.get("extracted_data") or section.get("extractedData") or {}
+            if isinstance(extracted, dict) and isinstance(extracted.get("rows"), list):
+                rows = [row for row in extracted["rows"] if isinstance(row, dict)]
+            available_kinds.add(
+                infer_section_kind(
+                    document_type=document.canonical_type,
+                    section_name=section.get("sectionName") or section.get("section_name") or section.get("name"),
+                    raw_text=section.get("raw_text") or section.get("rawText") or section.get("text"),
+                    rows=rows,
+                )
+            )
     missing: list[MissingInput] = []
 
     required_individual = [
@@ -284,7 +385,7 @@ def infer_missing_document_inputs(documents: list[IntakeDocument]) -> list[Missi
         (DocumentType.BALANCE_SHEET, "balance_sheet", "Balance sheets were not provided."),
     ]
     for document_type, key, description in required_individual:
-        if document_type not in available_types:
+        if document_type.value not in available_kinds:
             missing.append(MissingInput(key=key, description=description, document_type=document_type, required=True))
 
     tax_types = {
@@ -292,7 +393,7 @@ def infer_missing_document_inputs(documents: list[IntakeDocument]) -> list[Missi
         DocumentType.TAX_RETURN_1040,
         DocumentType.TAX_RETURN_SCHEDULE_C,
     }
-    if not available_types.intersection(tax_types):
+    if not ({document_type.value for document_type in tax_types}).intersection(available_kinds):
         missing.append(
             MissingInput(
                 key="tax_returns",
@@ -308,7 +409,7 @@ def infer_missing_document_inputs(documents: list[IntakeDocument]) -> list[Missi
         (DocumentType.AR_AGING_REPORT, "ar_aging_report", "An A/R aging report was not provided."),
     ]
     for document_type, key, description in optional_recommended:
-        if document_type not in available_types:
+        if document_type.value not in available_kinds:
             missing.append(MissingInput(key=key, description=description, document_type=document_type, required=False))
 
     return missing

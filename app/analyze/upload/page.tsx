@@ -131,6 +131,8 @@ function UploadContent() {
       const result = await parseDocuments(
         files.map((f) => f.file),
         effectiveTypes,
+        classifiedFiles.map((cf) => cf.fileHash),
+        classifiedFiles.map((cf) => cf.ocrArtifactRef),
       );
       setAnalysisId(result.analysisId ?? null);
       setAnalysisJob(null);

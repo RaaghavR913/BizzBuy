@@ -84,6 +84,19 @@ def safe_div(numerator: float | None, denominator: float | None) -> float | None
     return numerator / denominator
 
 
+def section_kind(section: DocumentSection) -> str:
+    return getattr(section, "section_kind", None) or section.document_type.value
+
+
+def section_is(section: DocumentSection, *kinds: str) -> bool:
+    effective = section_kind(section)
+    if effective in kinds:
+        return True
+    if effective == "sde_summary":
+        return "sde_summary" in kinds
+    return section.document_type.value in kinds
+
+
 def extract_revenue_by_year(sections: Sequence[DocumentSection]) -> dict[int, float]:
     revenue_by_year: dict[int, float] = {}
     for section in sections:
@@ -107,7 +120,7 @@ def compute_financial_metrics(sections: Sequence[DocumentSection]) -> dict[str, 
     pl_sections = [
         section
         for section in sections
-        if section.document_type.value in {"profit_and_loss", "cash_flow_statement"}
+        if section_is(section, "profit_and_loss", "cash_flow_statement") and section_kind(section) != "sde_summary"
     ]
     yearly_raw: dict[int, dict[str, Any]] = {}
     for section in pl_sections:
@@ -163,7 +176,7 @@ def compute_financial_metrics(sections: Sequence[DocumentSection]) -> dict[str, 
             growth = (current["revenue"] - prior["revenue"]) / prior["revenue"]
         revenue_growth_rates.append({"from_year": prior["year"], "to_year": current["year"], "rate": growth})
 
-    balance_sections = [section for section in sections if section.document_type.value == "balance_sheet"]
+    balance_sections = [section for section in sections if section_is(section, "balance_sheet")]
     balance_sections.sort(key=lambda item: item.timeframe.fiscal_year or 0, reverse=True)
     balance_data = balance_sections[0].extracted_data if balance_sections else {}
     balance_sheet = {
@@ -180,7 +193,7 @@ def compute_financial_metrics(sections: Sequence[DocumentSection]) -> dict[str, 
         "total_debt": safe_num(balance_data.get("total_debt") or balance_data.get("long_term_debt")),
     }
 
-    cash_flow_sections = [section for section in sections if section.document_type.value == "cash_flow_statement"]
+    cash_flow_sections = [section for section in sections if section_is(section, "cash_flow_statement")]
     cash_flow_sections.sort(key=lambda item: item.timeframe.fiscal_year or 0, reverse=True)
     cash_data = cash_flow_sections[0].extracted_data if cash_flow_sections else {}
     operating_cash_flow = safe_num(
@@ -197,9 +210,12 @@ def compute_financial_metrics(sections: Sequence[DocumentSection]) -> dict[str, 
     if operating_cash_flow is not None and capital_expenditures is not None:
         free_cash_flow = operating_cash_flow - abs(capital_expenditures)
 
-    pl_only = [section for section in sections if section.document_type.value == "profit_and_loss"]
-    pl_only.sort(key=lambda item: item.timeframe.fiscal_year or 0, reverse=True)
-    sde_data = pl_only[0].extracted_data if pl_only else {}
+    pl_only = [section for section in sections if section_is(section, "profit_and_loss", "sde_summary")]
+    latest_pl_year = max((section.timeframe.fiscal_year or 0 for section in pl_only), default=0)
+    sde_data: dict[str, Any] = {}
+    for section in pl_only:
+        if (section.timeframe.fiscal_year or 0) == latest_pl_year:
+            sde_data.update(section.extracted_data)
     reported_net_income = safe_num(sde_data.get("net_income") or sde_data.get("net_profit"))
     owner_salary = safe_num(sde_data.get("owner_salary") or sde_data.get("officer_compensation") or sde_data.get("owners_compensation"))
     owner_benefits = safe_num(sde_data.get("owner_benefits") or sde_data.get("officer_benefits"))
@@ -255,14 +271,14 @@ def compute_financial_metrics(sections: Sequence[DocumentSection]) -> dict[str, 
             "sde": sde_value,
         },
         "data_years_available": len(annual_financials),
-        "document_types": sorted({section.document_type.value for section in sections}),
+        "document_types": sorted({section_kind(section) for section in sections}),
     }
 
 
 def compute_tax_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
     tax_types = {"tax_return_1120s", "tax_return_1040", "tax_return_schedule_c"}
-    financial_sections = [section for section in sections if section.document_type.value == "profit_and_loss"]
-    tax_sections = [section for section in sections if section.document_type.value in tax_types]
+    financial_sections = [section for section in sections if section_is(section, "profit_and_loss") and section_kind(section) != "sde_summary"]
+    tax_sections = [section for section in sections if section_is(section, *tax_types)]
     revenue_from_financials = extract_revenue_by_year(financial_sections)
     revenue_from_tax_returns = extract_revenue_by_year(tax_sections)
     financial_years = sorted(revenue_from_financials.keys())
@@ -312,7 +328,7 @@ def compute_tax_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
 
 
 def compute_ar_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
-    ar_sections = [section for section in sections if section.document_type.value == "ar_aging_report"]
+    ar_sections = [section for section in sections if section_is(section, "ar_aging_report")]
     if not ar_sections:
         return {
             "total_ar": 0.0,
@@ -343,7 +359,7 @@ def compute_ar_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
 
     annual_revenue_used_for_dso = None
     pl_sections = sorted(
-        [section for section in sections if section.document_type.value == "profit_and_loss"],
+        [section for section in sections if section_is(section, "profit_and_loss") and section_kind(section) != "sde_summary"],
         key=lambda item: item.timeframe.fiscal_year or 0,
         reverse=True,
     )
@@ -406,9 +422,9 @@ def compute_ar_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
 def compute_customer_metrics(ingestion_output: IngestionOutput) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     for doc in ingestion_output.documents:
-        if doc.document_type.value != "customer_list":
-            continue
         for section in doc.sections:
+            if not section_is(section, "customer_list"):
+                continue
             candidates = section.extracted_data.get("customers") or section.extracted_data.get("rows") or section.extracted_data.get("items") or []
             if not isinstance(candidates, list):
                 continue
@@ -448,15 +464,15 @@ def compute_ops_metrics(ingestion_output: IngestionOutput) -> dict[str, Any]:
     for doc in ingestion_output.documents:
         for section in doc.sections:
             data = section.extracted_data
-            if doc.document_type.value == "employee_roster":
+            if section_is(section, "employee_roster"):
                 for item in data.get("employees") or data.get("roster") or data.get("rows") or []:
                     if isinstance(item, dict):
                         employees.append(item)
-            if doc.document_type.value == "equipment_list":
+            if section_is(section, "equipment_list"):
                 for item in data.get("equipment") or data.get("items") or data.get("rows") or []:
                     if isinstance(item, dict):
                         equipment.append(item)
-            if doc.document_type.value == "insurance_policy":
+            if section_is(section, "insurance_policy"):
                 policies = data.get("policies") if isinstance(data.get("policies"), list) else [data]
                 for item in policies:
                     if isinstance(item, dict):
@@ -490,9 +506,9 @@ def compute_lease_metrics(ingestion_output: IngestionOutput, now: datetime | Non
     contracts: list[dict[str, Any]] = []
     for doc in ingestion_output.documents:
         for section in doc.sections:
-            if doc.document_type.value == "lease_agreement" and lease_data is None:
+            if section_is(section, "lease_agreement") and lease_data is None:
                 lease_data = section.extracted_data
-            if doc.document_type.value == "contract":
+            if section_is(section, "contract"):
                 contracts.append(section.extracted_data)
 
     monthly_rent = safe_num((lease_data or {}).get("monthlyRent") or (lease_data or {}).get("monthly_rent") or (lease_data or {}).get("rent"))
@@ -532,11 +548,13 @@ def infer_business_context(ingestion_output: IngestionOutput) -> dict[str, str |
             employees = safe_num(section.extracted_data.get("employees") or section.extracted_data.get("employeeCount"))
             if employees and employees > 0:
                 employee_counts.append(employees)
-        if doc.document_type.value == "lease_agreement" and doc.sections:
-            lease_text = doc.sections[0].raw_text
-            marker = "Tenant:"
-            if marker in lease_text:
-                business_type = lease_text.split(marker, 1)[1].splitlines()[0].split(",")[0].strip() or business_type
+        for section in doc.sections:
+            if section_is(section, "lease_agreement"):
+                lease_text = section.raw_text
+                marker = "Tenant:"
+                if marker in lease_text:
+                    business_type = lease_text.split(marker, 1)[1].splitlines()[0].split(",")[0].strip() or business_type
+                break
 
     revenue_range = f"${(max(revenue_values) / 1_000_000):.1f}M" if revenue_values else None
     employee_count = f"approximately {int(max(employee_counts))}" if employee_counts else None

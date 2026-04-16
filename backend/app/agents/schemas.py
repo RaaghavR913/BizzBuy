@@ -170,9 +170,12 @@ class Timeframe(BaseModel):
 
 
 class DocumentSection(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     section_id: Optional[str] = None
     document_id: str = Field(..., description="References the source UploadedDocument id")
     document_type: DocumentType
+    section_kind: Optional[str] = Field(default=None, alias="sectionKind")
     timeframe: Timeframe
     extracted_data: Dict[str, Any] = Field(..., description="Raw key-value pairs extracted from this section")
     raw_text: str = Field(..., description="Original text from the document section")

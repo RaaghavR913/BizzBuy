@@ -79,6 +79,8 @@ export interface PipelineDocumentPayload {
     section_id?: string | null;
     document_id: string;
     document_type: CanonicalDocumentType;
+    section_kind?: string | null;
+    sectionKind?: string | null;
     timeframe?: {
       start_date?: string | null;
       end_date?: string | null;
@@ -131,7 +133,10 @@ export interface ClassifiedFileResult {
     periodStart: string | null;
     periodEnd: string | null;
     currency: string | null;
+    sheetKinds?: CanonicalDocumentType[];
   };
+  fileHash?: string | null;
+  ocrArtifactRef?: string | null;
   error?: string | null;
 }
 
