@@ -26,13 +26,13 @@ async def parse_documents(
 
     parsing_notes: list[str] = []
     for document in ingestion_output.documents:
-        parsing_notes.append(
-            f"{document.file_name}: {document.status.value} as {document.canonical_type.value} with {len(document.sections)} section(s)."
-        )
-        parsing_notes.extend(document.notes)
+        if document.status.value == "failed":
+            parsing_notes.append(f"{document.file_name}: could not be parsed.")
+        parsing_notes.extend(_actionable_document_notes(document.notes))
 
     for missing_input in ingestion_output.metadata.missing_inputs:
-        parsing_notes.append(f"Missing {missing_input.key}: {missing_input.description}")
+        if missing_input.required:
+            parsing_notes.append(f"Missing {missing_input.key}: {missing_input.description}")
 
     for issue in ingestion_output.metadata.failed_artifacts:
         target = issue.file_name or issue.document_id or "document"
@@ -43,7 +43,7 @@ async def parse_documents(
         completeness = ingestion_output.metadata.successfully_parsed / ingestion_output.metadata.total_documents
 
     extracted_financials = extract_financial_data(ingestion_output)
-    parsing_notes.extend(extracted_financials.parsing_notes)
+    parsing_notes.extend(_actionable_extraction_notes(extracted_financials.parsing_notes))
 
     financial_data = FinancialData(
         income_statement=extracted_financials.income_statement,
@@ -54,3 +54,31 @@ async def parse_documents(
         data_completeness=completeness,
     )
     return financial_data, ingestion_output
+
+
+def _actionable_document_notes(notes: list[str]) -> list[str]:
+    actionable_markers = (
+        "could not",
+        "failed",
+        "missing",
+        "no structured text",
+        "no extractable content",
+    )
+    return [
+        note
+        for note in notes
+        if any(marker in note.lower() for marker in actionable_markers)
+    ]
+
+
+def _actionable_extraction_notes(notes: list[str]) -> list[str]:
+    actionable_markers = (
+        "could not",
+        "no spreadsheet rows",
+        "missing",
+    )
+    return [
+        note
+        for note in notes
+        if any(marker in note.lower() for marker in actionable_markers)
+    ]
