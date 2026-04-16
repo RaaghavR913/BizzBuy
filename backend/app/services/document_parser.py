@@ -31,8 +31,8 @@ async def parse_documents(
         parsing_notes.extend(_actionable_document_notes(document.notes))
 
     for missing_input in ingestion_output.metadata.missing_inputs:
-        if missing_input.required:
-            parsing_notes.append(f"Missing {missing_input.key}: {missing_input.description}")
+        priority = "Required" if missing_input.required else "Optional"
+        parsing_notes.append(f"{priority} missing {missing_input.key}: {missing_input.description}")
 
     for issue in ingestion_output.metadata.failed_artifacts:
         target = issue.file_name or issue.document_id or "document"
