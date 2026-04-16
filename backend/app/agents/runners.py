@@ -77,31 +77,32 @@ from app.services.ingestion_service import ingest_and_persist_document_payloads
 def _relevant_sections(ingestion_output: IngestionOutput, document_types: set[str]) -> list:
     sections = []
     for doc in ingestion_output.documents:
-        if doc.document_type.value in document_types:
-            sections.extend(doc.sections)
+        for section in doc.sections:
+            if _section_matches(section, document_types, doc):
+                sections.append(section)
     return sections
 
 
 def _raw_data_summary(ingestion_output: IngestionOutput, document_types: set[str]) -> str:
     summaries = []
     for doc in ingestion_output.documents:
-        if doc.document_type.value not in document_types:
-            continue
-        section_summaries = [
-            f"  [FY{section.timeframe.fiscal_year or 'unknown'}] {json.dumps(section.extracted_data, default=str)}"
-            for section in doc.sections
-        ]
-        summaries.append(f"### {doc.file_name} ({doc.document_type.value})\n" + "\n".join(section_summaries))
+        for section in doc.sections:
+            if not _section_matches(section, document_types, doc):
+                continue
+            label = section.section_name or section.section_id or "Section"
+            kind = section.section_kind or "unknown"
+            summaries.append(
+                f"### {doc.file_name} / {label} ({section.document_type.value}, kind={kind})\n"
+                f"[FY{section.timeframe.fiscal_year or 'unknown'}] {json.dumps(section.extracted_data, default=str)}"
+            )
     return "\n\n".join(summaries)
 
 
 def _raw_text_summary(ingestion_output: IngestionOutput, document_types: set[str]) -> str:
     chunks = []
     for doc in ingestion_output.documents:
-        if doc.document_type.value not in document_types:
-            continue
         for section in doc.sections:
-            if section.raw_text:
+            if _section_matches(section, document_types, doc) and section.raw_text:
                 chunks.append(section.raw_text)
     return "\n".join(chunks)
 
@@ -115,12 +116,15 @@ def _make_evidence_references(
     allowed = {item.value if isinstance(item, DocumentType) else item for item in document_types}
     evidence: list[EvidenceReference] = []
     for doc in ingestion_output.documents:
-        if doc.document_type.value not in allowed:
-            continue
         for section in doc.sections:
+            if not _section_matches(section, allowed, doc):
+                continue
             snippet = None
             if section.raw_text:
                 snippet = section.raw_text.strip().replace("\n", " ")[:240] or None
+            extracted_fields = dict(section.extracted_data)
+            if section.section_kind:
+                extracted_fields["_section_kind"] = section.section_kind
             evidence.append(
                 EvidenceReference(
                     document_id=doc.document_id,
@@ -128,7 +132,7 @@ def _make_evidence_references(
                     section_id=section.section_id,
                     page=section.page or section.page_start,
                     snippet=snippet,
-                    extracted_fields=section.extracted_data,
+                    extracted_fields=extracted_fields,
                     confidence=section.confidence,
                 )
             )
@@ -139,7 +143,30 @@ def _make_evidence_references(
 
 def _has_document_type(ingestion_output: IngestionOutput, *document_types: DocumentType) -> bool:
     wanted = {document_type.value for document_type in document_types}
-    return any(doc.document_type.value in wanted for doc in ingestion_output.documents)
+    return any(
+        doc.document_type.value in wanted or any(_section_matches(section, wanted, doc) for section in doc.sections)
+        for doc in ingestion_output.documents
+    )
+
+
+def _section_type_value(section: DocumentSection, doc: DocumentInfo | None = None) -> str:
+    if section.section_kind and section.section_kind in DocumentType._value2member_map_:
+        return section.section_kind
+    if section.document_type:
+        return section.document_type.value
+    if doc:
+        return doc.document_type.value
+    return DocumentType.OTHER.value
+
+
+def _section_matches(section: DocumentSection, allowed: set[str], doc: DocumentInfo | None = None) -> bool:
+    if section.section_kind and section.section_kind != DocumentType.OTHER.value:
+        if section.section_kind == "sde_summary":
+            return "sde_summary" in allowed
+        return section.section_kind in allowed or section.document_type.value in allowed
+    if section.document_type.value in allowed:
+        return True
+    return bool(doc and doc.document_type.value in allowed)
 
 
 def _metric(
@@ -273,7 +300,7 @@ def _normalize_financial_output(
 ) -> AgentResult[Any]:
     evidence = _make_evidence_references(
         ingestion_output,
-        [DocumentType.PROFIT_AND_LOSS, DocumentType.BALANCE_SHEET, DocumentType.CASH_FLOW_STATEMENT],
+        [DocumentType.PROFIT_AND_LOSS, DocumentType.BALANCE_SHEET, DocumentType.CASH_FLOW_STATEMENT, "sde_summary"],
     )
     domain_output = result.data
     if not domain_output:
@@ -775,7 +802,7 @@ def _normalize_lending_output(
 ) -> AgentResult[Any]:
     evidence = _make_evidence_references(
         ingestion_output,
-        [DocumentType.PROFIT_AND_LOSS, DocumentType.BALANCE_SHEET, DocumentType.CASH_FLOW_STATEMENT],
+        [DocumentType.PROFIT_AND_LOSS, DocumentType.BALANCE_SHEET, DocumentType.CASH_FLOW_STATEMENT, "sde_summary"],
     )
     domain_output = result.data
     if not domain_output:
@@ -887,6 +914,7 @@ def _bridge_ocr_to_document_info(
                 section_id=f"{document_id}:page-{page.page_number}",
                 document_id=document_id,
                 document_type=doc_type,
+                section_kind=doc_type.value if doc_type != DocumentType.OTHER else None,
                 timeframe=Timeframe(),
                 extracted_data={},
                 raw_text=page.markdown,
@@ -1031,7 +1059,7 @@ def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[Inges
 
 def run_financial_analysis(ingestion_output: IngestionOutput) -> AgentResult[Any]:
     config = AGENT_REGISTRY["financial-analysis"]
-    relevant_doc_types = {"profit_and_loss", "balance_sheet", "cash_flow_statement"}
+    relevant_doc_types = {"profit_and_loss", "balance_sheet", "cash_flow_statement", "sde_summary"}
     sections = _relevant_sections(ingestion_output, relevant_doc_types)
     metrics = compute_financial_metrics(sections)
     warning = ""

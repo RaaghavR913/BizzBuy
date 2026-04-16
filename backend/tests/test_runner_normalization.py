@@ -82,10 +82,18 @@ from app.agents.schemas import (
 )
 
 
-def _section(document_id: str, document_type: DocumentType, year: int | None, extracted_data: dict, raw_text: str) -> DocumentSection:
+def _section(
+    document_id: str,
+    document_type: DocumentType,
+    year: int | None,
+    extracted_data: dict,
+    raw_text: str,
+    section_kind: str | None = None,
+) -> DocumentSection:
     return DocumentSection(
         document_id=document_id,
         document_type=document_type,
+        section_kind=section_kind,
         timeframe=Timeframe(fiscal_year=year),
         extracted_data=extracted_data,
         raw_text=raw_text,
@@ -103,6 +111,32 @@ def _ingestion_output(documents: list[DocumentInfo]) -> IngestionOutput:
             warnings=[],
         ),
     )
+
+
+def test_relevant_sections_uses_section_identity_not_parent_document_type() -> None:
+    ingestion = _ingestion_output(
+        [
+            DocumentInfo(
+                document_id="financials-1",
+                file_name="financials.xlsx",
+                mime_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                document_type=DocumentType.PROFIT_AND_LOSS,
+                sections=[
+                    _section("financials-1", DocumentType.PROFIT_AND_LOSS, 2024, {"revenue": 1000}, "", "profit_and_loss"),
+                    _section("financials-1", DocumentType.BALANCE_SHEET, 2024, {"total_assets": 900}, "", "balance_sheet"),
+                    _section("financials-1", DocumentType.PROFIT_AND_LOSS, 2024, {"sde": 300}, "", "sde_summary"),
+                ],
+            )
+        ]
+    )
+
+    balance_sections = runners._relevant_sections(ingestion, {"balance_sheet"})
+    tax_support_sections = runners._relevant_sections(ingestion, {"profit_and_loss"})
+    financial_sections = runners._relevant_sections(ingestion, {"profit_and_loss", "balance_sheet", "sde_summary"})
+
+    assert [section.section_kind for section in balance_sections] == ["balance_sheet"]
+    assert [section.section_kind for section in tax_support_sections] == ["profit_and_loss"]
+    assert [section.section_kind for section in financial_sections] == ["profit_and_loss", "balance_sheet", "sde_summary"]
 
 
 def _financial_output() -> FinancialAnalysisOutput:

@@ -19,6 +19,8 @@ from app.services.analysis_repository import (
     get_analysis_artifact_repository,
 )
 from app.services.intake_service import IntakeDocument, infer_missing_document_inputs, normalize_document_payload
+from app.services.section_data_normalizer import infer_latest_fiscal_year, normalize_section_extracted_data
+from app.services.section_kind import infer_effective_section_identity
 
 
 def ingest_document_payloads(documents: list[dict[str, Any]]) -> IngestionOutput:
@@ -153,16 +155,30 @@ def _normalize_section(document: IntakeDocument, section: dict[str, Any], index:
         if content_type_raw in SectionContentType._value2member_map_
         else SectionContentType.STRUCTURED if extracted else SectionContentType.TEXT if raw_text else SectionContentType.UNKNOWN
     )
+    rows = extracted.get("rows") if isinstance(extracted.get("rows"), list) else []
+    rows = [row for row in rows if isinstance(row, dict)]
+    section_name = section.get("sectionName") or section.get("section_name") or section.get("name")
+    section_document_type, section_kind = infer_effective_section_identity(
+        parent_document_type=document.canonical_type,
+        explicit_section_kind=section.get("section_kind") or section.get("sectionKind"),
+        explicit_document_type=section.get("document_type") or section.get("documentType"),
+        section_name=section_name,
+        raw_text=str(raw_text),
+        rows=rows,
+    )
+    if timeframe.fiscal_year is None:
+        timeframe.fiscal_year = infer_latest_fiscal_year(rows)
 
-    return DocumentSection(
+    normalized = DocumentSection(
         section_id=section.get("sectionId") or section.get("section_id") or f"{document.document_id}:section-{index + 1}",
         document_id=document.document_id,
-        document_type=document.canonical_type,
+        document_type=section_document_type,
+        section_kind=section_kind,
         timeframe=timeframe,
         extracted_data=extracted,
         raw_text=str(raw_text),
         confidence=_normalize_confidence(section.get("confidence"), default=0.75 if extracted or raw_text else 0.2),
-        section_name=section.get("sectionName") or section.get("section_name") or section.get("name"),
+        section_name=section_name,
         page=section.get("page"),
         page_start=section.get("pageStart") or section.get("page_start"),
         page_end=section.get("pageEnd") or section.get("page_end"),
@@ -171,17 +187,30 @@ def _normalize_section(document: IntakeDocument, section: dict[str, Any], index:
         status=status,
         notes=notes,
     )
+    normalized.extracted_data = normalize_section_extracted_data(normalized)
+    return normalized
 
 
 def _sheet_section(document: IntakeDocument, sheet: dict[str, Any], index: int) -> DocumentSection:
     rows = sheet.get("rows") if isinstance(sheet.get("rows"), list) else []
+    rows = [row for row in rows if isinstance(row, dict)]
     notes = [f"Normalized spreadsheet sheet '{sheet.get('name') or index + 1}' into a section."]
-    return DocumentSection(
+    section_document_type, section_kind = infer_effective_section_identity(
+        parent_document_type=document.canonical_type,
+        explicit_section_kind=sheet.get("section_kind") or sheet.get("sectionKind"),
+        explicit_document_type=sheet.get("document_type") or sheet.get("documentType"),
+        section_name=str(sheet.get("name") or f"Sheet {index + 1}"),
+        raw_text=str(sheet.get("text") or ""),
+        rows=rows,
+    )
+    fiscal_year = sheet.get("fiscalYear") or sheet.get("fiscal_year") or infer_latest_fiscal_year(rows)
+    normalized = DocumentSection(
         section_id=f"{document.document_id}:sheet-{index + 1}",
         document_id=document.document_id,
-        document_type=document.canonical_type,
-        timeframe=Timeframe(fiscal_year=sheet.get("fiscalYear") or sheet.get("fiscal_year")),
-        extracted_data={"rows": [row for row in rows if isinstance(row, dict)]},
+        document_type=section_document_type,
+        section_kind=section_kind,
+        timeframe=Timeframe(fiscal_year=fiscal_year),
+        extracted_data={"rows": rows},
         raw_text=str(sheet.get("text") or ""),
         confidence=_normalize_confidence(sheet.get("confidence"), default=0.8 if rows else 0.45),
         section_name=str(sheet.get("name") or f"Sheet {index + 1}"),
@@ -190,14 +219,21 @@ def _sheet_section(document: IntakeDocument, sheet: dict[str, Any], index: int) 
         status=DocumentStatus.PARSED if rows or sheet.get("text") else DocumentStatus.PARTIAL,
         notes=notes,
     )
+    normalized.extracted_data = normalize_section_extracted_data(normalized)
+    return normalized
 
 
 def _rows_section(document: IntakeDocument) -> DocumentSection:
-    return DocumentSection(
+    section_document_type, section_kind = infer_effective_section_identity(
+        parent_document_type=document.canonical_type,
+        rows=document.spreadsheet_rows,
+    )
+    normalized = DocumentSection(
         section_id=f"{document.document_id}:rows-1",
         document_id=document.document_id,
-        document_type=document.canonical_type,
-        timeframe=Timeframe(),
+        document_type=section_document_type,
+        section_kind=section_kind,
+        timeframe=Timeframe(fiscal_year=infer_latest_fiscal_year(document.spreadsheet_rows)),
         extracted_data={"rows": document.spreadsheet_rows},
         raw_text="",
         confidence=0.8,
@@ -207,6 +243,8 @@ def _rows_section(document: IntakeDocument) -> DocumentSection:
         status=DocumentStatus.PARSED,
         notes=["Normalized spreadsheet rows into a single section."],
     )
+    normalized.extracted_data = normalize_section_extracted_data(normalized)
+    return normalized
 
 
 def _text_section(document: IntakeDocument) -> DocumentSection:
@@ -214,10 +252,16 @@ def _text_section(document: IntakeDocument) -> DocumentSection:
     notes = []
     if source_format == "pdf":
         notes.append("PDF content was ingested as raw text without page-level OCR.")
+    section_document_type, section_kind = infer_effective_section_identity(
+        parent_document_type=document.canonical_type,
+        section_name="Document Text",
+        raw_text=document.raw_text or "",
+    )
     return DocumentSection(
         section_id=f"{document.document_id}:text-1",
         document_id=document.document_id,
-        document_type=document.canonical_type,
+        document_type=section_document_type,
+        section_kind=section_kind,
         timeframe=Timeframe(),
         extracted_data={},
         raw_text=document.raw_text or "",

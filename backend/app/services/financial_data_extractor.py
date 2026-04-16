@@ -44,14 +44,20 @@ def _iter_sections(ingestion_output: IngestionOutput) -> list[tuple[DocumentSect
     for document in ingestion_output.documents:
         for section in document.sections:
             rows = _section_rows(section)
-            kind = infer_section_kind(
-                document_type=section.document_type,
-                section_name=section.section_name,
-                raw_text=section.raw_text,
-                rows=rows,
-            )
+            kind = _effective_section_kind(section, rows)
             sections.append((section, kind))
     return sections
+
+
+def _effective_section_kind(section: DocumentSection, rows: list[dict[str, Any]]) -> str:
+    if section.section_kind and section.section_kind != DocumentType.OTHER.value:
+        return section.section_kind
+    return infer_section_kind(
+        document_type=section.document_type,
+        section_name=section.section_name,
+        raw_text=section.raw_text,
+        rows=rows,
+    )
 
 
 def _first_section(

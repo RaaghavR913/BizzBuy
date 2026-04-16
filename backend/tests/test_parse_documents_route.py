@@ -177,6 +177,16 @@ def test_peakair_parse_documents_seeds_review_financial_data(monkeypatch) -> Non
         assert all("balance_sheet" not in note for note in missing_keys)
         assert all("tax_returns" not in note for note in missing_keys)
 
+        financials_doc = next(document for document in payload["pipelineDocuments"] if document["file_name"] == "PeakAir_Financials.xlsx")
+        sections_by_name = {section["section_name"]: section for section in financials_doc["sections"]}
+        assert financials_doc["document_type"] == "profit_and_loss"
+        assert sections_by_name["P&L Statement"]["document_type"] == "profit_and_loss"
+        assert sections_by_name["P&L Statement"]["section_kind"] == "profit_and_loss"
+        assert sections_by_name["Balance Sheet"]["document_type"] == "balance_sheet"
+        assert sections_by_name["Balance Sheet"]["section_kind"] == "balance_sheet"
+        assert sections_by_name["SDE Summary"]["document_type"] == "profit_and_loss"
+        assert sections_by_name["SDE Summary"]["section_kind"] == "sde_summary"
+
         income_statement = payload["extractedData"]["incomeStatement"]
         balance_sheet = payload["extractedData"]["balanceSheet"]
         loan_terms = payload["extractedData"]["loanTerms"]

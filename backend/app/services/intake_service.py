@@ -362,6 +362,10 @@ def infer_missing_document_inputs(documents: list[IntakeDocument]) -> list[Missi
                 )
             )
         for section in document.sections:
+            explicit_kind = section.get("section_kind") or section.get("sectionKind")
+            if explicit_kind:
+                available_kinds.add(str(explicit_kind))
+                continue
             rows = []
             extracted = section.get("extracted_data") or section.get("extractedData") or {}
             if isinstance(extracted, dict) and isinstance(extracted.get("rows"), list):
