@@ -135,6 +135,11 @@ def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactR
         )
         repository.save_analysis_job(job)
     except Exception as exc:  # pragma: no cover - covered through public API tests
+        error_text = str(exc)
+        first_line = error_text.splitlines()[0] if error_text else "Analysis failed."
+        summarized = first_line[:480]
+        if len(error_text) > 480:
+            summarized += "  (truncated; see analysis_job.json for full error)"
         _persist_job(
             repository,
             analysis_id,
@@ -142,7 +147,7 @@ def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactR
             progress=1.0,
             stage="failed",
             message="Analysis failed.",
-            error=str(exc),
+            error=summarized,
             started_at=started_at,
             completed_at=_now_iso(),
         )

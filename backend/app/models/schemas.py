@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.agents.schemas import (
     AgentExecutionStatus,
@@ -32,6 +32,17 @@ class EvidenceReference(CamelModel):
     snippet: str | None = None
     extracted_fields: dict[str, str | float | int | bool | None] = Field(default_factory=dict)
     confidence: float | None = Field(None, ge=0, le=1)
+
+    @field_validator("extracted_fields", mode="before")
+    @classmethod
+    def _drop_non_primitive_fields(cls, value: object) -> dict[str, str | float | int | bool | None]:
+        if not isinstance(value, dict):
+            return {}
+        return {
+            (key if isinstance(key, str) else str(key)): val
+            for key, val in value.items()
+            if val is None or isinstance(val, (str, int, float, bool))
+        }
 
 
 class NormalizedMetric(CamelModel):

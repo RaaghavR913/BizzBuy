@@ -8,6 +8,7 @@ from threading import RLock
 from typing import Protocol
 
 from app.agents.schemas import ArtifactReference, ArtifactStorageKind, StoredIngestionArtifacts
+from app.agents.evidence_utils import build_evidence_fields
 from app.models.schemas import AnalysisJobRecord
 
 
@@ -169,7 +170,7 @@ def build_stored_ingestion_artifacts(
                     section_id=section.section_id,
                     page=section.page or section.page_start,
                     snippet=(section.raw_text or "")[:280] or None,
-                    extracted_fields=section.extracted_data,
+                    extracted_fields=build_evidence_fields(section),
                     confidence=section.confidence,
                 )
             )

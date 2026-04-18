@@ -32,9 +32,8 @@ from app.services.report_assembler import assemble_summary_report
 from app.services.scoring_engine import compute_pipeline_scorecard
 
 MODEL_PRICING = {
-    "claude-sonnet-4-6": {"type": "per_token", "input": 3.00, "output": 15.00},
-    "claude-opus-4-6":   {"type": "per_token", "input": 5.00, "output": 25.00},
-    "mistral-ocr-2512":  {"type": "per_page",  "rate": 0.002},
+    "z-ai/glm-5.1":     {"type": "per_token", "input": 0.95, "output": 3.15},
+    "mistral-ocr-2512": {"type": "per_page",  "rate": 0.002},
 }
 
 

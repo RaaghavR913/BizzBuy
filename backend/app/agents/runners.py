@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Any, Dict, Iterable
 from uuid import uuid4
 
-from app.agents.claude_client import call_agent
+from app.agents.openrouter_client import call_agent
+from app.agents.evidence_utils import build_evidence_fields
 from app.agents.mistral_ocr_client import (
     IngestionResult,
     MistralOCRError,
@@ -122,9 +123,7 @@ def _make_evidence_references(
             snippet = None
             if section.raw_text:
                 snippet = section.raw_text.strip().replace("\n", " ")[:240] or None
-            extracted_fields = dict(section.extracted_data)
-            if section.section_kind:
-                extracted_fields["_section_kind"] = section.section_kind
+            extracted_fields = build_evidence_fields(section)
             evidence.append(
                 EvidenceReference(
                     document_id=doc.document_id,

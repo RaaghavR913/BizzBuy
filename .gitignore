@@ -34,6 +34,7 @@ __pycache__/
 .pytest_cache/
 backend/pytest-cache-files-*/
 backend/.test-artifacts/
+backend/backend/.test-artifacts/
 
 # sample data (not needed in version control)
 sample company*/
@@ -41,6 +42,7 @@ sample company*/
 # docker
 uploads/
 backend/.artifacts/
+backend/backend/.artifacts/
 
 # vercel
 .vercel

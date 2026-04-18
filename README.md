@@ -59,7 +59,7 @@ The engine combines deterministic financial math with multiple focused Claude AI
 | Layer | Technology |
 |---|---|
 | Framework | Next.js 14 (App Router), TypeScript 5 |
-| AI | Anthropic Claude (`claude-opus-4-5`) via `@anthropic-ai/sdk` |
+| AI | OpenRouter (`z-ai/glm-5.1`) via `openai` Python SDK — all 9 LLM agents; Mistral OCR (`mistral-ocr-2512`) for document extraction |
 | UI | Tailwind CSS 3, shadcn/ui components, Lucide React icons |
 | Charts | Recharts |
 | PDF | `@react-pdf/renderer` |
@@ -215,7 +215,8 @@ components/
 ### Prerequisites
 
 - Node.js 18+
-- An [Anthropic API key](https://console.anthropic.com/) (Claude)
+- An [OpenRouter API key](https://openrouter.ai/) for all LLM agents
+- A [Mistral API key](https://console.mistral.ai/) for OCR document extraction
 
 ### Installation
 
@@ -250,12 +251,16 @@ npm start
 
 | Variable | Required | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | Your Anthropic Claude API key |
+| `OPENROUTER_API_KEY` | Yes | Your OpenRouter API key (routes all 9 LLM agents to `z-ai/glm-5.1`) |
+| `MISTRAL_API_KEY` | Yes | Your Mistral API key (OCR document extraction) |
+| `NEXT_PUBLIC_BACKEND_URL` | No | FastAPI backend URL seen from the browser (default: `http://localhost:8000/api`) |
+| `OPENROUTER_REFERRER` | No | HTTP-Referer header sent to OpenRouter (default: `https://bizbuy.local`) |
 
 Create `.env.local` at the project root (never commit this file — it is in `.gitignore`):
 
 ```env
-ANTHROPIC_API_KEY=sk-ant-...
+OPENROUTER_API_KEY=sk-or-v1-...
+MISTRAL_API_KEY=...
 ```
 
 A template is provided at `.env.local.example`.

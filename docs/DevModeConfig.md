@@ -1,22 +1,22 @@
 # DevModeConfig — Session Summary
 
-## Phase 1 — Document Ingestion Auto-Classification with Claude Haiku 4.5
+## Phase 1 — Document Ingestion Auto-Classification
 
-**Goal:** Rework Step 1 of the user flow so users simply upload files without labeling them. Claude Haiku 4.5 classifies each file automatically.
+**Goal:** Rework Step 1 of the user flow so users simply upload files without labeling them. The classifier detects each file type automatically using keyword heuristics.
 
 ### Backend — New files
 
 #### `backend/app/agents/document_classifier.py`
 
-The core classification agent. Key characteristics:
+> **Note:** This file describes a historical design iteration using Claude Haiku 4.5 for classification. The **live implementation** uses a keyword-based classifier in `backend/app/api/routes/ingest_documents.py` (`_classify_by_keywords`). No Claude or OpenRouter API is called during document classification; it is entirely deterministic.
 
-- **Model:** `claude-haiku-4-5-20251001`
-- **Approach:** Direct Anthropic API call with tool use (`classify_document` tool), not the pipeline's `call_agent` system. This is intentional — the classifier runs as a pre-pipeline step and needs different content block handling (PDF document blocks, image blocks) that `call_agent` doesn't support.
+The original design approach:
+
+- **Model (historical):** `claude-haiku-4-5-20251001` — superseded by keyword classifier
 - **Content handling by file type:**
-  - PDF → Anthropic document content block (base64, native PDF reading by Haiku)
-  - Image (PNG/JPG/JPEG/WebP) → Image content block (base64)
+  - PDF → extracted text via Mistral OCR
   - CSV/TXT → Text preview (header + first ~30 rows, truncated to ~8K chars)
-  - XLSX → Parsed via stdlib `zipfile`/`xml.etree` (reusing `intake_service._extract_xlsx_workbook`), rendered as text preview
+  - XLSX → Parsed via stdlib `zipfile`/`xml.etree`, rendered as text preview
 - **Self-healing retry:** If Pydantic validation fails on the first attempt, the model is re-prompted once with the validation errors appended.
 - **Fallback:** If all retries fail, returns `detectedType: "unknown"` with `confidence: 0.0`.
 - **Output schema (`DocumentClassification`):**
@@ -198,7 +198,8 @@ All local development and testing described here assumes the stack is running vi
 ### Prerequisites
 
 - **Docker Desktop** (or Docker Engine + Compose v2) running
-- **Anthropic API key** in `.env.local` (classification and the 10-agent pipeline need it)
+- **OpenRouter API key** in `.env.local` (all 9 LLM pipeline agents use `z-ai/glm-5.1` via OpenRouter)
+- **Mistral API key** in `.env.local` (OCR document extraction)
 
 ### One-time setup
 
@@ -209,7 +210,8 @@ cd /path/to/BizzBuy
 cp .env.example .env.local
 
 # Edit .env.local and set:
-#   ANTHROPIC_API_KEY=sk-ant-...
+#   OPENROUTER_API_KEY=sk-or-v1-...
+#   MISTRAL_API_KEY=...
 # Optional: NEXT_PUBLIC_BACKEND_URL=http://localhost:8000/api (compose sets this for the frontend service)
 ```
 
@@ -257,9 +259,9 @@ curl -s http://localhost:8000/api/health | python3 -m json.tool
 
 You should see JSON with `"ok": true`, the service name, environment, and CORS-related fields. If this fails, classification and parsing will not work from the UI either.
 
-### 3. Document classification API (Haiku)
+### 3. Document classification API
 
-Requires a valid `ANTHROPIC_API_KEY` in `.env.local` (loaded into the backend container).
+Document classification uses a keyword-based detector and does not require an API key. The backend must be running (see step above).
 
 ```bash
 curl -s -X POST http://localhost:8000/api/documents/ingest \
@@ -343,6 +345,6 @@ docker compose up
 | Symptom | What to check |
 |---|---|
 | Frontend never starts | `docker compose ps` — backend must become **healthy** first |
-| Classification returns errors or `unknown` | `ANTHROPIC_API_KEY` in `.env.local`, quota, and network from container |
+| Classification returns errors or `unknown` | Check `OPENROUTER_API_KEY` in `.env.local` for pipeline agents; classification itself is keyword-based and needs no API key |
 | Browser cannot reach API | `NEXT_PUBLIC_BACKEND_URL` should be `http://localhost:8000/api` for browser calls; confirm in compose `environment` for `frontend` |
 | Empty or stale UI after code edits | Hot reload should apply; if not, restart `docker compose` or rebuild frontend image |

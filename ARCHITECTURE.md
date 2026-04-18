@@ -93,7 +93,7 @@ src/
 │   │   ├── financial-analysis.ts
 │   │   └── ... (one per agent)
 │   ├── utils/
-│   │   ├── claude-client.ts      # Singleton Anthropic client + callAgent()
+│   │   ├── openrouter-client.py  # Singleton OpenRouter client + call_agent()
 │   │   ├── prompt-loader.ts      # Loads & caches markdown prompts with {{var}} interpolation
 │   │   └── validation.ts         # Zod validation helpers + retry prompt builder
 │   ├── registry.ts               # AGENT_REGISTRY — central config for all 10 agents
@@ -121,7 +121,7 @@ interface AgentConfig {
   name: string;           // Agent identifier
   promptFile: string;     // Which .md file to load
   schema: z.ZodType<any>; // Zod schema for output validation
-  model: string;          // Which Claude model to use
+  model: string;          // Which OpenRouter model to use (e.g. z-ai/glm-5.1)
   phase: PipelinePhase;   // Which execution phase
   dependsOn: string[];    // Upstream dependencies
   tools?: Tool[];         // Extra tools (web search for market-macro)
@@ -159,9 +159,9 @@ The runner constructs a user message containing:
 - Raw extracted data from relevant documents
 - Warnings about missing data
 
-### Step 5: Call Claude via `callAgent<T>()`
+### Step 5: Call the LLM via `call_agent<T>()`
 ```typescript
-return callAgent<T>({
+return call_agent<T>({
   model: config.model,
   systemPrompt,
   userMessage,
@@ -172,20 +172,17 @@ return callAgent<T>({
 ```
 
 ### Step 6: Validate and Return
-`callAgent` handles:
-1. Converting the Zod schema to JSON Schema
-2. Sending it as a tool definition (forcing structured output)
-3. Parsing the tool_use response
-4. Validating with Zod
-5. On validation failure: sending errors back to Claude for retry (max 2 retries)
+`call_agent` handles:
+1. Converting the Pydantic schema to JSON Schema
+2. Sending it as an OpenAI-compatible function/tool definition (forcing structured output)
+3. Parsing the tool_calls response
+4. Validating with Pydantic
+5. On validation failure: sending errors back to the model for retry (max 2 retries)
 6. Tracking token usage and latency
 7. Returning a discriminated union: `AgentResult<T>` with status `'success'` or `'error'`
 
 ### Market & Macro Exception
-This agent uses web search alongside structured output. It can't use `callAgent` directly because:
-- `tool_choice` must be `"auto"` (not forced to structured_output) so Claude can call web_search first
-- The response may not contain structured_output on the first turn
-- It implements its own retry loop with the same validation logic
+This agent uses context from uploaded documents alongside structured output. It calls `call_agent` directly like all other agents — there is no web search integration in the current Python implementation.
 
 ## 5. Orchestration Logic
 
@@ -226,37 +223,36 @@ Errors never crash the pipeline. They flow forward as typed `AgentResult<T>` wit
 ## 6. Model Routing
 
 | Model | Agents | Rationale |
+| Model | Agents | Rationale |
 |-------|--------|-----------|
-| **Haiku** (`claude-haiku-4-5-20251001`) | Ingestion, AR, Customer Concentration | Structured extraction and straightforward analysis. These agents work with explicit data (aging buckets, customer lists) and need speed more than reasoning depth. Prompts include extra explicit instructions. |
-| **Sonnet** (`claude-sonnet-4-20250514`) | Financial, Tax, Ops, Lease, Market, Lending | Require analytical judgment — identifying add-back legitimacy, interpreting contract clauses, assessing owner dependence. Balance of capability and cost. |
-| **Opus** (`claude-opus-4-20250514`) | Synthesis | Needs to weigh conflicting signals across 9 analyses, calibrate risk, and produce a nuanced recommendation. Higher-level reasoning with more latitude. |
+| **GLM-5.1** (`z-ai/glm-5.1` via OpenRouter) | All 9 LLM agents — Financial, Tax, AR, Customer, Ops, Lease, Market, Lending, Synthesis | Single unified model routed through OpenRouter. GLM-5.1 supports a 202K token context window and is capable of long-horizon structured reasoning. Model routing per-agent can be restored by updating `AGENT_REGISTRY` model strings without touching runner code. |
+| **Mistral OCR** (`mistral-ocr-2512`) | Document Ingestion | Specialized OCR model for PDF/table extraction. Unchanged. |
 
 ## 7. Cost Control
 
-The architecture targets **$2–3 per full analysis** through several mechanisms:
+The architecture targets **~$0.10–$0.50 per full analysis** at GLM-5.1 pricing through several mechanisms:
 
-### Model Routing (biggest lever)
-Haiku costs ~5× less than Sonnet and ~19× less than Opus per token. By routing 3 agents to Haiku and only 1 to Opus, the pipeline saves significantly vs. running everything on Opus.
+### Model Routing
+All 9 LLM agents share a single model (`z-ai/glm-5.1`) at $0.95/M input and $3.15/M output via OpenRouter. Switching individual agents to a cheaper model only requires changing the `model` string in `registry.py`.
 
 ### Context Compression
 Each agent receives only the documents relevant to its analysis, not the full corpus. The Synthesis agent receives compressed summaries (score + confidence + 3 risks per agent), not the full outputs.
 
 ### Deterministic Pre-computation
-Financial ratios, DSO, DSCR, amortization schedules — all computed in TypeScript. The LLM only interprets results, reducing output token needs and eliminating hallucinated arithmetic.
+Financial ratios, DSO, DSCR, amortization schedules — all computed in Python. The LLM only interprets results, reducing output token needs and eliminating hallucinated arithmetic.
 
 ### Cost Tracking
 The orchestrator computes per-model cost using actual token counts:
 
 | Model | Input ($/1M tokens) | Output ($/1M tokens) |
 |-------|---------------------|----------------------|
-| Haiku | $0.80 | $4.00 |
-| Sonnet | $3.00 | $15.00 |
-| Opus | $15.00 | $75.00 |
+| GLM-5.1 (z-ai/glm-5.1) | $0.95 | $3.15 |
+| Mistral OCR | $0.002/page | — |
 
 Actual cost is calculated per-agent using `(input_tokens / 1M) × rate + (output_tokens / 1M) × rate` and summed across all successful agents, keyed by the model each agent used via the registry.
 
-### Prompt Caching Potential
-Prompts are loaded once and cached in-memory by `prompt-loader.ts`. The Anthropic API's server-side prompt caching can further reduce costs for repeated analyses, since the system prompts are identical across invocations.
+### Prompt Caching
+Prompts are loaded once and cached in-memory by `prompts.py`. OpenRouter supports prompt caching on compatible models, which can further reduce repeated-analysis costs when system prompts are identical across invocations.
 
 ## 8. Key Architectural Decisions
 

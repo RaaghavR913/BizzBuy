@@ -387,16 +387,16 @@ Purpose:
 
 - write the plain-language narrative after scoring is already determined
 
-## 11. Where Claude is called
+## 11. Where the LLM is called
 
-Claude client:
+OpenRouter client:
 
-- [`backend/app/agents/claude_client.py`](/c:/S/BizzBuy/backend/app/agents/claude_client.py)
+- [`backend/app/agents/openrouter_client.py`](/c:/S/BizzBuy/backend/app/agents/openrouter_client.py)
 
 What it does:
 
-- sends prompt + tool schema to Anthropic
-- forces structured tool output
+- sends prompt + function/tool schema to OpenRouter (`z-ai/glm-5.1`)
+- forces structured function-call output
 - validates the result with Pydantic
 - retries if the response is invalid
 - returns an `AgentResult`
@@ -408,7 +408,7 @@ deterministic precompute
   ->
 prompt construction
   ->
-Claude structured call
+OpenRouter structured call (z-ai/glm-5.1)
   ->
 schema validation
   ->
@@ -646,7 +646,7 @@ Frontend summary + deep review
 
 - [`backend/app/agents/registry.py`](/c:/S/BizzBuy/backend/app/agents/registry.py)
 - [`backend/app/agents/prompts.py`](/c:/S/BizzBuy/backend/app/agents/prompts.py)
-- [`backend/app/agents/claude_client.py`](/c:/S/BizzBuy/backend/app/agents/claude_client.py)
+- [`backend/app/agents/openrouter_client.py`](/c:/S/BizzBuy/backend/app/agents/openrouter_client.py)
 - [`backend/app/agents/runners.py`](/c:/S/BizzBuy/backend/app/agents/runners.py)
 - [`backend/app/agents/orchestrator.py`](/c:/S/BizzBuy/backend/app/agents/orchestrator.py)
 - [`backend/app/agents/schemas.py`](/c:/S/BizzBuy/backend/app/agents/schemas.py)

@@ -15,7 +15,7 @@ import { DiligenceChecklist } from '@/components/report/DiligenceChecklist';
 import { UpsideOpportunities } from '@/components/report/UpsideOpportunities';
 import { FinalRecommendation } from '@/components/report/FinalRecommendation';
 import { isReportOutputV2, normalizeReportOutput } from '@/lib/report-normalization';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
 
 const SUMMARY_SECTIONS = [
   { id: 'executive-summary', label: 'Executive Summary' },
@@ -51,10 +51,40 @@ export default function ReportPage() {
     );
   }
 
+  if (state.error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4 max-w-xl mx-auto px-4">
+        <div className="w-full rounded-2xl border border-red-500/25 bg-red-500/10 p-5 text-center space-y-2">
+          <div className="flex items-center justify-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400" />
+            <p className="text-sm font-semibold text-red-400">Analysis failed</p>
+          </div>
+          <p className="text-sm text-t-secondary">{state.error}</p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => router.push('/analyze/questions')}
+            className="flex items-center gap-2 border border-white/10 hover:border-white/20 text-t-secondary hover:text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Adjust answers and retry
+          </button>
+          <button
+            onClick={() => { reset(); router.push('/analyze/upload'); }}
+            className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Start over
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!state.report) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <p className="text-t-secondary">{state.error || 'No report found. Please complete the analysis flow.'}</p>
+        <p className="text-t-secondary">No report found. Please complete the analysis flow.</p>
         <button
           onClick={() => router.push('/analyze/upload')}
           className="bg-accent hover:bg-accent-hover text-white px-6 py-3 rounded-xl font-semibold transition-all"

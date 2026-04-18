@@ -18,6 +18,7 @@ from app.agents.schemas import (
     SynthesisReportOutput,
 )
 from app.agents.deterministic import AGENT_DISPLAY_NAMES
+from app.agents.evidence_utils import build_evidence_fields
 from app.models.schemas import ReportOutputV2
 from app.services.scoring_engine import BUYER_DIMENSION_GROUPS
 
@@ -107,7 +108,7 @@ def _evidence_index(ingestion_output: IngestionOutput | None, envelopes: list[Ag
                     section_id=section.section_id,
                     page=section.page or section.page_start,
                     snippet=snippet or None,
-                    extracted_fields=section.extracted_data,
+                    extracted_fields=build_evidence_fields(section),
                     confidence=section.confidence,
                 )
                 deduped[(evidence.document_id, evidence.section_id, evidence.page, evidence.snippet)] = evidence
