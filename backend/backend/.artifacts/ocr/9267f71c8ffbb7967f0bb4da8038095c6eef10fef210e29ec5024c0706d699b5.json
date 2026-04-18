@@ -1,0 +1,22 @@
+{
+  "filename": "CustomerList_AlpineITSolutions.xlsx",
+  "file_hash": "9267f71c8ffbb7967f0bb4da8038095c6eef10fef210e29ec5024c0706d699b5",
+  "page_count": 1,
+  "classification": {
+    "document_type": "customer_list",
+    "confidence": 0.98,
+    "reasoning": "The document contains a table with columns such as 'Client Name', 'Industry', 'MRR Value', 'Contract Start', 'Contract Expiry', 'Account Manager', and 'Status', which are typical fields found in a customer list. The title 'Alpine IT Solutions LLC \u2014 Customer List' and the subtitle 'As of April 2026' further indicate that this is a list of customers.",
+    "detected_period": "April 2026"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "markdown": "## Customer List\n\n\n| Alpine IT Solutions LLC \u2014 Customer List |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| As of April 2026 | Active Managed Services Clients |  |  |  |  |  |  |  |\n| # | Client Name | Industry | MRR Value | Contract Start | Contract Expiry | Account Manager | Status |\n| 1 | Apex Financial Group | Financial Services | 4100 | Jan-2020 | May-2027 | Owner | Active \u2014 RENEW FLAG |\n| 2 | Denver Metro School District | Government | 3200 | Sep-2021 | Sep-2026 | S. Nakamura | Active |\n| 3 | Pinnacle Realty Group | Real Estate | 2800 | Mar-2022 | Mar-2027 | Owner | Active |\n| 4 | Rocky Mountain Credit Union | Financial Services | 2400 | Jun-2020 | Jun-2026 | S. Nakamura | Active |\n| 5 | Cobalt Construction LLC | Construction | 2200 | Feb-2023 | Feb-2026 | T. Brennan | Active |\n| 6 | Summit Law Group | Professional Services | 1900 | Nov-2021 | Nov-2026 | T. Brennan | Active |\n| 7 | Green Valley Medical Clinic | Healthcare | 1800 | Apr-2022 | Apr-2027 | S. Nakamura | Active |\n| 8 | Highlands Ranch HOA | HOA / Property Mgmt | 1400 | Jan-2024 | Jan-2027 | T. Brennan | Active |\n| 9 | Cherry Creek Dental | Healthcare | 1300 | Aug-2023 | Aug-2026 | T. Brennan | Active |\n| 10 | Foothills Manufacturing Inc. | Manufacturing | 1200 | Oct-2022 | Oct-2025 | Owner | Month-to-Month |\n| 11 | TrueNorth Insurance Group | Financial Services | 1100 | Mar-2021 | Mar-2026 | S. Nakamura | Active |\n| 12 | Columbine Brewing Co. | Food & Beverage | 900 | Jul-2023 | Jul-2026 | T. Brennan | Active |\n| 13 | Other clients (14 MRR + project) | Various | 6600 | Various | Various | Various | Active |",
+      "image_refs": []
+    }
+  ],
+  "full_markdown": "## Customer List\n\n\n| Alpine IT Solutions LLC \u2014 Customer List |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| As of April 2026 | Active Managed Services Clients |  |  |  |  |  |  |  |\n| # | Client Name | Industry | MRR Value | Contract Start | Contract Expiry | Account Manager | Status |\n| 1 | Apex Financial Group | Financial Services | 4100 | Jan-2020 | May-2027 | Owner | Active \u2014 RENEW FLAG |\n| 2 | Denver Metro School District | Government | 3200 | Sep-2021 | Sep-2026 | S. Nakamura | Active |\n| 3 | Pinnacle Realty Group | Real Estate | 2800 | Mar-2022 | Mar-2027 | Owner | Active |\n| 4 | Rocky Mountain Credit Union | Financial Services | 2400 | Jun-2020 | Jun-2026 | S. Nakamura | Active |\n| 5 | Cobalt Construction LLC | Construction | 2200 | Feb-2023 | Feb-2026 | T. Brennan | Active |\n| 6 | Summit Law Group | Professional Services | 1900 | Nov-2021 | Nov-2026 | T. Brennan | Active |\n| 7 | Green Valley Medical Clinic | Healthcare | 1800 | Apr-2022 | Apr-2027 | S. Nakamura | Active |\n| 8 | Highlands Ranch HOA | HOA / Property Mgmt | 1400 | Jan-2024 | Jan-2027 | T. Brennan | Active |\n| 9 | Cherry Creek Dental | Healthcare | 1300 | Aug-2023 | Aug-2026 | T. Brennan | Active |\n| 10 | Foothills Manufacturing Inc. | Manufacturing | 1200 | Oct-2022 | Oct-2025 | Owner | Month-to-Month |\n| 11 | TrueNorth Insurance Group | Financial Services | 1100 | Mar-2021 | Mar-2026 | S. Nakamura | Active |\n| 12 | Columbine Brewing Co. | Food & Beverage | 900 | Jul-2023 | Jul-2026 | T. Brennan | Active |\n| 13 | Other clients (14 MRR + project) | Various | 6600 | Various | Various | Various | Active |",
+  "ocr_model": "mistral-ocr-2512",
+  "processing_time_ms": 1633,
+  "cost_usd": 0.002
+}

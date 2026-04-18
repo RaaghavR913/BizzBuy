@@ -1,0 +1,22 @@
+{
+  "filename": "BalanceSheet_AlpineITSolutions.xlsx",
+  "file_hash": "faef197d08850618b173912069a2b7de4d7be58eebfb605ba789c28e5a55fcc2",
+  "page_count": 1,
+  "classification": {
+    "document_type": "balance_sheet",
+    "confidence": 0.98,
+    "reasoning": "The document contains a detailed breakdown of assets, liabilities, and equity, which are characteristic of a balance sheet. It includes sections for current assets, fixed assets, intangible assets, current liabilities, long-term liabilities, and member equity. The presence of specific line items such as 'Cash & Cash Equivalents', 'Accounts Receivable', 'Accounts Payable', and 'Retained Earnings' further supports this classification.",
+    "detected_period": "As of December 31, 2024"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "markdown": "## Balance Sheet\n\n\n| Alpine IT Solutions LLC \u2014 Balance Sheet |  |  |\n| --- | --- | --- |\n| Denver, CO | As of December 31, 2024 | All figures in USD |  |  |\n| Line Item | Amount (USD) | Notes |\n| ASSETS |  |  |\n| Current Assets |  |  |\n| Cash & Cash Equivalents | 284600 |  |\n| Accounts Receivable (net) | 148400 | 14-day DSO \u2014 excellent |\n| Prepaid Expenses & Deposits | 32200 |  |\n| Total Current Assets | 465200 |  |\n|  |\n| Fixed Assets |  |  |\n| IT Infrastructure & Lab Equipment | 68000 |  |\n| Computers & Workstations | 42000 |  |\n| Office Furniture & Fixtures | 18000 |  |\n| Owner Vehicle | 38000 |  |\n| Less: Accumulated Depreciation | -82000 |  |\n| Net Fixed Assets | 84000 |  |\n|  |\n| Intangible Assets |  |  |\n| Customer Contracts (MRR) | 0 | Not capitalized \u2014 significant buyer value |\n| Software Licenses / IP | 0 |  |\n| Total Intangible Assets | 0 |  |\n|  |\n| TOTAL ASSETS | 549200 |  |\n|  |\n| LIABILITIES & EQUITY |  |  |\n| Current Liabilities |  |  |\n| Accounts Payable | 22400 |  |\n| Accrued Payroll | 18600 |  |\n| Deferred Revenue (prepaid MSAs) | 62800 | Annual MSA clients \u2014 normalizes by Q2 |\n| Total Current Liabilities | 103800 |  |\n|  |\n| Long-Term Liabilities |  |  |\n| Long-Term Debt | 0 | No debt \u2014 clean balance sheet |\n| Total Long-Term Liabilities | 0 |  |\n|  |\n| TOTAL LIABILITIES | 103800 |  |\n|  |\n| Member Equity |  |  |\n| Retained Earnings | 445400 |  |\n| Total Equity | 445400 |  |\n|  |\n| TOTAL LIABILITIES & EQUITY | 549200 |  |",
+      "image_refs": []
+    }
+  ],
+  "full_markdown": "## Balance Sheet\n\n\n| Alpine IT Solutions LLC \u2014 Balance Sheet |  |  |\n| --- | --- | --- |\n| Denver, CO | As of December 31, 2024 | All figures in USD |  |  |\n| Line Item | Amount (USD) | Notes |\n| ASSETS |  |  |\n| Current Assets |  |  |\n| Cash & Cash Equivalents | 284600 |  |\n| Accounts Receivable (net) | 148400 | 14-day DSO \u2014 excellent |\n| Prepaid Expenses & Deposits | 32200 |  |\n| Total Current Assets | 465200 |  |\n|  |\n| Fixed Assets |  |  |\n| IT Infrastructure & Lab Equipment | 68000 |  |\n| Computers & Workstations | 42000 |  |\n| Office Furniture & Fixtures | 18000 |  |\n| Owner Vehicle | 38000 |  |\n| Less: Accumulated Depreciation | -82000 |  |\n| Net Fixed Assets | 84000 |  |\n|  |\n| Intangible Assets |  |  |\n| Customer Contracts (MRR) | 0 | Not capitalized \u2014 significant buyer value |\n| Software Licenses / IP | 0 |  |\n| Total Intangible Assets | 0 |  |\n|  |\n| TOTAL ASSETS | 549200 |  |\n|  |\n| LIABILITIES & EQUITY |  |  |\n| Current Liabilities |  |  |\n| Accounts Payable | 22400 |  |\n| Accrued Payroll | 18600 |  |\n| Deferred Revenue (prepaid MSAs) | 62800 | Annual MSA clients \u2014 normalizes by Q2 |\n| Total Current Liabilities | 103800 |  |\n|  |\n| Long-Term Liabilities |  |  |\n| Long-Term Debt | 0 | No debt \u2014 clean balance sheet |\n| Total Long-Term Liabilities | 0 |  |\n|  |\n| TOTAL LIABILITIES | 103800 |  |\n|  |\n| Member Equity |  |  |\n| Retained Earnings | 445400 |  |\n| Total Equity | 445400 |  |\n|  |\n| TOTAL LIABILITIES & EQUITY | 549200 |  |",
+  "ocr_model": "mistral-ocr-2512",
+  "processing_time_ms": 1402,
+  "cost_usd": 0.002
+}

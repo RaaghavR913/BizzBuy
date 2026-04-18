@@ -1,0 +1,22 @@
+{
+  "filename": "ARAgingReport_AlpineITSolutions.xlsx",
+  "file_hash": "012aa247d47cbb28662c60e6ce40217eab99551346436b97b60efe0b26ebe604",
+  "page_count": 1,
+  "classification": {
+    "document_type": "ar_aging_report",
+    "confidence": 0.95,
+    "reasoning": "The document contains a table with columns labeled 'Client', 'Type', 'Total', '0-30', '31-60', '61-90', '91-120', and '120+', which are typical of an accounts receivable aging report. The presence of client names, types, and the aging buckets (0-30 days, 31-60 days, etc.) further supports this classification. The note at the bottom mentions 'AR is current \u2014 no collection risk' and 'Industry-leading DSO of ~14 days', which are terms and metrics commonly associated with accounts receivable management.",
+    "detected_period": "December 31, 2024"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "markdown": "## AR Aging\n\n\n| Alpine IT Solutions LLC \u2014 Accounts Receivable Aging |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| As of December 31, 2024 | All figures in USD |  |  |  |  |  |  |  |\n| Client | Type | Total | 0-30 | 31-60 | 61-90 | 91-120 | 120+ |\n| Apex Financial Group | Commercial | 24600 | 24600 | 0 | 0 | 0 | 0 |\n| Denver Metro School District | Government | 18800 | 18800 | 0 | 0 | 0 | 0 |\n| Pinnacle Realty Group | Commercial | 14400 | 14400 | 0 | 0 | 0 | 0 |\n| Rocky Mountain Credit Union | Financial | 12200 | 12200 | 0 | 0 | 0 | 0 |\n| Cobalt Construction LLC | Commercial | 10800 | 10800 | 0 | 0 | 0 | 0 |\n| Summit Law Group | Professional Svcs | 9400 | 9400 | 0 | 0 | 0 | 0 |\n| Green Valley Medical Clinic | Healthcare | 8800 | 5800 | 3000 | 0 | 0 | 0 |\n| Highlands Ranch HOA | HOA | 6200 | 6200 | 0 | 0 | 0 | 0 |\n| Other clients (18 accounts) |  | 43400 | 36200 | 6400 | 800 | 0 | 0 |\n| TOTAL |  | 148600 | 138400 | 9400 | 800 | 0 | 0 |\n| NOTE: Apex Financial Group is the largest single client (18% of MRR revenue). Contract up for renewal May 2027. AR is current \u2014 no collection risk. Industry-leading DSO of ~14 days. |  |  |  |  |  |  |  |",
+      "image_refs": []
+    }
+  ],
+  "full_markdown": "## AR Aging\n\n\n| Alpine IT Solutions LLC \u2014 Accounts Receivable Aging |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| As of December 31, 2024 | All figures in USD |  |  |  |  |  |  |  |\n| Client | Type | Total | 0-30 | 31-60 | 61-90 | 91-120 | 120+ |\n| Apex Financial Group | Commercial | 24600 | 24600 | 0 | 0 | 0 | 0 |\n| Denver Metro School District | Government | 18800 | 18800 | 0 | 0 | 0 | 0 |\n| Pinnacle Realty Group | Commercial | 14400 | 14400 | 0 | 0 | 0 | 0 |\n| Rocky Mountain Credit Union | Financial | 12200 | 12200 | 0 | 0 | 0 | 0 |\n| Cobalt Construction LLC | Commercial | 10800 | 10800 | 0 | 0 | 0 | 0 |\n| Summit Law Group | Professional Svcs | 9400 | 9400 | 0 | 0 | 0 | 0 |\n| Green Valley Medical Clinic | Healthcare | 8800 | 5800 | 3000 | 0 | 0 | 0 |\n| Highlands Ranch HOA | HOA | 6200 | 6200 | 0 | 0 | 0 | 0 |\n| Other clients (18 accounts) |  | 43400 | 36200 | 6400 | 800 | 0 | 0 |\n| TOTAL |  | 148600 | 138400 | 9400 | 800 | 0 | 0 |\n| NOTE: Apex Financial Group is the largest single client (18% of MRR revenue). Contract up for renewal May 2027. AR is current \u2014 no collection risk. Industry-leading DSO of ~14 days. |  |  |  |  |  |  |  |",
+  "ocr_model": "mistral-ocr-2512",
+  "processing_time_ms": 1669,
+  "cost_usd": 0.002
+}

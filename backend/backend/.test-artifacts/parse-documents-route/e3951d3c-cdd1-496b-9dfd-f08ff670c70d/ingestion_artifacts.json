@@ -1,0 +1,118 @@
+{
+  "analysis_id": "e3951d3c-cdd1-496b-9dfd-f08ff670c70d",
+  "storage_version": "1.0",
+  "stored_at": "2026-04-17T02:49:03.867758+00:00",
+  "ingestion_output": {
+    "documents": [
+      {
+        "document_id": "c93cf51a-e764-46d1-9e0f-a2f2b3da41d5",
+        "file_name": "seller-pnl.txt",
+        "mime_type": "text/plain",
+        "document_type": "profit_and_loss",
+        "declared_type": "profit_and_loss",
+        "canonical_type": "profit_and_loss",
+        "size_bytes": 33,
+        "status": "parsed",
+        "confidence": 0.7,
+        "notes": [],
+        "sections": [
+          {
+            "section_id": "c93cf51a-e764-46d1-9e0f-a2f2b3da41d5:text-1",
+            "document_id": "c93cf51a-e764-46d1-9e0f-a2f2b3da41d5",
+            "document_type": "profit_and_loss",
+            "section_kind": "other",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {},
+            "raw_text": "Revenue 1200000\nNet Income 300000",
+            "confidence": 0.7,
+            "section_name": "Document Text",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "text",
+            "content_type": "text",
+            "status": "parsed",
+            "notes": []
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "total_documents": 1,
+      "successfully_parsed": 1,
+      "ingestion_source": "structured",
+      "failed_documents": [],
+      "failed_artifacts": [],
+      "missing_inputs": [
+        {
+          "key": "balance_sheet",
+          "description": "Balance sheets were not provided.",
+          "document_type": "balance_sheet",
+          "required": true,
+          "reason": null
+        },
+        {
+          "key": "tax_returns",
+          "description": "No business tax returns were provided.",
+          "document_type": "tax_return_1120s",
+          "required": true,
+          "reason": "At least one supported tax return is expected for diligence."
+        },
+        {
+          "key": "cash_flow_statement",
+          "description": "Cash flow statements were not provided.",
+          "document_type": "cash_flow_statement",
+          "required": false,
+          "reason": null
+        },
+        {
+          "key": "ar_aging_report",
+          "description": "An A/R aging report was not provided.",
+          "document_type": "ar_aging_report",
+          "required": false,
+          "reason": null
+        }
+      ],
+      "analysis_id": "e3951d3c-cdd1-496b-9dfd-f08ff670c70d",
+      "overall_confidence": 0.7,
+      "artifact_refs": [
+        {
+          "artifact_key": "ingestion_artifacts",
+          "storage_kind": "filesystem",
+          "path": "backend/.test-artifacts/parse-documents-route/e3951d3c-cdd1-496b-9dfd-f08ff670c70d/ingestion_artifacts.json",
+          "content_type": "application/json"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "document_inventory": [
+    {
+      "document_id": "c93cf51a-e764-46d1-9e0f-a2f2b3da41d5",
+      "file_name": "seller-pnl.txt",
+      "document_type": "profit_and_loss",
+      "status": "parsed",
+      "confidence": 0.7,
+      "section_ids": [
+        "c93cf51a-e764-46d1-9e0f-a2f2b3da41d5:text-1"
+      ],
+      "notes": []
+    }
+  ],
+  "evidence_index": [
+    {
+      "document_id": "c93cf51a-e764-46d1-9e0f-a2f2b3da41d5",
+      "file_name": "seller-pnl.txt",
+      "section_id": "c93cf51a-e764-46d1-9e0f-a2f2b3da41d5:text-1",
+      "page": null,
+      "snippet": "Revenue 1200000\nNet Income 300000",
+      "extracted_fields": {},
+      "confidence": 0.7
+    }
+  ],
+  "clarifications": []
+}

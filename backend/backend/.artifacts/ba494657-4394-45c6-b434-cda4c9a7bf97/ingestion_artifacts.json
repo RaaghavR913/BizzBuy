@@ -1,0 +1,919 @@
+{
+  "analysis_id": "ba494657-4394-45c6-b434-cda4c9a7bf97",
+  "storage_version": "1.0",
+  "stored_at": "2026-04-17T01:00:59.099741+00:00",
+  "ingestion_output": {
+    "documents": [
+      {
+        "document_id": "63162469-d79a-4d8c-a726-bae8b8d27e1f",
+        "file_name": "IncomeStatement_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "profit_and_loss",
+        "declared_type": "profit_and_loss",
+        "canonical_type": "profit_and_loss",
+        "size_bytes": 9157,
+        "status": "parsed",
+        "confidence": 0.8,
+        "notes": [
+          "Reused cached OCR artifact text for ingestion."
+        ],
+        "sections": [
+          {
+            "section_id": "63162469-d79a-4d8c-a726-bae8b8d27e1f:sheet-1",
+            "document_id": "63162469-d79a-4d8c-a726-bae8b8d27e1f",
+            "document_type": "profit_and_loss",
+            "section_kind": "sde_summary",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2028
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Alpine IT Solutions LLC \u2014 Income Statement",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 3,
+                  "A": "Line Item",
+                  "B": "2022",
+                  "C": "2023",
+                  "D": "2024",
+                  "E": "Notes"
+                },
+                {
+                  "row_index": 4,
+                  "A": "REVENUE",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 5,
+                  "A": "Managed Services (MRR contracts)",
+                  "B": "1284000",
+                  "C": "1408000",
+                  "D": "1562000",
+                  "E": "67%+ recurring"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Project & Implementation Work",
+                  "B": "486000",
+                  "C": "528000",
+                  "D": "578000",
+                  "E": "One-time engagements"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Hardware & Software Resale",
+                  "B": "128000",
+                  "C": "148000",
+                  "D": "168000",
+                  "E": "Pass-through margin ~18%"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Training & Consulting",
+                  "B": "82000",
+                  "C": "96000",
+                  "D": "102000",
+                  "E": ""
+                },
+                {
+                  "row_index": 9,
+                  "A": "Total Revenue",
+                  "B": "1980000",
+                  "C": "2180000",
+                  "D": "2410000",
+                  "E": ""
+                },
+                {
+                  "row_index": 10,
+                  "A": "Revenue Growth YOY",
+                  "B": "",
+                  "C": "0.15625",
+                  "D": "0.135135135135135",
+                  "E": "10.1% \u2192 10.6%"
+                },
+                {
+                  "row_index": 11,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 12,
+                  "A": "COST OF REVENUE",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 13,
+                  "A": "Technical Staff Labor",
+                  "B": "634000",
+                  "C": "694000",
+                  "D": "766000",
+                  "E": "3 senior engineers + 2 techs"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Subcontractors / Specialists",
+                  "B": "142000",
+                  "C": "154000",
+                  "D": "168000",
+                  "E": ""
+                },
+                {
+                  "row_index": 15,
+                  "A": "Hardware / Software COGS",
+                  "B": "106000",
+                  "C": "122000",
+                  "D": "138000",
+                  "E": ""
+                },
+                {
+                  "row_index": 16,
+                  "A": "Cloud Infrastructure (AWS/Azure)",
+                  "B": "88000",
+                  "C": "98000",
+                  "D": "110000",
+                  "E": "Passed through to clients"
+                },
+                {
+                  "row_index": 17,
+                  "A": "Total COGS",
+                  "B": "970000",
+                  "C": "1068000",
+                  "D": "1182000",
+                  "E": ""
+                },
+                {
+                  "row_index": 18,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 19,
+                  "A": "Gross Profit",
+                  "B": "1010000",
+                  "C": "1112000",
+                  "D": "1228000",
+                  "E": ""
+                },
+                {
+                  "row_index": 20,
+                  "A": "Gross Margin",
+                  "B": "1.99588477366255",
+                  "C": "2.02272727272727",
+                  "D": "2.04498269896194",
+                  "E": "~51%"
+                },
+                {
+                  "row_index": 21,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 22,
+                  "A": "OPERATING EXPENSES",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 23,
+                  "A": "Owner Draw / Salary",
+                  "B": "88000",
+                  "C": "92000",
+                  "D": "95000",
+                  "E": "Market replacement ~$120K"
+                },
+                {
+                  "row_index": 24,
+                  "A": "Admin / Office Manager",
+                  "B": "52000",
+                  "C": "55000",
+                  "D": "58000",
+                  "E": ""
+                },
+                {
+                  "row_index": 25,
+                  "A": "Rent & Facilities",
+                  "B": "42000",
+                  "C": "44000",
+                  "D": "46000",
+                  "E": "Class B office \u2014 lease thru 2028"
+                },
+                {
+                  "row_index": 26,
+                  "A": "Insurance (E&O / GL / Cyber)",
+                  "B": "38000",
+                  "C": "42000",
+                  "D": "46000",
+                  "E": "E&O + cyber mandatory for MSP"
+                },
+                {
+                  "row_index": 27,
+                  "A": "Software Tools & Licenses",
+                  "B": "48000",
+                  "C": "52000",
+                  "D": "56000",
+                  "E": "RMM, PSA, backup, security stack"
+                },
+                {
+                  "row_index": 28,
+                  "A": "Owner Vehicle",
+                  "B": "14200",
+                  "C": "14200",
+                  "D": "14200",
+                  "E": "Toyota Land Cruiser \u2014 business use ~60%"
+                },
+                {
+                  "row_index": 29,
+                  "A": "Marketing & Lead Gen",
+                  "B": "18000",
+                  "C": "20000",
+                  "D": "22000",
+                  "E": ""
+                },
+                {
+                  "row_index": 30,
+                  "A": "Professional Fees",
+                  "B": "22000",
+                  "C": "24000",
+                  "D": "26000",
+                  "E": "CPA + attorney"
+                },
+                {
+                  "row_index": 31,
+                  "A": "Depreciation",
+                  "B": "18000",
+                  "C": "20000",
+                  "D": "22000",
+                  "E": ""
+                },
+                {
+                  "row_index": 32,
+                  "A": "Misc / Office",
+                  "B": "14000",
+                  "C": "16000",
+                  "D": "18000",
+                  "E": ""
+                },
+                {
+                  "row_index": 33,
+                  "A": "Total OpEx",
+                  "B": "354200",
+                  "C": "379200",
+                  "D": "403200",
+                  "E": ""
+                },
+                {
+                  "row_index": 34,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 35,
+                  "A": "EBITDA",
+                  "B": "655800",
+                  "C": "732800",
+                  "D": "824800",
+                  "E": ""
+                },
+                {
+                  "row_index": 36,
+                  "A": "EBITDA Margin",
+                  "B": "0.72880658436214",
+                  "C": "0.718181818181818",
+                  "D": "0.69757785467128",
+                  "E": "~34.2%"
+                },
+                {
+                  "row_index": 37,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 38,
+                  "A": "SDE RECONCILIATION",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 39,
+                  "A": "EBITDA",
+                  "B": "655800",
+                  "C": "732800",
+                  "D": "824800",
+                  "E": ""
+                },
+                {
+                  "row_index": 40,
+                  "A": "Add Back: Owner Draw",
+                  "B": "88000",
+                  "C": "92000",
+                  "D": "95000",
+                  "E": ""
+                },
+                {
+                  "row_index": 41,
+                  "A": "Add Back: Owner Health Insurance",
+                  "B": "10400",
+                  "C": "10800",
+                  "D": "11200",
+                  "E": ""
+                },
+                {
+                  "row_index": 42,
+                  "A": "Add Back: Owner Vehicle (partial)",
+                  "B": "8500",
+                  "C": "8500",
+                  "D": "8500",
+                  "E": "60% business use allocation"
+                },
+                {
+                  "row_index": 43,
+                  "A": "Less: Market-Rate Tech Director",
+                  "B": "-120,000",
+                  "C": "-120,000",
+                  "D": "-120,000",
+                  "E": "Replace owner's technical role"
+                },
+                {
+                  "row_index": 44,
+                  "A": "Less: Market-Rate Admin",
+                  "B": "-55,000",
+                  "C": "-55,000",
+                  "D": "-55,000",
+                  "E": ""
+                },
+                {
+                  "row_index": 45,
+                  "A": "Reported SDE",
+                  "B": "387700",
+                  "C": "469100",
+                  "D": "564500",
+                  "E": ""
+                }
+              ],
+              "add_backs": [
+                {
+                  "description": "Owner Vehicle",
+                  "amount": 60.0,
+                  "category": "personal_expense"
+                }
+              ]
+            },
+            "raw_text": "1 | Alpine IT Solutions LLC \u2014 Income Statement\n2 | Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD\n3 | Line Item | 2022 | 2023 | 2024 | Notes\n4 | REVENUE\n5 | Managed Services (MRR contracts) | 1284000 | 1408000 | 1562000 | 67%+ recurring\n6 | Project & Implementation Work | 486000 | 528000 | 578000 | One-time engagements\n7 | Hardware & Software Resale | 128000 | 148000 | 168000 | Pass-through margin ~18%\n8 | Training & Consulting | 82000 | 96000 | 102000\n9 | Total Revenue | 1980000 | 2180000 | 2410000\n10 | Revenue Growth YOY | 0.15625 | 0.135135135135135 | 10.1% \u2192 10.6%\n11\n12 | COST OF REVENUE\n13 | Technical Staff Labor | 634000 | 694000 | 766000 | 3 senior engineers + 2 techs\n14 | Subcontractors / Specialists | 142000 | 154000 | 168000\n15 | Hardware / Software COGS | 106000 | 122000 | 138000\n16 | Cloud Infrastructure (AWS/Azure) | 88000 | 98000 | 110000 | Passed through to clients\n17 | Total COGS | 970000 | 1068000 | 1182000\n18\n19 | Gross Profit | 1010000 | 1112000 | 1228000\n20 | Gross Margin | 1.99588477366255 | 2.02272727272727 | 2.04498269896194 | ~51%\n21\n22 | OPERATING EXPENSES\n23 | Owner Draw / Salary | 88000 | 92000 | 95000 | Market replacement ~$120K\n24 | Admin / Office Manager | 52000 | 55000 | 58000\n25 | Rent & Facilities | 42000 | 44000 | 46000 | Class B office \u2014 lease thru 2028\n26 | Insurance (E&O / GL / Cyber) | 38000 | 42000 | 46000 | E&O + cyber mandatory for MSP\n27 | Software Tools & Licenses | 48000 | 52000 | 56000 | RMM, PSA, backup, security stack\n28 | Owner Vehicle | 14200 | 14200 | 14200 | Toyota Land Cruiser \u2014 business use ~60%\n29 | Marketing & Lead Gen | 18000 | 20000 | 22000\n30 | Professional Fees | 22000 | 24000 | 26000 | CPA + attorney\n31 | Depreciation | 18000 | 20000 | 22000\n32 | Misc / Office | 14000 | 16000 | 18000\n33 | Total OpEx | 354200 | 379200 | 403200\n34\n35 | EBITDA | 655800 | 732800 | 824800\n36 | EBITDA Margin | 0.72880658436214 | 0.718181818181818 | 0.69757785467128 | ~34.2%\n37\n38 | SDE RECONCILIATION\n39 | EBITDA | 655800 | 732800 | 824800\n40 | Add Back: Owner Draw | 88000 | 92000 | 95000\n41 | Add Back: Owner Health Insurance | 10400 | 10800 | 11200\n42 | Add Back: Owner Vehicle (partial) | 8500 | 8500 | 8500 | 60% business use allocation\n43 | Less: Market-Rate Tech Director | -120,000 | -120,000 | -120,000 | Replace owner's technical role\n44 | Less: Market-Rate Admin | -55,000 | -55,000 | -55,000\n45 | Reported SDE | 387700 | 469100 | 564500",
+            "confidence": 0.8,
+            "section_name": "Income Statement",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'Income Statement' into a section."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "40371ed7-3320-4b68-ba78-47d23999d964",
+        "file_name": "BalanceSheet_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "balance_sheet",
+        "declared_type": "balance_sheet",
+        "canonical_type": "balance_sheet",
+        "size_bytes": 6553,
+        "status": "parsed",
+        "confidence": 0.7,
+        "notes": [
+          "Skipped workbook sheet Balance Sheet: worksheet XML could not be parsed.",
+          "Reused cached OCR artifact text for ingestion."
+        ],
+        "sections": [
+          {
+            "section_id": "40371ed7-3320-4b68-ba78-47d23999d964:text-1",
+            "document_id": "40371ed7-3320-4b68-ba78-47d23999d964",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {},
+            "raw_text": "## Balance Sheet\n\n\n| Alpine IT Solutions LLC \u2014 Balance Sheet |  |  |\n| --- | --- | --- |\n| Denver, CO | As of December 31, 2024 | All figures in USD |  |  |\n| Line Item | Amount (USD) | Notes |\n| ASSETS |  |  |\n| Current Assets |  |  |\n| Cash & Cash Equivalents | 284600 |  |\n| Accounts Receivable (net) | 148400 | 14-day DSO \u2014 excellent |\n| Prepaid Expenses & Deposits | 32200 |  |\n| Total Current Assets | 465200 |  |\n|  |\n| Fixed Assets |  |  |\n| IT Infrastructure & Lab Equipment | 68000 |  |\n| Computers & Workstations | 42000 |  |\n| Office Furniture & Fixtures | 18000 |  |\n| Owner Vehicle | 38000 |  |\n| Less: Accumulated Depreciation | -82000 |  |\n| Net Fixed Assets | 84000 |  |\n|  |\n| Intangible Assets |  |  |\n| Customer Contracts (MRR) | 0 | Not capitalized \u2014 significant buyer value |\n| Software Licenses / IP | 0 |  |\n| Total Intangible Assets | 0 |  |\n|  |\n| TOTAL ASSETS | 549200 |  |\n|  |\n| LIABILITIES & EQUITY |  |  |\n| Current Liabilities |  |  |\n| Accounts Payable | 22400 |  |\n| Accrued Payroll | 18600 |  |\n| Deferred Revenue (prepaid MSAs) | 62800 | Annual MSA clients \u2014 normalizes by Q2 |\n| Total Current Liabilities | 103800 |  |\n|  |\n| Long-Term Liabilities |  |  |\n| Long-Term Debt | 0 | No debt \u2014 clean balance sheet |\n| Total Long-Term Liabilities | 0 |  |\n|  |\n| TOTAL LIABILITIES | 103800 |  |\n|  |\n| Member Equity |  |  |\n| Retained Earnings | 445400 |  |\n| Total Equity | 445400 |  |\n|  |\n| TOTAL LIABILITIES & EQUITY | 549200 |  |",
+            "confidence": 0.7,
+            "section_name": "Document Text",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "text",
+            "status": "parsed",
+            "notes": []
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "total_documents": 2,
+      "successfully_parsed": 2,
+      "ingestion_source": "structured",
+      "failed_documents": [],
+      "failed_artifacts": [],
+      "missing_inputs": [
+        {
+          "key": "tax_returns",
+          "description": "No business tax returns were provided.",
+          "document_type": "tax_return_1120s",
+          "required": true,
+          "reason": "At least one supported tax return is expected for diligence."
+        },
+        {
+          "key": "cash_flow_statement",
+          "description": "Cash flow statements were not provided.",
+          "document_type": "cash_flow_statement",
+          "required": false,
+          "reason": null
+        },
+        {
+          "key": "ar_aging_report",
+          "description": "An A/R aging report was not provided.",
+          "document_type": "ar_aging_report",
+          "required": false,
+          "reason": null
+        }
+      ],
+      "analysis_id": "ba494657-4394-45c6-b434-cda4c9a7bf97",
+      "overall_confidence": 0.75,
+      "artifact_refs": [
+        {
+          "artifact_key": "ingestion_artifacts",
+          "storage_kind": "filesystem",
+          "path": "backend/.artifacts/ba494657-4394-45c6-b434-cda4c9a7bf97/ingestion_artifacts.json",
+          "content_type": "application/json"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "document_inventory": [
+    {
+      "document_id": "63162469-d79a-4d8c-a726-bae8b8d27e1f",
+      "file_name": "IncomeStatement_AlpineITSolutions.xlsx",
+      "document_type": "profit_and_loss",
+      "status": "parsed",
+      "confidence": 0.8,
+      "section_ids": [
+        "63162469-d79a-4d8c-a726-bae8b8d27e1f:sheet-1"
+      ],
+      "notes": [
+        "Reused cached OCR artifact text for ingestion."
+      ]
+    },
+    {
+      "document_id": "40371ed7-3320-4b68-ba78-47d23999d964",
+      "file_name": "BalanceSheet_AlpineITSolutions.xlsx",
+      "document_type": "balance_sheet",
+      "status": "parsed",
+      "confidence": 0.7,
+      "section_ids": [
+        "40371ed7-3320-4b68-ba78-47d23999d964:text-1"
+      ],
+      "notes": [
+        "Skipped workbook sheet Balance Sheet: worksheet XML could not be parsed.",
+        "Reused cached OCR artifact text for ingestion."
+      ]
+    }
+  ],
+  "evidence_index": [
+    {
+      "document_id": "63162469-d79a-4d8c-a726-bae8b8d27e1f",
+      "file_name": "IncomeStatement_AlpineITSolutions.xlsx",
+      "section_id": "63162469-d79a-4d8c-a726-bae8b8d27e1f:sheet-1",
+      "page": null,
+      "snippet": "1 | Alpine IT Solutions LLC \u2014 Income Statement\n2 | Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD\n3 | Line Item | 2022 | 2023 | 2024 | Notes\n4 | REVENUE\n5 | Managed Services (MRR contracts) | 1284000 | 1408000 | 1562000 | 67%+ recurring\n6 | Project & Implement",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Alpine IT Solutions LLC \u2014 Income Statement",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 2,
+            "A": "Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 3,
+            "A": "Line Item",
+            "B": "2022",
+            "C": "2023",
+            "D": "2024",
+            "E": "Notes"
+          },
+          {
+            "row_index": 4,
+            "A": "REVENUE",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 5,
+            "A": "Managed Services (MRR contracts)",
+            "B": "1284000",
+            "C": "1408000",
+            "D": "1562000",
+            "E": "67%+ recurring"
+          },
+          {
+            "row_index": 6,
+            "A": "Project & Implementation Work",
+            "B": "486000",
+            "C": "528000",
+            "D": "578000",
+            "E": "One-time engagements"
+          },
+          {
+            "row_index": 7,
+            "A": "Hardware & Software Resale",
+            "B": "128000",
+            "C": "148000",
+            "D": "168000",
+            "E": "Pass-through margin ~18%"
+          },
+          {
+            "row_index": 8,
+            "A": "Training & Consulting",
+            "B": "82000",
+            "C": "96000",
+            "D": "102000",
+            "E": ""
+          },
+          {
+            "row_index": 9,
+            "A": "Total Revenue",
+            "B": "1980000",
+            "C": "2180000",
+            "D": "2410000",
+            "E": ""
+          },
+          {
+            "row_index": 10,
+            "A": "Revenue Growth YOY",
+            "B": "",
+            "C": "0.15625",
+            "D": "0.135135135135135",
+            "E": "10.1% \u2192 10.6%"
+          },
+          {
+            "row_index": 11,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 12,
+            "A": "COST OF REVENUE",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 13,
+            "A": "Technical Staff Labor",
+            "B": "634000",
+            "C": "694000",
+            "D": "766000",
+            "E": "3 senior engineers + 2 techs"
+          },
+          {
+            "row_index": 14,
+            "A": "Subcontractors / Specialists",
+            "B": "142000",
+            "C": "154000",
+            "D": "168000",
+            "E": ""
+          },
+          {
+            "row_index": 15,
+            "A": "Hardware / Software COGS",
+            "B": "106000",
+            "C": "122000",
+            "D": "138000",
+            "E": ""
+          },
+          {
+            "row_index": 16,
+            "A": "Cloud Infrastructure (AWS/Azure)",
+            "B": "88000",
+            "C": "98000",
+            "D": "110000",
+            "E": "Passed through to clients"
+          },
+          {
+            "row_index": 17,
+            "A": "Total COGS",
+            "B": "970000",
+            "C": "1068000",
+            "D": "1182000",
+            "E": ""
+          },
+          {
+            "row_index": 18,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 19,
+            "A": "Gross Profit",
+            "B": "1010000",
+            "C": "1112000",
+            "D": "1228000",
+            "E": ""
+          },
+          {
+            "row_index": 20,
+            "A": "Gross Margin",
+            "B": "1.99588477366255",
+            "C": "2.02272727272727",
+            "D": "2.04498269896194",
+            "E": "~51%"
+          },
+          {
+            "row_index": 21,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 22,
+            "A": "OPERATING EXPENSES",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 23,
+            "A": "Owner Draw / Salary",
+            "B": "88000",
+            "C": "92000",
+            "D": "95000",
+            "E": "Market replacement ~$120K"
+          },
+          {
+            "row_index": 24,
+            "A": "Admin / Office Manager",
+            "B": "52000",
+            "C": "55000",
+            "D": "58000",
+            "E": ""
+          },
+          {
+            "row_index": 25,
+            "A": "Rent & Facilities",
+            "B": "42000",
+            "C": "44000",
+            "D": "46000",
+            "E": "Class B office \u2014 lease thru 2028"
+          },
+          {
+            "row_index": 26,
+            "A": "Insurance (E&O / GL / Cyber)",
+            "B": "38000",
+            "C": "42000",
+            "D": "46000",
+            "E": "E&O + cyber mandatory for MSP"
+          },
+          {
+            "row_index": 27,
+            "A": "Software Tools & Licenses",
+            "B": "48000",
+            "C": "52000",
+            "D": "56000",
+            "E": "RMM, PSA, backup, security stack"
+          },
+          {
+            "row_index": 28,
+            "A": "Owner Vehicle",
+            "B": "14200",
+            "C": "14200",
+            "D": "14200",
+            "E": "Toyota Land Cruiser \u2014 business use ~60%"
+          },
+          {
+            "row_index": 29,
+            "A": "Marketing & Lead Gen",
+            "B": "18000",
+            "C": "20000",
+            "D": "22000",
+            "E": ""
+          },
+          {
+            "row_index": 30,
+            "A": "Professional Fees",
+            "B": "22000",
+            "C": "24000",
+            "D": "26000",
+            "E": "CPA + attorney"
+          },
+          {
+            "row_index": 31,
+            "A": "Depreciation",
+            "B": "18000",
+            "C": "20000",
+            "D": "22000",
+            "E": ""
+          },
+          {
+            "row_index": 32,
+            "A": "Misc / Office",
+            "B": "14000",
+            "C": "16000",
+            "D": "18000",
+            "E": ""
+          },
+          {
+            "row_index": 33,
+            "A": "Total OpEx",
+            "B": "354200",
+            "C": "379200",
+            "D": "403200",
+            "E": ""
+          },
+          {
+            "row_index": 34,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 35,
+            "A": "EBITDA",
+            "B": "655800",
+            "C": "732800",
+            "D": "824800",
+            "E": ""
+          },
+          {
+            "row_index": 36,
+            "A": "EBITDA Margin",
+            "B": "0.72880658436214",
+            "C": "0.718181818181818",
+            "D": "0.69757785467128",
+            "E": "~34.2%"
+          },
+          {
+            "row_index": 37,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 38,
+            "A": "SDE RECONCILIATION",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 39,
+            "A": "EBITDA",
+            "B": "655800",
+            "C": "732800",
+            "D": "824800",
+            "E": ""
+          },
+          {
+            "row_index": 40,
+            "A": "Add Back: Owner Draw",
+            "B": "88000",
+            "C": "92000",
+            "D": "95000",
+            "E": ""
+          },
+          {
+            "row_index": 41,
+            "A": "Add Back: Owner Health Insurance",
+            "B": "10400",
+            "C": "10800",
+            "D": "11200",
+            "E": ""
+          },
+          {
+            "row_index": 42,
+            "A": "Add Back: Owner Vehicle (partial)",
+            "B": "8500",
+            "C": "8500",
+            "D": "8500",
+            "E": "60% business use allocation"
+          },
+          {
+            "row_index": 43,
+            "A": "Less: Market-Rate Tech Director",
+            "B": "-120,000",
+            "C": "-120,000",
+            "D": "-120,000",
+            "E": "Replace owner's technical role"
+          },
+          {
+            "row_index": 44,
+            "A": "Less: Market-Rate Admin",
+            "B": "-55,000",
+            "C": "-55,000",
+            "D": "-55,000",
+            "E": ""
+          },
+          {
+            "row_index": 45,
+            "A": "Reported SDE",
+            "B": "387700",
+            "C": "469100",
+            "D": "564500",
+            "E": ""
+          }
+        ],
+        "add_backs": [
+          {
+            "description": "Owner Vehicle",
+            "amount": 60.0,
+            "category": "personal_expense"
+          }
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "40371ed7-3320-4b68-ba78-47d23999d964",
+      "file_name": "BalanceSheet_AlpineITSolutions.xlsx",
+      "section_id": "40371ed7-3320-4b68-ba78-47d23999d964:text-1",
+      "page": null,
+      "snippet": "## Balance Sheet\n\n\n| Alpine IT Solutions LLC \u2014 Balance Sheet |  |  |\n| --- | --- | --- |\n| Denver, CO | As of December 31, 2024 | All figures in USD |  |  |\n| Line Item | Amount (USD) | Notes |\n| ASSETS |  |  |\n| Current Assets |  |  |\n| Cash & Cash Equivalents | 284600 |  |\n| Ac",
+      "extracted_fields": {},
+      "confidence": 0.7
+    }
+  ],
+  "clarifications": []
+}

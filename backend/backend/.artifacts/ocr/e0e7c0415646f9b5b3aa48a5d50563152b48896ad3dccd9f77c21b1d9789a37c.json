@@ -1,0 +1,22 @@
+{
+  "filename": "CashFlowStatement_AlpineITSolutions.xlsx",
+  "file_hash": "e0e7c0415646f9b5b3aa48a5d50563152b48896ad3dccd9f77c21b1d9789a37c",
+  "page_count": 1,
+  "classification": {
+    "document_type": "cash_flow_statement",
+    "confidence": 0.98,
+    "reasoning": "The document contains sections for operating activities, investing activities, and financing activities, which are typical components of a cash flow statement. It also includes net income, changes in working capital items, and cash flow from various activities, which are key elements of a cash flow statement. The presence of a table with fiscal years and financial figures further supports this classification.",
+    "detected_period": "Fiscal Years 2022-2024"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "markdown": "## Cash Flow Statement\n\n\n| Alpine IT Solutions LLC \u2014 Cash Flow Statement |  |  |  |  |\n| --- | --- | --- | --- | --- |\n| Denver, CO | Fiscal Years 2022-2024 | All figures in USD |  |  |  |  |\n| Line Item | 2022 | 2023 | 2024 | Notes |\n| OPERATING ACTIVITIES |  |  |  |  |\n| Net Income | 386600 | 462000 | 524800 | Per Schedule C filing |\n| Add: Depreciation | 18000 | 20000 | 22000 |  |\n| Change in AR | -14000 | -18000 | -22000 | Growing with revenue |\n| Change in Prepaid Expenses | -4000 | -2000 | -3000 |  |\n| Change in AP | 4000 | 3000 | 4000 |  |\n| Change in Deferred Revenue | 8000 | 10000 | 12000 | MRR prepayments increasing |\n| Change in Accrued Liabilities | 3000 | 4000 | 4000 |  |\n| Net Cash from Operations | 401600 | 479000 | 541800 |  |\n|  |\n| INVESTING ACTIVITIES |  |  |  |  |\n| IT Equipment & Infrastructure | -24000 | -28000 | -32000 | Routine refresh |\n| Net Cash from Investing | -24000 | -28000 | -32000 |  |\n|  |\n| FINANCING ACTIVITIES |  |  |  |  |\n| Owner Distributions | -280000 | -320000 | -360000 | Healthy \u2014 well below net income |\n| Net Cash from Financing | -280000 | -320000 | -360000 |  |\n|  |\n| NET CHANGE IN CASH | 97600 | 131000 | 149800 |  |\n| Beginning Cash | 56800 | 154400 | 285400 |  |\n| Ending Cash | 154400 | 285400 | 435200 | Slightly above BS due to timing |",
+      "image_refs": []
+    }
+  ],
+  "full_markdown": "## Cash Flow Statement\n\n\n| Alpine IT Solutions LLC \u2014 Cash Flow Statement |  |  |  |  |\n| --- | --- | --- | --- | --- |\n| Denver, CO | Fiscal Years 2022-2024 | All figures in USD |  |  |  |  |\n| Line Item | 2022 | 2023 | 2024 | Notes |\n| OPERATING ACTIVITIES |  |  |  |  |\n| Net Income | 386600 | 462000 | 524800 | Per Schedule C filing |\n| Add: Depreciation | 18000 | 20000 | 22000 |  |\n| Change in AR | -14000 | -18000 | -22000 | Growing with revenue |\n| Change in Prepaid Expenses | -4000 | -2000 | -3000 |  |\n| Change in AP | 4000 | 3000 | 4000 |  |\n| Change in Deferred Revenue | 8000 | 10000 | 12000 | MRR prepayments increasing |\n| Change in Accrued Liabilities | 3000 | 4000 | 4000 |  |\n| Net Cash from Operations | 401600 | 479000 | 541800 |  |\n|  |\n| INVESTING ACTIVITIES |  |  |  |  |\n| IT Equipment & Infrastructure | -24000 | -28000 | -32000 | Routine refresh |\n| Net Cash from Investing | -24000 | -28000 | -32000 |  |\n|  |\n| FINANCING ACTIVITIES |  |  |  |  |\n| Owner Distributions | -280000 | -320000 | -360000 | Healthy \u2014 well below net income |\n| Net Cash from Financing | -280000 | -320000 | -360000 |  |\n|  |\n| NET CHANGE IN CASH | 97600 | 131000 | 149800 |  |\n| Beginning Cash | 56800 | 154400 | 285400 |  |\n| Ending Cash | 154400 | 285400 | 435200 | Slightly above BS due to timing |",
+  "ocr_model": "mistral-ocr-2512",
+  "processing_time_ms": 1683,
+  "cost_usd": 0.002
+}

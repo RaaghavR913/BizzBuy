@@ -1,0 +1,3817 @@
+{
+  "analysis_id": "ab951ad1-ad40-4739-900e-725973116f61",
+  "storage_version": "1.0",
+  "stored_at": "2026-04-17T02:21:17.469789+00:00",
+  "ingestion_output": {
+    "documents": [
+      {
+        "document_id": "75ab031a-127c-457e-8937-af89c14ea429",
+        "file_name": "ARAgingReport_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "ar_aging_report",
+        "declared_type": "ar_aging_report",
+        "canonical_type": "ar_aging_report",
+        "size_bytes": 7848,
+        "status": "parsed",
+        "confidence": 0.8,
+        "notes": [],
+        "sections": [
+          {
+            "section_id": "75ab031a-127c-457e-8937-af89c14ea429:sheet-1",
+            "document_id": "75ab031a-127c-457e-8937-af89c14ea429",
+            "document_type": "ar_aging_report",
+            "section_kind": "other",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Alpine IT Solutions LLC \u2014 Accounts Receivable Aging",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "As of December 31, 2024  |  All figures in USD",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": ""
+                },
+                {
+                  "row_index": 3,
+                  "A": "Client",
+                  "B": "Type",
+                  "C": "Total",
+                  "D": "0-30",
+                  "E": "31-60",
+                  "F": "61-90",
+                  "G": "91-120",
+                  "H": "120+"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Apex Financial Group",
+                  "B": "Commercial",
+                  "C": "24600",
+                  "D": "24600",
+                  "E": "0",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Denver Metro School District",
+                  "B": "Government",
+                  "C": "18800",
+                  "D": "18800",
+                  "E": "0",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Pinnacle Realty Group",
+                  "B": "Commercial",
+                  "C": "14400",
+                  "D": "14400",
+                  "E": "0",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Rocky Mountain Credit Union",
+                  "B": "Financial",
+                  "C": "12200",
+                  "D": "12200",
+                  "E": "0",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Cobalt Construction LLC",
+                  "B": "Commercial",
+                  "C": "10800",
+                  "D": "10800",
+                  "E": "0",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Summit Law Group",
+                  "B": "Professional Svcs",
+                  "C": "9400",
+                  "D": "9400",
+                  "E": "0",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 10,
+                  "A": "Green Valley Medical Clinic",
+                  "B": "Healthcare",
+                  "C": "8800",
+                  "D": "5800",
+                  "E": "3000",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 11,
+                  "A": "Highlands Ranch HOA",
+                  "B": "HOA",
+                  "C": "6200",
+                  "D": "6200",
+                  "E": "0",
+                  "F": "0",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 12,
+                  "A": "Other clients (18 accounts)",
+                  "B": "",
+                  "C": "43400",
+                  "D": "36200",
+                  "E": "6400",
+                  "F": "800",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 13,
+                  "A": "TOTAL",
+                  "B": "",
+                  "C": "148600",
+                  "D": "138400",
+                  "E": "9400",
+                  "F": "800",
+                  "G": "0",
+                  "H": "0"
+                },
+                {
+                  "row_index": 14,
+                  "A": "NOTE: Apex Financial Group is the largest single client (18% of MRR revenue). Contract up for renewal May 2027. AR is current \u2014 no collection risk. Industry-leading DSO of ~14 days.",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": ""
+                }
+              ]
+            },
+            "raw_text": "1 | Alpine IT Solutions LLC \u2014 Accounts Receivable Aging\n2 | As of December 31, 2024  |  All figures in USD\n3 | Client | Type | Total | 0-30 | 31-60 | 61-90 | 91-120 | 120+\n4 | Apex Financial Group | Commercial | 24600 | 24600 | 0 | 0 | 0 | 0\n5 | Denver Metro School District | Government | 18800 | 18800 | 0 | 0 | 0 | 0\n6 | Pinnacle Realty Group | Commercial | 14400 | 14400 | 0 | 0 | 0 | 0\n7 | Rocky Mountain Credit Union | Financial | 12200 | 12200 | 0 | 0 | 0 | 0\n8 | Cobalt Construction LLC | Commercial | 10800 | 10800 | 0 | 0 | 0 | 0\n9 | Summit Law Group | Professional Svcs | 9400 | 9400 | 0 | 0 | 0 | 0\n10 | Green Valley Medical Clinic | Healthcare | 8800 | 5800 | 3000 | 0 | 0 | 0\n11 | Highlands Ranch HOA | HOA | 6200 | 6200 | 0 | 0 | 0 | 0\n12 | Other clients (18 accounts) | 43400 | 36200 | 6400 | 800 | 0 | 0\n13 | TOTAL | 148600 | 138400 | 9400 | 800 | 0 | 0\n14 | NOTE: Apex Financial Group is the largest single client (18% of MRR revenue). Contract up for renewal May 2027. AR is current \u2014 no collection risk. Industry-leading DSO of ~14 days.",
+            "confidence": 0.8,
+            "section_name": "AR Aging",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'AR Aging' into a section."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7",
+        "file_name": "BalanceSheet_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "balance_sheet",
+        "declared_type": "balance_sheet",
+        "canonical_type": "balance_sheet",
+        "size_bytes": 6553,
+        "status": "parsed",
+        "confidence": 0.79,
+        "notes": [
+          "Skipped workbook sheet Balance Sheet: worksheet XML could not be parsed.",
+          "Built 2 structured section(s) from cached OCR artifact."
+        ],
+        "sections": [
+          {
+            "section_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7:section-1",
+            "document_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Denver, CO",
+                  "B": "As of December 31, 2024",
+                  "C": "All figures in USD",
+                  "D": null,
+                  "E": null
+                },
+                {
+                  "row_index": 2,
+                  "A": "Line Item",
+                  "B": "Amount (USD)",
+                  "C": "Notes"
+                },
+                {
+                  "row_index": 3,
+                  "A": "ASSETS",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 4,
+                  "A": "Current Assets",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 5,
+                  "A": "Cash & Cash Equivalents",
+                  "B": "284600",
+                  "C": null
+                },
+                {
+                  "row_index": 6,
+                  "A": "Accounts Receivable (net)",
+                  "B": "148400",
+                  "C": "14-day DSO \u2014 excellent"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Prepaid Expenses & Deposits",
+                  "B": "32200",
+                  "C": null
+                },
+                {
+                  "row_index": 8,
+                  "A": "Total Current Assets",
+                  "B": "465200",
+                  "C": null
+                },
+                {
+                  "row_index": 10,
+                  "A": "Fixed Assets",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 11,
+                  "A": "IT Infrastructure & Lab Equipment",
+                  "B": "68000",
+                  "C": null
+                },
+                {
+                  "row_index": 12,
+                  "A": "Computers & Workstations",
+                  "B": "42000",
+                  "C": null
+                },
+                {
+                  "row_index": 13,
+                  "A": "Office Furniture & Fixtures",
+                  "B": "18000",
+                  "C": null
+                },
+                {
+                  "row_index": 14,
+                  "A": "Owner Vehicle",
+                  "B": "38000",
+                  "C": null
+                },
+                {
+                  "row_index": 15,
+                  "A": "Less: Accumulated Depreciation",
+                  "B": "-82000",
+                  "C": null
+                },
+                {
+                  "row_index": 16,
+                  "A": "Net Fixed Assets",
+                  "B": "84000",
+                  "C": null
+                },
+                {
+                  "row_index": 18,
+                  "A": "Intangible Assets",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 19,
+                  "A": "Customer Contracts (MRR)",
+                  "B": "0",
+                  "C": "Not capitalized \u2014 significant buyer value"
+                },
+                {
+                  "row_index": 20,
+                  "A": "Software Licenses / IP",
+                  "B": "0",
+                  "C": null
+                },
+                {
+                  "row_index": 21,
+                  "A": "Total Intangible Assets",
+                  "B": "0",
+                  "C": null
+                },
+                {
+                  "row_index": 23,
+                  "A": "TOTAL ASSETS",
+                  "B": "549200",
+                  "C": null
+                },
+                {
+                  "row_index": 25,
+                  "A": "LIABILITIES & EQUITY",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 26,
+                  "A": "Current Liabilities",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 27,
+                  "A": "Accounts Payable",
+                  "B": "22400",
+                  "C": null
+                },
+                {
+                  "row_index": 28,
+                  "A": "Accrued Payroll",
+                  "B": "18600",
+                  "C": null
+                },
+                {
+                  "row_index": 29,
+                  "A": "Deferred Revenue (prepaid MSAs)",
+                  "B": "62800",
+                  "C": "Annual MSA clients \u2014 normalizes by Q2"
+                },
+                {
+                  "row_index": 30,
+                  "A": "Total Current Liabilities",
+                  "B": "103800",
+                  "C": null
+                },
+                {
+                  "row_index": 32,
+                  "A": "Long-Term Liabilities",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 33,
+                  "A": "Long-Term Debt",
+                  "B": "0",
+                  "C": "No debt \u2014 clean balance sheet"
+                },
+                {
+                  "row_index": 34,
+                  "A": "Total Long-Term Liabilities",
+                  "B": "0",
+                  "C": null
+                },
+                {
+                  "row_index": 36,
+                  "A": "TOTAL LIABILITIES",
+                  "B": "103800",
+                  "C": null
+                },
+                {
+                  "row_index": 38,
+                  "A": "Member Equity",
+                  "B": null,
+                  "C": null
+                },
+                {
+                  "row_index": 39,
+                  "A": "Retained Earnings",
+                  "B": "445400",
+                  "C": null
+                },
+                {
+                  "row_index": 40,
+                  "A": "Total Equity",
+                  "B": "445400",
+                  "C": null
+                },
+                {
+                  "row_index": 42,
+                  "A": "TOTAL LIABILITIES & EQUITY",
+                  "B": "549200",
+                  "C": null
+                }
+              ],
+              "current_assets": 465200.0,
+              "cash_and_equivalents": 284600.0,
+              "accounts_receivable": 14.0,
+              "current_liabilities": 103800.0,
+              "accounts_payable": 22400.0,
+              "total_assets": 549200.0,
+              "total_liabilities": 103800.0,
+              "equity": 445400.0
+            },
+            "raw_text": "| Alpine IT Solutions LLC \u2014 Balance Sheet |  |  |\n| --- | --- | --- |\n| Denver, CO | As of December 31, 2024 | All figures in USD |  |  |\n| Line Item | Amount (USD) | Notes |\n| ASSETS |  |  |\n| Current Assets |  |  |\n| Cash & Cash Equivalents | 284600 |  |\n| Accounts Receivable (net) | 148400 | 14-day DSO \u2014 excellent |\n| Prepaid Expenses & Deposits | 32200 |  |\n| Total Current Assets | 465200 |  |\n|  |\n| Fixed Assets |  |  |\n| IT Infrastructure & Lab Equipment | 68000 |  |\n| Computers & Workstations | 42000 |  |\n| Office Furniture & Fixtures | 18000 |  |\n| Owner Vehicle | 38000 |  |\n| Less: Accumulated Depreciation | -82000 |  |\n| Net Fixed Assets | 84000 |  |\n|  |\n| Intangible Assets |  |  |\n| Customer Contracts (MRR) | 0 | Not capitalized \u2014 significant buyer value |\n| Software Licenses / IP | 0 |  |\n| Total Intangible Assets | 0 |  |\n|  |\n| TOTAL ASSETS | 549200 |  |\n|  |\n| LIABILITIES & EQUITY |  |  |\n| Current Liabilities |  |  |\n| Accounts Payable | 22400 |  |\n| Accrued Payroll | 18600 |  |\n| Deferred Revenue (prepaid MSAs) | 62800 | Annual MSA clients \u2014 normalizes by Q2 |\n| Total Current Liabilities | 103800 |  |\n|  |\n| Long-Term Liabilities |  |  |\n| Long-Term Debt | 0 | No debt \u2014 clean balance sheet |\n| Total Long-Term Liabilities | 0 |  |\n|  |\n| TOTAL LIABILITIES | 103800 |  |\n|  |\n| Member Equity |  |  |\n| Retained Earnings | 445400 |  |\n| Total Equity | 445400 |  |\n|  |\n| TOTAL LIABILITIES & EQUITY | 549200 |  |",
+            "confidence": 0.98,
+            "section_name": "Balance Sheet",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": []
+          },
+          {
+            "section_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7:section-2",
+            "document_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {},
+            "raw_text": "## Balance Sheet",
+            "confidence": 0.6,
+            "section_name": "Document Text",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "text",
+            "status": "parsed",
+            "notes": [
+              "Narrative text extracted from OCR output."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc",
+        "file_name": "CashFlowStatement_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "cash_flow_statement",
+        "declared_type": "cash_flow_statement",
+        "canonical_type": "cash_flow_statement",
+        "size_bytes": 6353,
+        "status": "parsed",
+        "confidence": 0.79,
+        "notes": [
+          "Skipped workbook sheet Cash Flow Statement: worksheet XML could not be parsed.",
+          "Built 2 structured section(s) from cached OCR artifact."
+        ],
+        "sections": [
+          {
+            "section_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc:section-1",
+            "document_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc",
+            "document_type": "tax_return_schedule_c",
+            "section_kind": "tax_return_schedule_c",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Denver, CO",
+                  "B": "Fiscal Years 2022-2024",
+                  "C": "All figures in USD",
+                  "D": null,
+                  "E": null,
+                  "F": null,
+                  "G": null
+                },
+                {
+                  "row_index": 2,
+                  "A": "Line Item",
+                  "B": "2022",
+                  "C": "2023",
+                  "D": "2024",
+                  "E": "Notes"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Change in Prepaid Expenses",
+                  "B": "-4000",
+                  "C": "-2000",
+                  "D": "-3000",
+                  "E": null
+                },
+                {
+                  "row_index": 3,
+                  "A": "OPERATING ACTIVITIES",
+                  "B": null,
+                  "C": null,
+                  "D": null,
+                  "E": null
+                },
+                {
+                  "row_index": 4,
+                  "A": "Net Income",
+                  "B": "386600",
+                  "C": "462000",
+                  "D": "524800",
+                  "E": "Per Schedule C filing"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Add: Depreciation",
+                  "B": "18000",
+                  "C": "20000",
+                  "D": "22000",
+                  "E": null
+                },
+                {
+                  "row_index": 6,
+                  "A": "Change in AR",
+                  "B": "-14000",
+                  "C": "-18000",
+                  "D": "-22000",
+                  "E": "Growing with revenue"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Change in AP",
+                  "B": "4000",
+                  "C": "3000",
+                  "D": "4000",
+                  "E": null
+                },
+                {
+                  "row_index": 9,
+                  "A": "Change in Deferred Revenue",
+                  "B": "8000",
+                  "C": "10000",
+                  "D": "12000",
+                  "E": "MRR prepayments increasing"
+                },
+                {
+                  "row_index": 10,
+                  "A": "Change in Accrued Liabilities",
+                  "B": "3000",
+                  "C": "4000",
+                  "D": "4000",
+                  "E": null
+                },
+                {
+                  "row_index": 11,
+                  "A": "Net Cash from Operations",
+                  "B": "401600",
+                  "C": "479000",
+                  "D": "541800",
+                  "E": null
+                },
+                {
+                  "row_index": 13,
+                  "A": "INVESTING ACTIVITIES",
+                  "B": null,
+                  "C": null,
+                  "D": null,
+                  "E": null
+                },
+                {
+                  "row_index": 14,
+                  "A": "IT Equipment & Infrastructure",
+                  "B": "-24000",
+                  "C": "-28000",
+                  "D": "-32000",
+                  "E": "Routine refresh"
+                },
+                {
+                  "row_index": 15,
+                  "A": "Net Cash from Investing",
+                  "B": "-24000",
+                  "C": "-28000",
+                  "D": "-32000",
+                  "E": null
+                },
+                {
+                  "row_index": 17,
+                  "A": "FINANCING ACTIVITIES",
+                  "B": null,
+                  "C": null,
+                  "D": null,
+                  "E": null
+                },
+                {
+                  "row_index": 18,
+                  "A": "Owner Distributions",
+                  "B": "-280000",
+                  "C": "-320000",
+                  "D": "-360000",
+                  "E": "Healthy \u2014 well below net income"
+                },
+                {
+                  "row_index": 19,
+                  "A": "Net Cash from Financing",
+                  "B": "-280000",
+                  "C": "-320000",
+                  "D": "-360000",
+                  "E": null
+                },
+                {
+                  "row_index": 21,
+                  "A": "NET CHANGE IN CASH",
+                  "B": "97600",
+                  "C": "131000",
+                  "D": "149800",
+                  "E": null
+                },
+                {
+                  "row_index": 22,
+                  "A": "Beginning Cash",
+                  "B": "56800",
+                  "C": "154400",
+                  "D": "285400",
+                  "E": null
+                },
+                {
+                  "row_index": 23,
+                  "A": "Ending Cash",
+                  "B": "154400",
+                  "C": "285400",
+                  "D": "435200",
+                  "E": "Slightly above BS due to timing"
+                }
+              ]
+            },
+            "raw_text": "| Alpine IT Solutions LLC \u2014 Cash Flow Statement |  |  |  |  |\n| --- | --- | --- | --- | --- |\n| Denver, CO | Fiscal Years 2022-2024 | All figures in USD |  |  |  |  |\n| Line Item | 2022 | 2023 | 2024 | Notes |\n| OPERATING ACTIVITIES |  |  |  |  |\n| Net Income | 386600 | 462000 | 524800 | Per Schedule C filing |\n| Add: Depreciation | 18000 | 20000 | 22000 |  |\n| Change in AR | -14000 | -18000 | -22000 | Growing with revenue |\n| Change in Prepaid Expenses | -4000 | -2000 | -3000 |  |\n| Change in AP | 4000 | 3000 | 4000 |  |\n| Change in Deferred Revenue | 8000 | 10000 | 12000 | MRR prepayments increasing |\n| Change in Accrued Liabilities | 3000 | 4000 | 4000 |  |\n| Net Cash from Operations | 401600 | 479000 | 541800 |  |\n|  |\n| INVESTING ACTIVITIES |  |  |  |  |\n| IT Equipment & Infrastructure | -24000 | -28000 | -32000 | Routine refresh |\n| Net Cash from Investing | -24000 | -28000 | -32000 |  |\n|  |\n| FINANCING ACTIVITIES |  |  |  |  |\n| Owner Distributions | -280000 | -320000 | -360000 | Healthy \u2014 well below net income |\n| Net Cash from Financing | -280000 | -320000 | -360000 |  |\n|  |\n| NET CHANGE IN CASH | 97600 | 131000 | 149800 |  |\n| Beginning Cash | 56800 | 154400 | 285400 |  |\n| Ending Cash | 154400 | 285400 | 435200 | Slightly above BS due to timing |",
+            "confidence": 0.98,
+            "section_name": "Tax Return Schedule C",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": []
+          },
+          {
+            "section_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc:section-2",
+            "document_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc",
+            "document_type": "cash_flow_statement",
+            "section_kind": "other",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {},
+            "raw_text": "## Cash Flow Statement",
+            "confidence": 0.6,
+            "section_name": "Document Text",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "text",
+            "status": "parsed",
+            "notes": [
+              "Narrative text extracted from OCR output."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+        "file_name": "CIM_AlpineITSolutions.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document_type": "contract",
+        "declared_type": "contract",
+        "canonical_type": "contract",
+        "size_bytes": 14313,
+        "status": "parsed",
+        "confidence": 0.75,
+        "notes": [
+          "Extracted 4 structured table(s) from DOCX."
+        ],
+        "sections": [
+          {
+            "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-1",
+            "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2014
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Asking Price",
+                  "B": "TTM Revenue",
+                  "C": "TTM SDE",
+                  "D": "Entity Type"
+                },
+                {
+                  "row_index": 2,
+                  "A": "$1,300,000",
+                  "B": "$2,410,000",
+                  "C": "$564,500",
+                  "D": "Single-Member LLC"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Founded",
+                  "B": "Employees",
+                  "C": "Location",
+                  "D": "NAICS"
+                },
+                {
+                  "row_index": 4,
+                  "A": "2014",
+                  "B": "8 FTE",
+                  "C": "Denver, CO",
+                  "D": "541512"
+                }
+              ]
+            },
+            "raw_text": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized businesses across the Denver metropolitan area. The company provides managed IT infrastructure, cloud services (Microsoft 365 / Azure), cybersecurity monitoring and response, helpdesk support, and IT project implementation.\nThe company generates approximately 67% of its revenue from recurring Monthly Recurring Revenue (MRR) contracts under managed service agreements (MSAs) with terms of 1-3 years. The remaining 33% is project-based work and hardware/software resale.\nTTM revenue of $2,410,000 reflects 10.6% growth over the prior year, continuing a consistent 10%+ annual growth rate since 2020. EBITDA margin is approximately 34% and the balance sheet carries zero long-term debt.\n2. Services\nManaged IT services (helpdesk, monitoring, patching, endpoint management)\nCybersecurity: SOC monitoring, EDR, email security, vulnerability scanning\nCloud services: Microsoft 365, Azure infrastructure, migration projects\nBackup & disaster recovery (Datto / Acronis)\nNetwork design, installation, and management\nIT consulting and vCIO services for growth-stage clients\nHardware and software procurement and resale\n3. Financial Highlights\n4. Operations\nThe company employs 8 full-time staff: the owner (acting as lead engineer and technical director), 2 senior network engineers, 2 helpdesk/support technicians, 1 cybersecurity specialist, 1 project manager, and 1 admin/billing coordinator.\nClient support is delivered via a ConnectWise-based PSA platform (ticket tracking, SLA management) and Datto RMM for remote monitoring and management. All client environments are monitored 24/7 with alerting and automated response protocols.\n5. Customer Overview\nAlpine IT Solutions serves 27 active managed services clients and approximately 14 project/T&M clients. The MRR base of approximately $133,500/month generates $1.6M in annual recurring revenue.\nApex Financial Group is the largest single client, representing approximately 18% of MRR revenue. Their contract runs through May 2027.\nClient retention rate: 94% year-over-year on managed service agreements \u2014 above industry average.\n6. Growth Opportunities\nExpanding cybersecurity services \u2014 fastest-growing demand segment for SMB clients\nAdding healthcare vertical \u2014 HIPAA compliance and EHR management represent significant demand\nHiring one additional senior engineer to increase capacity (currently near capacity at 8 FTE)\nGeographic expansion to Colorado Springs / Fort Collins\n7. Reason for Sale\nThe owner, age 44, is selling to pursue a larger business opportunity in the Pacific Northwest. The owner has operated the business without a co-owner or partner since founding and wishes to complete a sale before relocating. This is not a distress sale \u2014 revenue and EBITDA are at all-time highs.\n8. Transaction Details\n9. Risk Disclosures\nThis memorandum was prepared by the seller and is believed to be accurate. All financial figures are unaudited. Buyers are encouraged to conduct independent due diligence.",
+            "confidence": 0.75,
+            "section_name": "Table 1",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 1."
+            ]
+          },
+          {
+            "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-2",
+            "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Metric",
+                  "B": "2022",
+                  "C": "2023",
+                  "D": "2024",
+                  "E": null
+                },
+                {
+                  "row_index": 2,
+                  "A": "Total Revenue",
+                  "B": "$1,980,000",
+                  "C": "$2,180,000",
+                  "D": "$2,410,000",
+                  "E": null
+                },
+                {
+                  "row_index": 3,
+                  "A": "Gross Profit",
+                  "B": "$1,010,000",
+                  "C": "$1,112,000",
+                  "D": "$1,228,000",
+                  "E": null
+                },
+                {
+                  "row_index": 4,
+                  "A": "EBITDA",
+                  "B": "$655,800",
+                  "C": "$732,800",
+                  "D": "$824,800",
+                  "E": null
+                },
+                {
+                  "row_index": 5,
+                  "A": "Reported SDE",
+                  "B": "$387,700",
+                  "C": "$469,100",
+                  "D": "$564,500",
+                  "E": null
+                },
+                {
+                  "row_index": 6,
+                  "A": "Revenue Growth",
+                  "B": "\u2014",
+                  "C": "+10.1%",
+                  "D": "+10.6%",
+                  "E": null
+                },
+                {
+                  "row_index": 7,
+                  "A": "MRR Base (Dec 2024)",
+                  "B": null,
+                  "C": null,
+                  "D": "~$133,500/mo",
+                  "E": null
+                }
+              ]
+            },
+            "raw_text": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized businesses across the Denver metropolitan area. The company provides managed IT infrastructure, cloud services (Microsoft 365 / Azure), cybersecurity monitoring and response, helpdesk support, and IT project implementation.\nThe company generates approximately 67% of its revenue from recurring Monthly Recurring Revenue (MRR) contracts under managed service agreements (MSAs) with terms of 1-3 years. The remaining 33% is project-based work and hardware/software resale.\nTTM revenue of $2,410,000 reflects 10.6% growth over the prior year, continuing a consistent 10%+ annual growth rate since 2020. EBITDA margin is approximately 34% and the balance sheet carries zero long-term debt.\n2. Services\nManaged IT services (helpdesk, monitoring, patching, endpoint management)\nCybersecurity: SOC monitoring, EDR, email security, vulnerability scanning\nCloud services: Microsoft 365, Azure infrastructure, migration projects\nBackup & disaster recovery (Datto / Acronis)\nNetwork design, installation, and management\nIT consulting and vCIO services for growth-stage clients\nHardware and software procurement and resale\n3. Financial Highlights\n4. Operations\nThe company employs 8 full-time staff: the owner (acting as lead engineer and technical director), 2 senior network engineers, 2 helpdesk/support technicians, 1 cybersecurity specialist, 1 project manager, and 1 admin/billing coordinator.\nClient support is delivered via a ConnectWise-based PSA platform (ticket tracking, SLA management) and Datto RMM for remote monitoring and management. All client environments are monitored 24/7 with alerting and automated response protocols.\n5. Customer Overview\nAlpine IT Solutions serves 27 active managed services clients and approximately 14 project/T&M clients. The MRR base of approximately $133,500/month generates $1.6M in annual recurring revenue.\nApex Financial Group is the largest single client, representing approximately 18% of MRR revenue. Their contract runs through May 2027.\nClient retention rate: 94% year-over-year on managed service agreements \u2014 above industry average.\n6. Growth Opportunities\nExpanding cybersecurity services \u2014 fastest-growing demand segment for SMB clients\nAdding healthcare vertical \u2014 HIPAA compliance and EHR management represent significant demand\nHiring one additional senior engineer to increase capacity (currently near capacity at 8 FTE)\nGeographic expansion to Colorado Springs / Fort Collins\n7. Reason for Sale\nThe owner, age 44, is selling to pursue a larger business opportunity in the Pacific Northwest. The owner has operated the business without a co-owner or partner since founding and wishes to complete a sale before relocating. This is not a distress sale \u2014 revenue and EBITDA are at all-time highs.\n8. Transaction Details\n9. Risk Disclosures\nThis memorandum was prepared by the seller and is believed to be accurate. All financial figures are unaudited. Buyers are encouraged to conduct independent due diligence.",
+            "confidence": 0.75,
+            "section_name": "Table 2",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 2."
+            ]
+          },
+          {
+            "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-3",
+            "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Asking Price",
+                  "B": "$1,300,000"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Structure",
+                  "B": "Membership interest or asset sale"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Included",
+                  "B": "All customer contracts, software stack, equipment, trade name, domain, phone numbers"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Excluded",
+                  "B": "Cash on hand, AR as of closing date"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Training",
+                  "B": "Seller willing to provide up to 6 months part-time technical advisory"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Financing",
+                  "B": "Seller open to 15-20% seller note for qualified buyer"
+                }
+              ]
+            },
+            "raw_text": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized businesses across the Denver metropolitan area. The company provides managed IT infrastructure, cloud services (Microsoft 365 / Azure), cybersecurity monitoring and response, helpdesk support, and IT project implementation.\nThe company generates approximately 67% of its revenue from recurring Monthly Recurring Revenue (MRR) contracts under managed service agreements (MSAs) with terms of 1-3 years. The remaining 33% is project-based work and hardware/software resale.\nTTM revenue of $2,410,000 reflects 10.6% growth over the prior year, continuing a consistent 10%+ annual growth rate since 2020. EBITDA margin is approximately 34% and the balance sheet carries zero long-term debt.\n2. Services\nManaged IT services (helpdesk, monitoring, patching, endpoint management)\nCybersecurity: SOC monitoring, EDR, email security, vulnerability scanning\nCloud services: Microsoft 365, Azure infrastructure, migration projects\nBackup & disaster recovery (Datto / Acronis)\nNetwork design, installation, and management\nIT consulting and vCIO services for growth-stage clients\nHardware and software procurement and resale\n3. Financial Highlights\n4. Operations\nThe company employs 8 full-time staff: the owner (acting as lead engineer and technical director), 2 senior network engineers, 2 helpdesk/support technicians, 1 cybersecurity specialist, 1 project manager, and 1 admin/billing coordinator.\nClient support is delivered via a ConnectWise-based PSA platform (ticket tracking, SLA management) and Datto RMM for remote monitoring and management. All client environments are monitored 24/7 with alerting and automated response protocols.\n5. Customer Overview\nAlpine IT Solutions serves 27 active managed services clients and approximately 14 project/T&M clients. The MRR base of approximately $133,500/month generates $1.6M in annual recurring revenue.\nApex Financial Group is the largest single client, representing approximately 18% of MRR revenue. Their contract runs through May 2027.\nClient retention rate: 94% year-over-year on managed service agreements \u2014 above industry average.\n6. Growth Opportunities\nExpanding cybersecurity services \u2014 fastest-growing demand segment for SMB clients\nAdding healthcare vertical \u2014 HIPAA compliance and EHR management represent significant demand\nHiring one additional senior engineer to increase capacity (currently near capacity at 8 FTE)\nGeographic expansion to Colorado Springs / Fort Collins\n7. Reason for Sale\nThe owner, age 44, is selling to pursue a larger business opportunity in the Pacific Northwest. The owner has operated the business without a co-owner or partner since founding and wishes to complete a sale before relocating. This is not a distress sale \u2014 revenue and EBITDA are at all-time highs.\n8. Transaction Details\n9. Risk Disclosures\nThis memorandum was prepared by the seller and is believed to be accurate. All financial figures are unaudited. Buyers are encouraged to conduct independent due diligence.",
+            "confidence": 0.75,
+            "section_name": "Table 3",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 3."
+            ]
+          },
+          {
+            "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-4",
+            "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2027
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "#",
+                  "B": "Risk",
+                  "C": "Detail"
+                },
+                {
+                  "row_index": 2,
+                  "A": "1",
+                  "B": "Customer Concentration",
+                  "C": "Apex Financial Group = 18% of MRR. Contract through May 2027. Well-established relationship but material if lost."
+                },
+                {
+                  "row_index": 3,
+                  "A": "2",
+                  "B": "Owner Technical Dependency",
+                  "C": "Owner is the lead technical architect for 3 enterprise-scale clients. Some technical documentation is incomplete. Buyer with technical IT background preferred."
+                }
+              ]
+            },
+            "raw_text": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized businesses across the Denver metropolitan area. The company provides managed IT infrastructure, cloud services (Microsoft 365 / Azure), cybersecurity monitoring and response, helpdesk support, and IT project implementation.\nThe company generates approximately 67% of its revenue from recurring Monthly Recurring Revenue (MRR) contracts under managed service agreements (MSAs) with terms of 1-3 years. The remaining 33% is project-based work and hardware/software resale.\nTTM revenue of $2,410,000 reflects 10.6% growth over the prior year, continuing a consistent 10%+ annual growth rate since 2020. EBITDA margin is approximately 34% and the balance sheet carries zero long-term debt.\n2. Services\nManaged IT services (helpdesk, monitoring, patching, endpoint management)\nCybersecurity: SOC monitoring, EDR, email security, vulnerability scanning\nCloud services: Microsoft 365, Azure infrastructure, migration projects\nBackup & disaster recovery (Datto / Acronis)\nNetwork design, installation, and management\nIT consulting and vCIO services for growth-stage clients\nHardware and software procurement and resale\n3. Financial Highlights\n4. Operations\nThe company employs 8 full-time staff: the owner (acting as lead engineer and technical director), 2 senior network engineers, 2 helpdesk/support technicians, 1 cybersecurity specialist, 1 project manager, and 1 admin/billing coordinator.\nClient support is delivered via a ConnectWise-based PSA platform (ticket tracking, SLA management) and Datto RMM for remote monitoring and management. All client environments are monitored 24/7 with alerting and automated response protocols.\n5. Customer Overview\nAlpine IT Solutions serves 27 active managed services clients and approximately 14 project/T&M clients. The MRR base of approximately $133,500/month generates $1.6M in annual recurring revenue.\nApex Financial Group is the largest single client, representing approximately 18% of MRR revenue. Their contract runs through May 2027.\nClient retention rate: 94% year-over-year on managed service agreements \u2014 above industry average.\n6. Growth Opportunities\nExpanding cybersecurity services \u2014 fastest-growing demand segment for SMB clients\nAdding healthcare vertical \u2014 HIPAA compliance and EHR management represent significant demand\nHiring one additional senior engineer to increase capacity (currently near capacity at 8 FTE)\nGeographic expansion to Colorado Springs / Fort Collins\n7. Reason for Sale\nThe owner, age 44, is selling to pursue a larger business opportunity in the Pacific Northwest. The owner has operated the business without a co-owner or partner since founding and wishes to complete a sale before relocating. This is not a distress sale \u2014 revenue and EBITDA are at all-time highs.\n8. Transaction Details\n9. Risk Disclosures\nThis memorandum was prepared by the seller and is believed to be accurate. All financial figures are unaudited. Buyers are encouraged to conduct independent due diligence.",
+            "confidence": 0.75,
+            "section_name": "Table 4",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 4."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2",
+        "file_name": "CustomerList_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "customer_list",
+        "declared_type": "customer_list",
+        "canonical_type": "customer_list",
+        "size_bytes": 6379,
+        "status": "parsed",
+        "confidence": 0.79,
+        "notes": [
+          "Skipped workbook sheet Customer List: worksheet XML could not be parsed.",
+          "Built 2 structured section(s) from cached OCR artifact."
+        ],
+        "sections": [
+          {
+            "section_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2:section-1",
+            "document_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2",
+            "document_type": "customer_list",
+            "section_kind": "customer_list",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2027
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "As of April 2026",
+                  "B": "Active Managed Services Clients",
+                  "C": null,
+                  "D": null,
+                  "E": null,
+                  "F": null,
+                  "G": null,
+                  "H": null,
+                  "I": null
+                },
+                {
+                  "row_index": 3,
+                  "A": "1",
+                  "B": "Apex Financial Group",
+                  "C": "Financial Services",
+                  "D": "4100",
+                  "E": "Jan-2020",
+                  "F": "May-2027",
+                  "G": "Owner",
+                  "H": "Active \u2014 RENEW FLAG"
+                },
+                {
+                  "row_index": 4,
+                  "A": "2",
+                  "B": "Denver Metro School District",
+                  "C": "Government",
+                  "D": "3200",
+                  "E": "Sep-2021",
+                  "F": "Sep-2026",
+                  "G": "S. Nakamura",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 5,
+                  "A": "3",
+                  "B": "Pinnacle Realty Group",
+                  "C": "Real Estate",
+                  "D": "2800",
+                  "E": "Mar-2022",
+                  "F": "Mar-2027",
+                  "G": "Owner",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 6,
+                  "A": "4",
+                  "B": "Rocky Mountain Credit Union",
+                  "C": "Financial Services",
+                  "D": "2400",
+                  "E": "Jun-2020",
+                  "F": "Jun-2026",
+                  "G": "S. Nakamura",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 7,
+                  "A": "5",
+                  "B": "Cobalt Construction LLC",
+                  "C": "Construction",
+                  "D": "2200",
+                  "E": "Feb-2023",
+                  "F": "Feb-2026",
+                  "G": "T. Brennan",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 8,
+                  "A": "6",
+                  "B": "Summit Law Group",
+                  "C": "Professional Services",
+                  "D": "1900",
+                  "E": "Nov-2021",
+                  "F": "Nov-2026",
+                  "G": "T. Brennan",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 9,
+                  "A": "7",
+                  "B": "Green Valley Medical Clinic",
+                  "C": "Healthcare",
+                  "D": "1800",
+                  "E": "Apr-2022",
+                  "F": "Apr-2027",
+                  "G": "S. Nakamura",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 10,
+                  "A": "8",
+                  "B": "Highlands Ranch HOA",
+                  "C": "HOA / Property Mgmt",
+                  "D": "1400",
+                  "E": "Jan-2024",
+                  "F": "Jan-2027",
+                  "G": "T. Brennan",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 11,
+                  "A": "9",
+                  "B": "Cherry Creek Dental",
+                  "C": "Healthcare",
+                  "D": "1300",
+                  "E": "Aug-2023",
+                  "F": "Aug-2026",
+                  "G": "T. Brennan",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 12,
+                  "A": "10",
+                  "B": "Foothills Manufacturing Inc.",
+                  "C": "Manufacturing",
+                  "D": "1200",
+                  "E": "Oct-2022",
+                  "F": "Oct-2025",
+                  "G": "Owner",
+                  "H": "Month-to-Month"
+                },
+                {
+                  "row_index": 13,
+                  "A": "11",
+                  "B": "TrueNorth Insurance Group",
+                  "C": "Financial Services",
+                  "D": "1100",
+                  "E": "Mar-2021",
+                  "F": "Mar-2026",
+                  "G": "S. Nakamura",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 14,
+                  "A": "12",
+                  "B": "Columbine Brewing Co.",
+                  "C": "Food & Beverage",
+                  "D": "900",
+                  "E": "Jul-2023",
+                  "F": "Jul-2026",
+                  "G": "T. Brennan",
+                  "H": "Active"
+                },
+                {
+                  "row_index": 2,
+                  "A": "#",
+                  "B": "Client Name",
+                  "C": "Industry",
+                  "D": "MRR Value",
+                  "E": "Contract Start",
+                  "F": "Contract Expiry",
+                  "G": "Account Manager",
+                  "H": "Status"
+                },
+                {
+                  "row_index": 15,
+                  "A": "13",
+                  "B": "Other clients (14 MRR + project)",
+                  "C": "Various",
+                  "D": "6600",
+                  "E": "Various",
+                  "F": "Various",
+                  "G": "Various",
+                  "H": "Active"
+                }
+              ]
+            },
+            "raw_text": "| Alpine IT Solutions LLC \u2014 Customer List |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| As of April 2026 | Active Managed Services Clients |  |  |  |  |  |  |  |\n| # | Client Name | Industry | MRR Value | Contract Start | Contract Expiry | Account Manager | Status |\n| 1 | Apex Financial Group | Financial Services | 4100 | Jan-2020 | May-2027 | Owner | Active \u2014 RENEW FLAG |\n| 2 | Denver Metro School District | Government | 3200 | Sep-2021 | Sep-2026 | S. Nakamura | Active |\n| 3 | Pinnacle Realty Group | Real Estate | 2800 | Mar-2022 | Mar-2027 | Owner | Active |\n| 4 | Rocky Mountain Credit Union | Financial Services | 2400 | Jun-2020 | Jun-2026 | S. Nakamura | Active |\n| 5 | Cobalt Construction LLC | Construction | 2200 | Feb-2023 | Feb-2026 | T. Brennan | Active |\n| 6 | Summit Law Group | Professional Services | 1900 | Nov-2021 | Nov-2026 | T. Brennan | Active |\n| 7 | Green Valley Medical Clinic | Healthcare | 1800 | Apr-2022 | Apr-2027 | S. Nakamura | Active |\n| 8 | Highlands Ranch HOA | HOA / Property Mgmt | 1400 | Jan-2024 | Jan-2027 | T. Brennan | Active |\n| 9 | Cherry Creek Dental | Healthcare | 1300 | Aug-2023 | Aug-2026 | T. Brennan | Active |\n| 10 | Foothills Manufacturing Inc. | Manufacturing | 1200 | Oct-2022 | Oct-2025 | Owner | Month-to-Month |\n| 11 | TrueNorth Insurance Group | Financial Services | 1100 | Mar-2021 | Mar-2026 | S. Nakamura | Active |\n| 12 | Columbine Brewing Co. | Food & Beverage | 900 | Jul-2023 | Jul-2026 | T. Brennan | Active |\n| 13 | Other clients (14 MRR + project) | Various | 6600 | Various | Various | Various | Active |",
+            "confidence": 0.98,
+            "section_name": "Customer List",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": []
+          },
+          {
+            "section_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2:section-2",
+            "document_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2",
+            "document_type": "customer_list",
+            "section_kind": "customer_list",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {},
+            "raw_text": "## Customer List",
+            "confidence": 0.6,
+            "section_name": "Document Text",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "text",
+            "status": "parsed",
+            "notes": [
+              "Narrative text extracted from OCR output."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "2ab92e1a-e8bc-4906-95be-7a6dcc3c0b8c",
+        "file_name": "EmploymentContract_SeniorEngineer.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document_type": "other",
+        "declared_type": "other",
+        "canonical_type": "other",
+        "size_bytes": 9760,
+        "status": "parsed",
+        "confidence": 0.6,
+        "notes": [
+          "Built 1 structured section(s) from cached OCR artifact."
+        ],
+        "sections": [
+          {
+            "section_id": "2ab92e1a-e8bc-4906-95be-7a6dcc3c0b8c:section-1",
+            "document_id": "2ab92e1a-e8bc-4906-95be-7a6dcc3c0b8c",
+            "document_type": "employee_roster",
+            "section_kind": "employee_roster",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {},
+            "raw_text": "**EMPLOYMENT AGREEMENT**\n**Alpine IT Solutions LLC**\nSenior Network Engineer\nThis Employment Agreement is entered into as of March 15, 2021, between Alpine IT Solutions LLC (\"Company\") and Samantha Nakamura (\"Employee\").\n# **1. Position and Duties**\nEmployee is hired as Senior Network Engineer. Responsibilities include: managing assigned client environments; helpdesk escalation support; network design and implementation; cybersecurity monitoring and incident response; and maintaining documentation in the company's PSA platform.\n# **2. Compensation**\nBase Salary: $92,000 per year, paid bi-weekly.\nAnnual Review: Performance-based salary review each January. Target increase: 3-5% subject to company performance.\nBenefits: Health insurance (80% employer-paid), dental, vision. 15 days PTO per year. Company-provided laptop and mobile device.\nCertification Reimbursement: Company reimburses up to $2,000 per year for approved IT certifications (Microsoft, CompTIA, ISC2, etc.).\n# **3. Confidentiality**\nEmployee agrees not to disclose any confidential client information, trade secrets, or proprietary systems information during employment or for 36 months following termination.\n# **4. Non-Solicitation**\nFor a period of 24 months following termination of employment, Employee agrees not to directly solicit any client of the Company for competitive IT services. This provision is specifically enforceable in Colorado courts.\n# **5. At-Will Employment**\nThis is an at-will employment relationship. Either party may terminate this Agreement at any time with 14 days written notice.\n**Signed:**\nCompany (Alpine IT Solutions LLC): _________________________ Date: _____________\nEmployee (Samantha Nakamura): _________________________ Date: _____________",
+            "confidence": 0.6,
+            "section_name": "Document Text",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "text",
+            "status": "parsed",
+            "notes": [
+              "Narrative text extracted from OCR output."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67",
+        "file_name": "EquipmentList_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "equipment_list",
+        "declared_type": "equipment_list",
+        "canonical_type": "equipment_list",
+        "size_bytes": 6471,
+        "status": "parsed",
+        "confidence": 0.79,
+        "notes": [
+          "Skipped workbook sheet Equipment List: worksheet XML could not be parsed.",
+          "Built 2 structured section(s) from cached OCR artifact."
+        ],
+        "sections": [
+          {
+            "section_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67:section-1",
+            "document_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67",
+            "document_type": "equipment_list",
+            "section_kind": "equipment_list",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "As of April 2026",
+                  "B": null,
+                  "C": null,
+                  "D": null,
+                  "E": null,
+                  "F": null,
+                  "G": null
+                },
+                {
+                  "row_index": 3,
+                  "A": "1",
+                  "B": "Network Monitoring Server",
+                  "C": "Dell PowerEdge R740",
+                  "D": "2022",
+                  "E": "Excellent",
+                  "F": "8400",
+                  "G": "Primary RMM platform host"
+                },
+                {
+                  "row_index": 4,
+                  "A": "2",
+                  "B": "Lab / Test Workstation (x3)",
+                  "C": "Dell Precision 5680",
+                  "D": "2023",
+                  "E": "Excellent",
+                  "F": "9600",
+                  "G": "Technician build/test rigs"
+                },
+                {
+                  "row_index": 5,
+                  "A": "3",
+                  "B": "Employee Laptops (8)",
+                  "C": "Lenovo ThinkPad / Dell XPS",
+                  "D": "2021-2024",
+                  "E": "Good",
+                  "F": "14400",
+                  "G": "Billable engineer machines"
+                },
+                {
+                  "row_index": 6,
+                  "A": "4",
+                  "B": "NAS Storage Array",
+                  "C": "Synology DS1821+",
+                  "D": "2022",
+                  "E": "Good",
+                  "F": "2800",
+                  "G": "Client backup storage"
+                },
+                {
+                  "row_index": 7,
+                  "A": "5",
+                  "B": "Network Switch Stack",
+                  "C": "Cisco Catalyst 9300",
+                  "D": "2022",
+                  "E": "Excellent",
+                  "F": "6200",
+                  "G": "Lab / staging environment"
+                },
+                {
+                  "row_index": 8,
+                  "A": "6",
+                  "B": "Wireless APs (test / demo, 6 units)",
+                  "C": "Cisco / Meraki",
+                  "D": "2021-2023",
+                  "E": "Good",
+                  "F": "4800",
+                  "G": "Demo fleet for client installs"
+                },
+                {
+                  "row_index": 9,
+                  "A": "7",
+                  "B": "Firewall Appliances (demo, 4 units)",
+                  "C": "Fortinet / Cisco",
+                  "D": "2022-2023",
+                  "E": "Good",
+                  "F": "6400",
+                  "G": "Demo fleet"
+                },
+                {
+                  "row_index": 10,
+                  "A": "8",
+                  "B": "UPS Battery Backup (x4)",
+                  "C": "APC Smart-UPS",
+                  "D": "2021-2022",
+                  "E": "Good",
+                  "F": "2200",
+                  "G": "Server room"
+                },
+                {
+                  "row_index": 11,
+                  "A": "9",
+                  "B": "Office Furniture",
+                  "C": "Various",
+                  "D": "2020",
+                  "E": "Good",
+                  "F": "4800",
+                  "G": null
+                },
+                {
+                  "row_index": 12,
+                  "A": "10",
+                  "B": "Owner Vehicle (Toyota Land Cruiser)",
+                  "C": "2022",
+                  "D": "Excellent",
+                  "E": "46000",
+                  "F": "~60% business use documented",
+                  "G": null
+                },
+                {
+                  "row_index": 13,
+                  "A": "11",
+                  "B": "Phone System (VoIP)",
+                  "C": "8x8",
+                  "D": "2022",
+                  "E": "Good",
+                  "F": "1200",
+                  "G": null
+                },
+                {
+                  "row_index": 14,
+                  "A": "12",
+                  "B": "Software Licenses (RMM / PSA)",
+                  "C": "ConnectWise + Datto",
+                  "D": "2024",
+                  "E": "Current",
+                  "F": "0",
+                  "G": "Subscription \u2014 not capitalizable"
+                },
+                {
+                  "row_index": 15,
+                  "A": "13",
+                  "B": "Security Stack Licenses",
+                  "C": "SentinelOne / Acronis",
+                  "D": "2024",
+                  "E": "Current",
+                  "F": "0",
+                  "G": "Subscription \u2014 not capitalizable"
+                },
+                {
+                  "row_index": 2,
+                  "A": "#",
+                  "B": "Item",
+                  "C": "Make / Model",
+                  "D": "Year",
+                  "E": "Condition",
+                  "F": "Est. Value",
+                  "G": "Notes"
+                }
+              ]
+            },
+            "raw_text": "|  Alpine IT Solutions LLC \u2014 Equipment & Asset List |  |  |  |  |  |   |\n| --- | --- | --- | --- | --- | --- | --- |\n|  As of April 2026 |  |  |  |  |  |   |\n|  # | Item | Make / Model | Year | Condition | Est. Value | Notes  |\n|  1 | Network Monitoring Server | Dell PowerEdge R740 | 2022 | Excellent | 8400 | Primary RMM platform host  |\n|  2 | Lab / Test Workstation (x3) | Dell Precision 5680 | 2023 | Excellent | 9600 | Technician build/test rigs  |\n|  3 | Employee Laptops (8) | Lenovo ThinkPad / Dell XPS | 2021-2024 | Good | 14400 | Billable engineer machines  |\n|  4 | NAS Storage Array | Synology DS1821+ | 2022 | Good | 2800 | Client backup storage  |\n|  5 | Network Switch Stack | Cisco Catalyst 9300 | 2022 | Excellent | 6200 | Lab / staging environment  |\n|  6 | Wireless APs (test / demo, 6 units) | Cisco / Meraki | 2021-2023 | Good | 4800 | Demo fleet for client installs  |\n|  7 | Firewall Appliances (demo, 4 units) | Fortinet / Cisco | 2022-2023 | Good | 6400 | Demo fleet  |\n|  8 | UPS Battery Backup (x4) | APC Smart-UPS | 2021-2022 | Good | 2200 | Server room  |\n|  9 | Office Furniture | Various | 2020 | Good | 4800 |   |\n|  10 | Owner Vehicle (Toyota Land Cruiser) | 2022 | Excellent | 46000 | ~60% business use documented |   |\n|  11 | Phone System (VoIP) | 8x8 | 2022 | Good | 1200 |   |\n|  12 | Software Licenses (RMM / PSA) | ConnectWise + Datto | 2024 | Current | 0 | Subscription \u2014 not capitalizable  |\n|  13 | Security Stack Licenses | SentinelOne / Acronis | 2024 | Current | 0 | Subscription \u2014 not capitalizable  |",
+            "confidence": 0.98,
+            "section_name": "Equipment List",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": []
+          },
+          {
+            "section_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67:section-2",
+            "document_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67",
+            "document_type": "equipment_list",
+            "section_kind": "other",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {},
+            "raw_text": "## Equipment List",
+            "confidence": 0.6,
+            "section_name": "Document Text",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "text",
+            "status": "parsed",
+            "notes": [
+              "Narrative text extracted from OCR output."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "6fcde5cd-1428-41bd-bcfa-83726777e20e",
+        "file_name": "IncomeStatement_AlpineITSolutions.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "profit_and_loss",
+        "declared_type": "profit_and_loss",
+        "canonical_type": "profit_and_loss",
+        "size_bytes": 9157,
+        "status": "parsed",
+        "confidence": 0.8,
+        "notes": [],
+        "sections": [
+          {
+            "section_id": "6fcde5cd-1428-41bd-bcfa-83726777e20e:sheet-1",
+            "document_id": "6fcde5cd-1428-41bd-bcfa-83726777e20e",
+            "document_type": "profit_and_loss",
+            "section_kind": "sde_summary",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Alpine IT Solutions LLC \u2014 Income Statement",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 3,
+                  "A": "Line Item",
+                  "B": "2022",
+                  "C": "2023",
+                  "D": "2024",
+                  "E": "Notes"
+                },
+                {
+                  "row_index": 4,
+                  "A": "REVENUE",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 5,
+                  "A": "Managed Services (MRR contracts)",
+                  "B": "1284000",
+                  "C": "1408000",
+                  "D": "1562000",
+                  "E": "67%+ recurring"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Project & Implementation Work",
+                  "B": "486000",
+                  "C": "528000",
+                  "D": "578000",
+                  "E": "One-time engagements"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Hardware & Software Resale",
+                  "B": "128000",
+                  "C": "148000",
+                  "D": "168000",
+                  "E": "Pass-through margin ~18%"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Training & Consulting",
+                  "B": "82000",
+                  "C": "96000",
+                  "D": "102000",
+                  "E": ""
+                },
+                {
+                  "row_index": 9,
+                  "A": "Total Revenue",
+                  "B": "1980000",
+                  "C": "2180000",
+                  "D": "2410000",
+                  "E": ""
+                },
+                {
+                  "row_index": 10,
+                  "A": "Revenue Growth YOY",
+                  "B": "",
+                  "C": "0.15625",
+                  "D": "0.135135135135135",
+                  "E": "10.1% \u2192 10.6%"
+                },
+                {
+                  "row_index": 11,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 12,
+                  "A": "COST OF REVENUE",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 13,
+                  "A": "Technical Staff Labor",
+                  "B": "634000",
+                  "C": "694000",
+                  "D": "766000",
+                  "E": "3 senior engineers + 2 techs"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Subcontractors / Specialists",
+                  "B": "142000",
+                  "C": "154000",
+                  "D": "168000",
+                  "E": ""
+                },
+                {
+                  "row_index": 15,
+                  "A": "Hardware / Software COGS",
+                  "B": "106000",
+                  "C": "122000",
+                  "D": "138000",
+                  "E": ""
+                },
+                {
+                  "row_index": 16,
+                  "A": "Cloud Infrastructure (AWS/Azure)",
+                  "B": "88000",
+                  "C": "98000",
+                  "D": "110000",
+                  "E": "Passed through to clients"
+                },
+                {
+                  "row_index": 17,
+                  "A": "Total COGS",
+                  "B": "970000",
+                  "C": "1068000",
+                  "D": "1182000",
+                  "E": ""
+                },
+                {
+                  "row_index": 18,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 19,
+                  "A": "Gross Profit",
+                  "B": "1010000",
+                  "C": "1112000",
+                  "D": "1228000",
+                  "E": ""
+                },
+                {
+                  "row_index": 20,
+                  "A": "Gross Margin",
+                  "B": "1.99588477366255",
+                  "C": "2.02272727272727",
+                  "D": "2.04498269896194",
+                  "E": "~51%"
+                },
+                {
+                  "row_index": 21,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 22,
+                  "A": "OPERATING EXPENSES",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 23,
+                  "A": "Owner Draw / Salary",
+                  "B": "88000",
+                  "C": "92000",
+                  "D": "95000",
+                  "E": "Market replacement ~$120K"
+                },
+                {
+                  "row_index": 24,
+                  "A": "Admin / Office Manager",
+                  "B": "52000",
+                  "C": "55000",
+                  "D": "58000",
+                  "E": ""
+                },
+                {
+                  "row_index": 25,
+                  "A": "Rent & Facilities",
+                  "B": "42000",
+                  "C": "44000",
+                  "D": "46000",
+                  "E": "Class B office \u2014 lease thru 2028"
+                },
+                {
+                  "row_index": 26,
+                  "A": "Insurance (E&O / GL / Cyber)",
+                  "B": "38000",
+                  "C": "42000",
+                  "D": "46000",
+                  "E": "E&O + cyber mandatory for MSP"
+                },
+                {
+                  "row_index": 27,
+                  "A": "Software Tools & Licenses",
+                  "B": "48000",
+                  "C": "52000",
+                  "D": "56000",
+                  "E": "RMM, PSA, backup, security stack"
+                },
+                {
+                  "row_index": 28,
+                  "A": "Owner Vehicle",
+                  "B": "14200",
+                  "C": "14200",
+                  "D": "14200",
+                  "E": "Toyota Land Cruiser \u2014 business use ~60%"
+                },
+                {
+                  "row_index": 29,
+                  "A": "Marketing & Lead Gen",
+                  "B": "18000",
+                  "C": "20000",
+                  "D": "22000",
+                  "E": ""
+                },
+                {
+                  "row_index": 30,
+                  "A": "Professional Fees",
+                  "B": "22000",
+                  "C": "24000",
+                  "D": "26000",
+                  "E": "CPA + attorney"
+                },
+                {
+                  "row_index": 31,
+                  "A": "Depreciation",
+                  "B": "18000",
+                  "C": "20000",
+                  "D": "22000",
+                  "E": ""
+                },
+                {
+                  "row_index": 32,
+                  "A": "Misc / Office",
+                  "B": "14000",
+                  "C": "16000",
+                  "D": "18000",
+                  "E": ""
+                },
+                {
+                  "row_index": 33,
+                  "A": "Total OpEx",
+                  "B": "354200",
+                  "C": "379200",
+                  "D": "403200",
+                  "E": ""
+                },
+                {
+                  "row_index": 34,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 35,
+                  "A": "EBITDA",
+                  "B": "655800",
+                  "C": "732800",
+                  "D": "824800",
+                  "E": ""
+                },
+                {
+                  "row_index": 36,
+                  "A": "EBITDA Margin",
+                  "B": "0.72880658436214",
+                  "C": "0.718181818181818",
+                  "D": "0.69757785467128",
+                  "E": "~34.2%"
+                },
+                {
+                  "row_index": 37,
+                  "A": "",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 38,
+                  "A": "SDE RECONCILIATION",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": ""
+                },
+                {
+                  "row_index": 39,
+                  "A": "EBITDA",
+                  "B": "655800",
+                  "C": "732800",
+                  "D": "824800",
+                  "E": ""
+                },
+                {
+                  "row_index": 40,
+                  "A": "Add Back: Owner Draw",
+                  "B": "88000",
+                  "C": "92000",
+                  "D": "95000",
+                  "E": ""
+                },
+                {
+                  "row_index": 41,
+                  "A": "Add Back: Owner Health Insurance",
+                  "B": "10400",
+                  "C": "10800",
+                  "D": "11200",
+                  "E": ""
+                },
+                {
+                  "row_index": 42,
+                  "A": "Add Back: Owner Vehicle (partial)",
+                  "B": "8500",
+                  "C": "8500",
+                  "D": "8500",
+                  "E": "60% business use allocation"
+                },
+                {
+                  "row_index": 43,
+                  "A": "Less: Market-Rate Tech Director",
+                  "B": "-120,000",
+                  "C": "-120,000",
+                  "D": "-120,000",
+                  "E": "Replace owner's technical role"
+                },
+                {
+                  "row_index": 44,
+                  "A": "Less: Market-Rate Admin",
+                  "B": "-55,000",
+                  "C": "-55,000",
+                  "D": "-55,000",
+                  "E": ""
+                },
+                {
+                  "row_index": 45,
+                  "A": "Reported SDE",
+                  "B": "387700",
+                  "C": "469100",
+                  "D": "564500",
+                  "E": ""
+                }
+              ],
+              "sde": 564500.0,
+              "add_backs": [
+                {
+                  "description": "Add Back: Owner Health Insurance",
+                  "amount": 11200.0,
+                  "category": "personal_expense"
+                },
+                {
+                  "description": "Owner Vehicle",
+                  "amount": 14200.0,
+                  "category": "personal_expense"
+                }
+              ]
+            },
+            "raw_text": "1 | Alpine IT Solutions LLC \u2014 Income Statement\n2 | Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD\n3 | Line Item | 2022 | 2023 | 2024 | Notes\n4 | REVENUE\n5 | Managed Services (MRR contracts) | 1284000 | 1408000 | 1562000 | 67%+ recurring\n6 | Project & Implementation Work | 486000 | 528000 | 578000 | One-time engagements\n7 | Hardware & Software Resale | 128000 | 148000 | 168000 | Pass-through margin ~18%\n8 | Training & Consulting | 82000 | 96000 | 102000\n9 | Total Revenue | 1980000 | 2180000 | 2410000\n10 | Revenue Growth YOY | 0.15625 | 0.135135135135135 | 10.1% \u2192 10.6%\n11\n12 | COST OF REVENUE\n13 | Technical Staff Labor | 634000 | 694000 | 766000 | 3 senior engineers + 2 techs\n14 | Subcontractors / Specialists | 142000 | 154000 | 168000\n15 | Hardware / Software COGS | 106000 | 122000 | 138000\n16 | Cloud Infrastructure (AWS/Azure) | 88000 | 98000 | 110000 | Passed through to clients\n17 | Total COGS | 970000 | 1068000 | 1182000\n18\n19 | Gross Profit | 1010000 | 1112000 | 1228000\n20 | Gross Margin | 1.99588477366255 | 2.02272727272727 | 2.04498269896194 | ~51%\n21\n22 | OPERATING EXPENSES\n23 | Owner Draw / Salary | 88000 | 92000 | 95000 | Market replacement ~$120K\n24 | Admin / Office Manager | 52000 | 55000 | 58000\n25 | Rent & Facilities | 42000 | 44000 | 46000 | Class B office \u2014 lease thru 2028\n26 | Insurance (E&O / GL / Cyber) | 38000 | 42000 | 46000 | E&O + cyber mandatory for MSP\n27 | Software Tools & Licenses | 48000 | 52000 | 56000 | RMM, PSA, backup, security stack\n28 | Owner Vehicle | 14200 | 14200 | 14200 | Toyota Land Cruiser \u2014 business use ~60%\n29 | Marketing & Lead Gen | 18000 | 20000 | 22000\n30 | Professional Fees | 22000 | 24000 | 26000 | CPA + attorney\n31 | Depreciation | 18000 | 20000 | 22000\n32 | Misc / Office | 14000 | 16000 | 18000\n33 | Total OpEx | 354200 | 379200 | 403200\n34\n35 | EBITDA | 655800 | 732800 | 824800\n36 | EBITDA Margin | 0.72880658436214 | 0.718181818181818 | 0.69757785467128 | ~34.2%\n37\n38 | SDE RECONCILIATION\n39 | EBITDA | 655800 | 732800 | 824800\n40 | Add Back: Owner Draw | 88000 | 92000 | 95000\n41 | Add Back: Owner Health Insurance | 10400 | 10800 | 11200\n42 | Add Back: Owner Vehicle (partial) | 8500 | 8500 | 8500 | 60% business use allocation\n43 | Less: Market-Rate Tech Director | -120,000 | -120,000 | -120,000 | Replace owner's technical role\n44 | Less: Market-Rate Admin | -55,000 | -55,000 | -55,000\n45 | Reported SDE | 387700 | 469100 | 564500",
+            "confidence": 0.8,
+            "section_name": "Income Statement",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'Income Statement' into a section."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "08f2a058-d8b6-41cf-9dce-584aa1e0f2ae",
+        "file_name": "InsuranceCertificate_AlpineITSolutions.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document_type": "insurance_policy",
+        "declared_type": "insurance_policy",
+        "canonical_type": "insurance_policy",
+        "size_bytes": 9990,
+        "status": "parsed",
+        "confidence": 0.75,
+        "notes": [
+          "Extracted 1 structured table(s) from DOCX."
+        ],
+        "sections": [
+          {
+            "section_id": "08f2a058-d8b6-41cf-9dce-584aa1e0f2ae:section-1",
+            "document_id": "08f2a058-d8b6-41cf-9dce-584aa1e0f2ae",
+            "document_type": "insurance_policy",
+            "section_kind": "other",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2025
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Coverage Type",
+                  "B": "Insurer",
+                  "C": "Policy Number",
+                  "D": "Limit",
+                  "E": "Premium"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Technology E&O / Cyber Liability",
+                  "B": "Chubb Group",
+                  "C": "EO-4421-2025",
+                  "D": "$2,000,000",
+                  "E": "$22,400"
+                },
+                {
+                  "row_index": 3,
+                  "A": "General Liability",
+                  "B": "The Hartford",
+                  "C": "GL-8812-2025",
+                  "D": "$1,000,000 / $2,000,000",
+                  "E": "$6,800"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Commercial Auto",
+                  "B": "Progressive",
+                  "C": "CA-3391-2025",
+                  "D": "$1,000,000 CSL",
+                  "E": "$4,200"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Workers Compensation",
+                  "B": "Pinnacol Assurance",
+                  "C": "WC-5541-2025",
+                  "D": "Statutory",
+                  "E": "$8,600"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Property (equipment/contents)",
+                  "B": "Nationwide",
+                  "C": "CP-7712-2025",
+                  "D": "$220,000",
+                  "E": "$2,400"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Business Owner Policy (BOP)",
+                  "B": "The Hartford",
+                  "C": "BP-2214-2025",
+                  "D": "Bundled GL/Property",
+                  "E": "$1,600"
+                }
+              ]
+            },
+            "raw_text": "CERTIFICATE OF INSURANCE\nAlpine IT Solutions LLC\nPolicy Year: January 1, 2025 \u2013 December 31, 2025\nTotal Annual Premium: $46,000 (approximate)\nNote on Technology E&O / Cyber: Several MSA clients (Apex Financial Group, Rocky Mountain Credit Union, TrueNorth Insurance) contractually require evidence of Technology E&O coverage of $1M or more as a condition of their managed services agreements. Maintaining this coverage is required to retain these clients.\nIssued by: Summit Risk Partners, Denver, CO  |  Contact: Derek Ortega  |  dortega@summitrisk.com",
+            "confidence": 0.75,
+            "section_name": "Table 1",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 1."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "a87bf37b-8efe-486d-b14e-99b842206c7d",
+        "file_name": "LeaseAgreement_AlpineITSolutions.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document_type": "lease_agreement",
+        "declared_type": "lease_agreement",
+        "canonical_type": "lease_agreement",
+        "size_bytes": 10115,
+        "status": "parsed",
+        "confidence": 0.75,
+        "notes": [
+          "Extracted 1 structured table(s) from DOCX."
+        ],
+        "sections": [
+          {
+            "section_id": "a87bf37b-8efe-486d-b14e-99b842206c7d:section-1",
+            "document_id": "a87bf37b-8efe-486d-b14e-99b842206c7d",
+            "document_type": "lease_agreement",
+            "section_kind": "lease_agreement",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2023
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Period",
+                  "B": "Monthly Rent",
+                  "C": "Annual Rent"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Feb 2023 \u2013 Jan 2025",
+                  "B": "$3,500",
+                  "C": "$42,000"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Feb 2025 \u2013 Jan 2027",
+                  "B": "$3,700",
+                  "C": "$44,400"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Feb 2027 \u2013 Jan 2028",
+                  "B": "$3,950",
+                  "C": "$47,400"
+                }
+              ]
+            },
+            "raw_text": "COMMERCIAL LEASE AGREEMENT\nThis Commercial Lease Agreement is entered into as of February 1, 2023, between Lodo Office Properties LP (\"Landlord\") and Alpine IT Solutions LLC (\"Tenant\").\n1. Premises\nLandlord leases to Tenant the premises at 1740 Broadway, Suite 420, Denver, Colorado 80202, consisting of approximately 2,800 square feet of Class B office space.\n2. Term\nInitial Term: February 1, 2023 through January 31, 2028 (5 years).\nRenewal Option: Tenant has one (1) option to renew for two (2) additional years at 102% of then-current market rent, exercisable 120 days prior to expiration.\n3. Rent\n4. Use\nPremises shall be used exclusively for IT consulting, managed services delivery, light lab work, and related administrative functions. No server colocation for third-party clients without landlord consent.\n5. Assignment\nTenant may assign this Lease in connection with a bona fide sale of the Tenant's business upon 30 days written notice to Landlord. Landlord consent is required but shall not be unreasonably withheld.\n6. Equipment\nTenant is permitted to install and operate server, networking, and UPS equipment consistent with the Premises' electrical capacity. Tenant shall not exceed 20 amps of continuous electrical load without Landlord's prior written consent.\nSigned:\nLandlord: _________________________     Date: _____________\nTenant (Alpine IT Solutions LLC): _________________________     Date: _____________\nMember/Owner: Kyle Hartigan     Date: _____________",
+            "confidence": 0.75,
+            "section_name": "Table 1",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 1."
+            ]
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "total_documents": 10,
+      "successfully_parsed": 10,
+      "ingestion_source": "structured",
+      "failed_documents": [],
+      "failed_artifacts": [],
+      "missing_inputs": [],
+      "analysis_id": "ab951ad1-ad40-4739-900e-725973116f61",
+      "overall_confidence": 0.761,
+      "artifact_refs": [
+        {
+          "artifact_key": "ingestion_artifacts",
+          "storage_kind": "filesystem",
+          "path": "backend/.artifacts/ab951ad1-ad40-4739-900e-725973116f61/ingestion_artifacts.json",
+          "content_type": "application/json"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "document_inventory": [
+    {
+      "document_id": "75ab031a-127c-457e-8937-af89c14ea429",
+      "file_name": "ARAgingReport_AlpineITSolutions.xlsx",
+      "document_type": "ar_aging_report",
+      "status": "parsed",
+      "confidence": 0.8,
+      "section_ids": [
+        "75ab031a-127c-457e-8937-af89c14ea429:sheet-1"
+      ],
+      "notes": []
+    },
+    {
+      "document_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7",
+      "file_name": "BalanceSheet_AlpineITSolutions.xlsx",
+      "document_type": "balance_sheet",
+      "status": "parsed",
+      "confidence": 0.79,
+      "section_ids": [
+        "a56c242f-07f5-4fc3-bd26-db9acdd568c7:section-1",
+        "a56c242f-07f5-4fc3-bd26-db9acdd568c7:section-2"
+      ],
+      "notes": [
+        "Skipped workbook sheet Balance Sheet: worksheet XML could not be parsed.",
+        "Built 2 structured section(s) from cached OCR artifact."
+      ]
+    },
+    {
+      "document_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc",
+      "file_name": "CashFlowStatement_AlpineITSolutions.xlsx",
+      "document_type": "cash_flow_statement",
+      "status": "parsed",
+      "confidence": 0.79,
+      "section_ids": [
+        "f4c226fd-ad08-431d-a6ca-b5d105624ffc:section-1",
+        "f4c226fd-ad08-431d-a6ca-b5d105624ffc:section-2"
+      ],
+      "notes": [
+        "Skipped workbook sheet Cash Flow Statement: worksheet XML could not be parsed.",
+        "Built 2 structured section(s) from cached OCR artifact."
+      ]
+    },
+    {
+      "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+      "file_name": "CIM_AlpineITSolutions.docx",
+      "document_type": "contract",
+      "status": "parsed",
+      "confidence": 0.75,
+      "section_ids": [
+        "4cd5d531-08bf-4352-be57-a4895020973e:section-1",
+        "4cd5d531-08bf-4352-be57-a4895020973e:section-2",
+        "4cd5d531-08bf-4352-be57-a4895020973e:section-3",
+        "4cd5d531-08bf-4352-be57-a4895020973e:section-4"
+      ],
+      "notes": [
+        "Extracted 4 structured table(s) from DOCX."
+      ]
+    },
+    {
+      "document_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2",
+      "file_name": "CustomerList_AlpineITSolutions.xlsx",
+      "document_type": "customer_list",
+      "status": "parsed",
+      "confidence": 0.79,
+      "section_ids": [
+        "eceb417b-aaaa-4499-aaf2-d26c671678a2:section-1",
+        "eceb417b-aaaa-4499-aaf2-d26c671678a2:section-2"
+      ],
+      "notes": [
+        "Skipped workbook sheet Customer List: worksheet XML could not be parsed.",
+        "Built 2 structured section(s) from cached OCR artifact."
+      ]
+    },
+    {
+      "document_id": "2ab92e1a-e8bc-4906-95be-7a6dcc3c0b8c",
+      "file_name": "EmploymentContract_SeniorEngineer.docx",
+      "document_type": "other",
+      "status": "parsed",
+      "confidence": 0.6,
+      "section_ids": [
+        "2ab92e1a-e8bc-4906-95be-7a6dcc3c0b8c:section-1"
+      ],
+      "notes": [
+        "Built 1 structured section(s) from cached OCR artifact."
+      ]
+    },
+    {
+      "document_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67",
+      "file_name": "EquipmentList_AlpineITSolutions.xlsx",
+      "document_type": "equipment_list",
+      "status": "parsed",
+      "confidence": 0.79,
+      "section_ids": [
+        "b2cf2b05-dc67-416e-ab70-900fca9b1e67:section-1",
+        "b2cf2b05-dc67-416e-ab70-900fca9b1e67:section-2"
+      ],
+      "notes": [
+        "Skipped workbook sheet Equipment List: worksheet XML could not be parsed.",
+        "Built 2 structured section(s) from cached OCR artifact."
+      ]
+    },
+    {
+      "document_id": "6fcde5cd-1428-41bd-bcfa-83726777e20e",
+      "file_name": "IncomeStatement_AlpineITSolutions.xlsx",
+      "document_type": "profit_and_loss",
+      "status": "parsed",
+      "confidence": 0.8,
+      "section_ids": [
+        "6fcde5cd-1428-41bd-bcfa-83726777e20e:sheet-1"
+      ],
+      "notes": []
+    },
+    {
+      "document_id": "08f2a058-d8b6-41cf-9dce-584aa1e0f2ae",
+      "file_name": "InsuranceCertificate_AlpineITSolutions.docx",
+      "document_type": "insurance_policy",
+      "status": "parsed",
+      "confidence": 0.75,
+      "section_ids": [
+        "08f2a058-d8b6-41cf-9dce-584aa1e0f2ae:section-1"
+      ],
+      "notes": [
+        "Extracted 1 structured table(s) from DOCX."
+      ]
+    },
+    {
+      "document_id": "a87bf37b-8efe-486d-b14e-99b842206c7d",
+      "file_name": "LeaseAgreement_AlpineITSolutions.docx",
+      "document_type": "lease_agreement",
+      "status": "parsed",
+      "confidence": 0.75,
+      "section_ids": [
+        "a87bf37b-8efe-486d-b14e-99b842206c7d:section-1"
+      ],
+      "notes": [
+        "Extracted 1 structured table(s) from DOCX."
+      ]
+    }
+  ],
+  "evidence_index": [
+    {
+      "document_id": "75ab031a-127c-457e-8937-af89c14ea429",
+      "file_name": "ARAgingReport_AlpineITSolutions.xlsx",
+      "section_id": "75ab031a-127c-457e-8937-af89c14ea429:sheet-1",
+      "page": null,
+      "snippet": "1 | Alpine IT Solutions LLC \u2014 Accounts Receivable Aging\n2 | As of December 31, 2024  |  All figures in USD\n3 | Client | Type | Total | 0-30 | 31-60 | 61-90 | 91-120 | 120+\n4 | Apex Financial Group | Commercial | 24600 | 24600 | 0 | 0 | 0 | 0\n5 | Denver Metro School District | Gov",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Alpine IT Solutions LLC \u2014 Accounts Receivable Aging",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": ""
+          },
+          {
+            "row_index": 2,
+            "A": "As of December 31, 2024  |  All figures in USD",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": ""
+          },
+          {
+            "row_index": 3,
+            "A": "Client",
+            "B": "Type",
+            "C": "Total",
+            "D": "0-30",
+            "E": "31-60",
+            "F": "61-90",
+            "G": "91-120",
+            "H": "120+"
+          },
+          {
+            "row_index": 4,
+            "A": "Apex Financial Group",
+            "B": "Commercial",
+            "C": "24600",
+            "D": "24600",
+            "E": "0",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 5,
+            "A": "Denver Metro School District",
+            "B": "Government",
+            "C": "18800",
+            "D": "18800",
+            "E": "0",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 6,
+            "A": "Pinnacle Realty Group",
+            "B": "Commercial",
+            "C": "14400",
+            "D": "14400",
+            "E": "0",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 7,
+            "A": "Rocky Mountain Credit Union",
+            "B": "Financial",
+            "C": "12200",
+            "D": "12200",
+            "E": "0",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 8,
+            "A": "Cobalt Construction LLC",
+            "B": "Commercial",
+            "C": "10800",
+            "D": "10800",
+            "E": "0",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 9,
+            "A": "Summit Law Group",
+            "B": "Professional Svcs",
+            "C": "9400",
+            "D": "9400",
+            "E": "0",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 10,
+            "A": "Green Valley Medical Clinic",
+            "B": "Healthcare",
+            "C": "8800",
+            "D": "5800",
+            "E": "3000",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 11,
+            "A": "Highlands Ranch HOA",
+            "B": "HOA",
+            "C": "6200",
+            "D": "6200",
+            "E": "0",
+            "F": "0",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 12,
+            "A": "Other clients (18 accounts)",
+            "B": "",
+            "C": "43400",
+            "D": "36200",
+            "E": "6400",
+            "F": "800",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 13,
+            "A": "TOTAL",
+            "B": "",
+            "C": "148600",
+            "D": "138400",
+            "E": "9400",
+            "F": "800",
+            "G": "0",
+            "H": "0"
+          },
+          {
+            "row_index": 14,
+            "A": "NOTE: Apex Financial Group is the largest single client (18% of MRR revenue). Contract up for renewal May 2027. AR is current \u2014 no collection risk. Industry-leading DSO of ~14 days.",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": ""
+          }
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7",
+      "file_name": "BalanceSheet_AlpineITSolutions.xlsx",
+      "section_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7:section-1",
+      "page": null,
+      "snippet": "| Alpine IT Solutions LLC \u2014 Balance Sheet |  |  |\n| --- | --- | --- |\n| Denver, CO | As of December 31, 2024 | All figures in USD |  |  |\n| Line Item | Amount (USD) | Notes |\n| ASSETS |  |  |\n| Current Assets |  |  |\n| Cash & Cash Equivalents | 284600 |  |\n| Accounts Receivable (",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Denver, CO",
+            "B": "As of December 31, 2024",
+            "C": "All figures in USD",
+            "D": null,
+            "E": null
+          },
+          {
+            "row_index": 2,
+            "A": "Line Item",
+            "B": "Amount (USD)",
+            "C": "Notes"
+          },
+          {
+            "row_index": 3,
+            "A": "ASSETS",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 4,
+            "A": "Current Assets",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 5,
+            "A": "Cash & Cash Equivalents",
+            "B": "284600",
+            "C": null
+          },
+          {
+            "row_index": 6,
+            "A": "Accounts Receivable (net)",
+            "B": "148400",
+            "C": "14-day DSO \u2014 excellent"
+          },
+          {
+            "row_index": 7,
+            "A": "Prepaid Expenses & Deposits",
+            "B": "32200",
+            "C": null
+          },
+          {
+            "row_index": 8,
+            "A": "Total Current Assets",
+            "B": "465200",
+            "C": null
+          },
+          {
+            "row_index": 10,
+            "A": "Fixed Assets",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 11,
+            "A": "IT Infrastructure & Lab Equipment",
+            "B": "68000",
+            "C": null
+          },
+          {
+            "row_index": 12,
+            "A": "Computers & Workstations",
+            "B": "42000",
+            "C": null
+          },
+          {
+            "row_index": 13,
+            "A": "Office Furniture & Fixtures",
+            "B": "18000",
+            "C": null
+          },
+          {
+            "row_index": 14,
+            "A": "Owner Vehicle",
+            "B": "38000",
+            "C": null
+          },
+          {
+            "row_index": 15,
+            "A": "Less: Accumulated Depreciation",
+            "B": "-82000",
+            "C": null
+          },
+          {
+            "row_index": 16,
+            "A": "Net Fixed Assets",
+            "B": "84000",
+            "C": null
+          },
+          {
+            "row_index": 18,
+            "A": "Intangible Assets",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 19,
+            "A": "Customer Contracts (MRR)",
+            "B": "0",
+            "C": "Not capitalized \u2014 significant buyer value"
+          },
+          {
+            "row_index": 20,
+            "A": "Software Licenses / IP",
+            "B": "0",
+            "C": null
+          },
+          {
+            "row_index": 21,
+            "A": "Total Intangible Assets",
+            "B": "0",
+            "C": null
+          },
+          {
+            "row_index": 23,
+            "A": "TOTAL ASSETS",
+            "B": "549200",
+            "C": null
+          },
+          {
+            "row_index": 25,
+            "A": "LIABILITIES & EQUITY",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 26,
+            "A": "Current Liabilities",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 27,
+            "A": "Accounts Payable",
+            "B": "22400",
+            "C": null
+          },
+          {
+            "row_index": 28,
+            "A": "Accrued Payroll",
+            "B": "18600",
+            "C": null
+          },
+          {
+            "row_index": 29,
+            "A": "Deferred Revenue (prepaid MSAs)",
+            "B": "62800",
+            "C": "Annual MSA clients \u2014 normalizes by Q2"
+          },
+          {
+            "row_index": 30,
+            "A": "Total Current Liabilities",
+            "B": "103800",
+            "C": null
+          },
+          {
+            "row_index": 32,
+            "A": "Long-Term Liabilities",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 33,
+            "A": "Long-Term Debt",
+            "B": "0",
+            "C": "No debt \u2014 clean balance sheet"
+          },
+          {
+            "row_index": 34,
+            "A": "Total Long-Term Liabilities",
+            "B": "0",
+            "C": null
+          },
+          {
+            "row_index": 36,
+            "A": "TOTAL LIABILITIES",
+            "B": "103800",
+            "C": null
+          },
+          {
+            "row_index": 38,
+            "A": "Member Equity",
+            "B": null,
+            "C": null
+          },
+          {
+            "row_index": 39,
+            "A": "Retained Earnings",
+            "B": "445400",
+            "C": null
+          },
+          {
+            "row_index": 40,
+            "A": "Total Equity",
+            "B": "445400",
+            "C": null
+          },
+          {
+            "row_index": 42,
+            "A": "TOTAL LIABILITIES & EQUITY",
+            "B": "549200",
+            "C": null
+          }
+        ],
+        "current_assets": 465200.0,
+        "cash_and_equivalents": 284600.0,
+        "accounts_receivable": 14.0,
+        "current_liabilities": 103800.0,
+        "accounts_payable": 22400.0,
+        "total_assets": 549200.0,
+        "total_liabilities": 103800.0,
+        "equity": 445400.0
+      },
+      "confidence": 0.98
+    },
+    {
+      "document_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7",
+      "file_name": "BalanceSheet_AlpineITSolutions.xlsx",
+      "section_id": "a56c242f-07f5-4fc3-bd26-db9acdd568c7:section-2",
+      "page": null,
+      "snippet": "## Balance Sheet",
+      "extracted_fields": {},
+      "confidence": 0.6
+    },
+    {
+      "document_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc",
+      "file_name": "CashFlowStatement_AlpineITSolutions.xlsx",
+      "section_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc:section-1",
+      "page": null,
+      "snippet": "| Alpine IT Solutions LLC \u2014 Cash Flow Statement |  |  |  |  |\n| --- | --- | --- | --- | --- |\n| Denver, CO | Fiscal Years 2022-2024 | All figures in USD |  |  |  |  |\n| Line Item | 2022 | 2023 | 2024 | Notes |\n| OPERATING ACTIVITIES |  |  |  |  |\n| Net Income | 386600 | 462000 | ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Denver, CO",
+            "B": "Fiscal Years 2022-2024",
+            "C": "All figures in USD",
+            "D": null,
+            "E": null,
+            "F": null,
+            "G": null
+          },
+          {
+            "row_index": 2,
+            "A": "Line Item",
+            "B": "2022",
+            "C": "2023",
+            "D": "2024",
+            "E": "Notes"
+          },
+          {
+            "row_index": 7,
+            "A": "Change in Prepaid Expenses",
+            "B": "-4000",
+            "C": "-2000",
+            "D": "-3000",
+            "E": null
+          },
+          {
+            "row_index": 3,
+            "A": "OPERATING ACTIVITIES",
+            "B": null,
+            "C": null,
+            "D": null,
+            "E": null
+          },
+          {
+            "row_index": 4,
+            "A": "Net Income",
+            "B": "386600",
+            "C": "462000",
+            "D": "524800",
+            "E": "Per Schedule C filing"
+          },
+          {
+            "row_index": 5,
+            "A": "Add: Depreciation",
+            "B": "18000",
+            "C": "20000",
+            "D": "22000",
+            "E": null
+          },
+          {
+            "row_index": 6,
+            "A": "Change in AR",
+            "B": "-14000",
+            "C": "-18000",
+            "D": "-22000",
+            "E": "Growing with revenue"
+          },
+          {
+            "row_index": 8,
+            "A": "Change in AP",
+            "B": "4000",
+            "C": "3000",
+            "D": "4000",
+            "E": null
+          },
+          {
+            "row_index": 9,
+            "A": "Change in Deferred Revenue",
+            "B": "8000",
+            "C": "10000",
+            "D": "12000",
+            "E": "MRR prepayments increasing"
+          },
+          {
+            "row_index": 10,
+            "A": "Change in Accrued Liabilities",
+            "B": "3000",
+            "C": "4000",
+            "D": "4000",
+            "E": null
+          },
+          {
+            "row_index": 11,
+            "A": "Net Cash from Operations",
+            "B": "401600",
+            "C": "479000",
+            "D": "541800",
+            "E": null
+          },
+          {
+            "row_index": 13,
+            "A": "INVESTING ACTIVITIES",
+            "B": null,
+            "C": null,
+            "D": null,
+            "E": null
+          },
+          {
+            "row_index": 14,
+            "A": "IT Equipment & Infrastructure",
+            "B": "-24000",
+            "C": "-28000",
+            "D": "-32000",
+            "E": "Routine refresh"
+          },
+          {
+            "row_index": 15,
+            "A": "Net Cash from Investing",
+            "B": "-24000",
+            "C": "-28000",
+            "D": "-32000",
+            "E": null
+          },
+          {
+            "row_index": 17,
+            "A": "FINANCING ACTIVITIES",
+            "B": null,
+            "C": null,
+            "D": null,
+            "E": null
+          },
+          {
+            "row_index": 18,
+            "A": "Owner Distributions",
+            "B": "-280000",
+            "C": "-320000",
+            "D": "-360000",
+            "E": "Healthy \u2014 well below net income"
+          },
+          {
+            "row_index": 19,
+            "A": "Net Cash from Financing",
+            "B": "-280000",
+            "C": "-320000",
+            "D": "-360000",
+            "E": null
+          },
+          {
+            "row_index": 21,
+            "A": "NET CHANGE IN CASH",
+            "B": "97600",
+            "C": "131000",
+            "D": "149800",
+            "E": null
+          },
+          {
+            "row_index": 22,
+            "A": "Beginning Cash",
+            "B": "56800",
+            "C": "154400",
+            "D": "285400",
+            "E": null
+          },
+          {
+            "row_index": 23,
+            "A": "Ending Cash",
+            "B": "154400",
+            "C": "285400",
+            "D": "435200",
+            "E": "Slightly above BS due to timing"
+          }
+        ]
+      },
+      "confidence": 0.98
+    },
+    {
+      "document_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc",
+      "file_name": "CashFlowStatement_AlpineITSolutions.xlsx",
+      "section_id": "f4c226fd-ad08-431d-a6ca-b5d105624ffc:section-2",
+      "page": null,
+      "snippet": "## Cash Flow Statement",
+      "extracted_fields": {},
+      "confidence": 0.6
+    },
+    {
+      "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+      "file_name": "CIM_AlpineITSolutions.docx",
+      "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-1",
+      "page": null,
+      "snippet": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized busi",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Asking Price",
+            "B": "TTM Revenue",
+            "C": "TTM SDE",
+            "D": "Entity Type"
+          },
+          {
+            "row_index": 2,
+            "A": "$1,300,000",
+            "B": "$2,410,000",
+            "C": "$564,500",
+            "D": "Single-Member LLC"
+          },
+          {
+            "row_index": 3,
+            "A": "Founded",
+            "B": "Employees",
+            "C": "Location",
+            "D": "NAICS"
+          },
+          {
+            "row_index": 4,
+            "A": "2014",
+            "B": "8 FTE",
+            "C": "Denver, CO",
+            "D": "541512"
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+      "file_name": "CIM_AlpineITSolutions.docx",
+      "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-2",
+      "page": null,
+      "snippet": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized busi",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Metric",
+            "B": "2022",
+            "C": "2023",
+            "D": "2024",
+            "E": null
+          },
+          {
+            "row_index": 2,
+            "A": "Total Revenue",
+            "B": "$1,980,000",
+            "C": "$2,180,000",
+            "D": "$2,410,000",
+            "E": null
+          },
+          {
+            "row_index": 3,
+            "A": "Gross Profit",
+            "B": "$1,010,000",
+            "C": "$1,112,000",
+            "D": "$1,228,000",
+            "E": null
+          },
+          {
+            "row_index": 4,
+            "A": "EBITDA",
+            "B": "$655,800",
+            "C": "$732,800",
+            "D": "$824,800",
+            "E": null
+          },
+          {
+            "row_index": 5,
+            "A": "Reported SDE",
+            "B": "$387,700",
+            "C": "$469,100",
+            "D": "$564,500",
+            "E": null
+          },
+          {
+            "row_index": 6,
+            "A": "Revenue Growth",
+            "B": "\u2014",
+            "C": "+10.1%",
+            "D": "+10.6%",
+            "E": null
+          },
+          {
+            "row_index": 7,
+            "A": "MRR Base (Dec 2024)",
+            "B": null,
+            "C": null,
+            "D": "~$133,500/mo",
+            "E": null
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+      "file_name": "CIM_AlpineITSolutions.docx",
+      "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-3",
+      "page": null,
+      "snippet": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized busi",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Asking Price",
+            "B": "$1,300,000"
+          },
+          {
+            "row_index": 2,
+            "A": "Structure",
+            "B": "Membership interest or asset sale"
+          },
+          {
+            "row_index": 3,
+            "A": "Included",
+            "B": "All customer contracts, software stack, equipment, trade name, domain, phone numbers"
+          },
+          {
+            "row_index": 4,
+            "A": "Excluded",
+            "B": "Cash on hand, AR as of closing date"
+          },
+          {
+            "row_index": 5,
+            "A": "Training",
+            "B": "Seller willing to provide up to 6 months part-time technical advisory"
+          },
+          {
+            "row_index": 6,
+            "A": "Financing",
+            "B": "Seller open to 15-20% seller note for qualified buyer"
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "4cd5d531-08bf-4352-be57-a4895020973e",
+      "file_name": "CIM_AlpineITSolutions.docx",
+      "section_id": "4cd5d531-08bf-4352-be57-a4895020973e:section-4",
+      "page": null,
+      "snippet": "CONFIDENTIAL INFORMATION MEMORANDUM\nAlpine IT Solutions LLC\nDenver, Colorado  |  Managed IT Services & Cybersecurity\n1. Business Overview\nAlpine IT Solutions LLC was founded in 2014 and has operated for 12 years as a Managed Service Provider (MSP) serving small and mid-sized busi",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "#",
+            "B": "Risk",
+            "C": "Detail"
+          },
+          {
+            "row_index": 2,
+            "A": "1",
+            "B": "Customer Concentration",
+            "C": "Apex Financial Group = 18% of MRR. Contract through May 2027. Well-established relationship but material if lost."
+          },
+          {
+            "row_index": 3,
+            "A": "2",
+            "B": "Owner Technical Dependency",
+            "C": "Owner is the lead technical architect for 3 enterprise-scale clients. Some technical documentation is incomplete. Buyer with technical IT background preferred."
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2",
+      "file_name": "CustomerList_AlpineITSolutions.xlsx",
+      "section_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2:section-1",
+      "page": null,
+      "snippet": "| Alpine IT Solutions LLC \u2014 Customer List |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| As of April 2026 | Active Managed Services Clients |  |  |  |  |  |  |  |\n| # | Client Name | Industry | MRR Value | Contract Start | Contract Expiry | Account Man",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "As of April 2026",
+            "B": "Active Managed Services Clients",
+            "C": null,
+            "D": null,
+            "E": null,
+            "F": null,
+            "G": null,
+            "H": null,
+            "I": null
+          },
+          {
+            "row_index": 3,
+            "A": "1",
+            "B": "Apex Financial Group",
+            "C": "Financial Services",
+            "D": "4100",
+            "E": "Jan-2020",
+            "F": "May-2027",
+            "G": "Owner",
+            "H": "Active \u2014 RENEW FLAG"
+          },
+          {
+            "row_index": 4,
+            "A": "2",
+            "B": "Denver Metro School District",
+            "C": "Government",
+            "D": "3200",
+            "E": "Sep-2021",
+            "F": "Sep-2026",
+            "G": "S. Nakamura",
+            "H": "Active"
+          },
+          {
+            "row_index": 5,
+            "A": "3",
+            "B": "Pinnacle Realty Group",
+            "C": "Real Estate",
+            "D": "2800",
+            "E": "Mar-2022",
+            "F": "Mar-2027",
+            "G": "Owner",
+            "H": "Active"
+          },
+          {
+            "row_index": 6,
+            "A": "4",
+            "B": "Rocky Mountain Credit Union",
+            "C": "Financial Services",
+            "D": "2400",
+            "E": "Jun-2020",
+            "F": "Jun-2026",
+            "G": "S. Nakamura",
+            "H": "Active"
+          },
+          {
+            "row_index": 7,
+            "A": "5",
+            "B": "Cobalt Construction LLC",
+            "C": "Construction",
+            "D": "2200",
+            "E": "Feb-2023",
+            "F": "Feb-2026",
+            "G": "T. Brennan",
+            "H": "Active"
+          },
+          {
+            "row_index": 8,
+            "A": "6",
+            "B": "Summit Law Group",
+            "C": "Professional Services",
+            "D": "1900",
+            "E": "Nov-2021",
+            "F": "Nov-2026",
+            "G": "T. Brennan",
+            "H": "Active"
+          },
+          {
+            "row_index": 9,
+            "A": "7",
+            "B": "Green Valley Medical Clinic",
+            "C": "Healthcare",
+            "D": "1800",
+            "E": "Apr-2022",
+            "F": "Apr-2027",
+            "G": "S. Nakamura",
+            "H": "Active"
+          },
+          {
+            "row_index": 10,
+            "A": "8",
+            "B": "Highlands Ranch HOA",
+            "C": "HOA / Property Mgmt",
+            "D": "1400",
+            "E": "Jan-2024",
+            "F": "Jan-2027",
+            "G": "T. Brennan",
+            "H": "Active"
+          },
+          {
+            "row_index": 11,
+            "A": "9",
+            "B": "Cherry Creek Dental",
+            "C": "Healthcare",
+            "D": "1300",
+            "E": "Aug-2023",
+            "F": "Aug-2026",
+            "G": "T. Brennan",
+            "H": "Active"
+          },
+          {
+            "row_index": 12,
+            "A": "10",
+            "B": "Foothills Manufacturing Inc.",
+            "C": "Manufacturing",
+            "D": "1200",
+            "E": "Oct-2022",
+            "F": "Oct-2025",
+            "G": "Owner",
+            "H": "Month-to-Month"
+          },
+          {
+            "row_index": 13,
+            "A": "11",
+            "B": "TrueNorth Insurance Group",
+            "C": "Financial Services",
+            "D": "1100",
+            "E": "Mar-2021",
+            "F": "Mar-2026",
+            "G": "S. Nakamura",
+            "H": "Active"
+          },
+          {
+            "row_index": 14,
+            "A": "12",
+            "B": "Columbine Brewing Co.",
+            "C": "Food & Beverage",
+            "D": "900",
+            "E": "Jul-2023",
+            "F": "Jul-2026",
+            "G": "T. Brennan",
+            "H": "Active"
+          },
+          {
+            "row_index": 2,
+            "A": "#",
+            "B": "Client Name",
+            "C": "Industry",
+            "D": "MRR Value",
+            "E": "Contract Start",
+            "F": "Contract Expiry",
+            "G": "Account Manager",
+            "H": "Status"
+          },
+          {
+            "row_index": 15,
+            "A": "13",
+            "B": "Other clients (14 MRR + project)",
+            "C": "Various",
+            "D": "6600",
+            "E": "Various",
+            "F": "Various",
+            "G": "Various",
+            "H": "Active"
+          }
+        ]
+      },
+      "confidence": 0.98
+    },
+    {
+      "document_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2",
+      "file_name": "CustomerList_AlpineITSolutions.xlsx",
+      "section_id": "eceb417b-aaaa-4499-aaf2-d26c671678a2:section-2",
+      "page": null,
+      "snippet": "## Customer List",
+      "extracted_fields": {},
+      "confidence": 0.6
+    },
+    {
+      "document_id": "2ab92e1a-e8bc-4906-95be-7a6dcc3c0b8c",
+      "file_name": "EmploymentContract_SeniorEngineer.docx",
+      "section_id": "2ab92e1a-e8bc-4906-95be-7a6dcc3c0b8c:section-1",
+      "page": null,
+      "snippet": "**EMPLOYMENT AGREEMENT**\n**Alpine IT Solutions LLC**\nSenior Network Engineer\nThis Employment Agreement is entered into as of March 15, 2021, between Alpine IT Solutions LLC (\"Company\") and Samantha Nakamura (\"Employee\").\n# **1. Position and Duties**\nEmployee is hired as Senior Ne",
+      "extracted_fields": {},
+      "confidence": 0.6
+    },
+    {
+      "document_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67",
+      "file_name": "EquipmentList_AlpineITSolutions.xlsx",
+      "section_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67:section-1",
+      "page": null,
+      "snippet": "|  Alpine IT Solutions LLC \u2014 Equipment & Asset List |  |  |  |  |  |   |\n| --- | --- | --- | --- | --- | --- | --- |\n|  As of April 2026 |  |  |  |  |  |   |\n|  # | Item | Make / Model | Year | Condition | Est. Value | Notes  |\n|  1 | Network Monitoring Server | Dell PowerEdge R7",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "As of April 2026",
+            "B": null,
+            "C": null,
+            "D": null,
+            "E": null,
+            "F": null,
+            "G": null
+          },
+          {
+            "row_index": 3,
+            "A": "1",
+            "B": "Network Monitoring Server",
+            "C": "Dell PowerEdge R740",
+            "D": "2022",
+            "E": "Excellent",
+            "F": "8400",
+            "G": "Primary RMM platform host"
+          },
+          {
+            "row_index": 4,
+            "A": "2",
+            "B": "Lab / Test Workstation (x3)",
+            "C": "Dell Precision 5680",
+            "D": "2023",
+            "E": "Excellent",
+            "F": "9600",
+            "G": "Technician build/test rigs"
+          },
+          {
+            "row_index": 5,
+            "A": "3",
+            "B": "Employee Laptops (8)",
+            "C": "Lenovo ThinkPad / Dell XPS",
+            "D": "2021-2024",
+            "E": "Good",
+            "F": "14400",
+            "G": "Billable engineer machines"
+          },
+          {
+            "row_index": 6,
+            "A": "4",
+            "B": "NAS Storage Array",
+            "C": "Synology DS1821+",
+            "D": "2022",
+            "E": "Good",
+            "F": "2800",
+            "G": "Client backup storage"
+          },
+          {
+            "row_index": 7,
+            "A": "5",
+            "B": "Network Switch Stack",
+            "C": "Cisco Catalyst 9300",
+            "D": "2022",
+            "E": "Excellent",
+            "F": "6200",
+            "G": "Lab / staging environment"
+          },
+          {
+            "row_index": 8,
+            "A": "6",
+            "B": "Wireless APs (test / demo, 6 units)",
+            "C": "Cisco / Meraki",
+            "D": "2021-2023",
+            "E": "Good",
+            "F": "4800",
+            "G": "Demo fleet for client installs"
+          },
+          {
+            "row_index": 9,
+            "A": "7",
+            "B": "Firewall Appliances (demo, 4 units)",
+            "C": "Fortinet / Cisco",
+            "D": "2022-2023",
+            "E": "Good",
+            "F": "6400",
+            "G": "Demo fleet"
+          },
+          {
+            "row_index": 10,
+            "A": "8",
+            "B": "UPS Battery Backup (x4)",
+            "C": "APC Smart-UPS",
+            "D": "2021-2022",
+            "E": "Good",
+            "F": "2200",
+            "G": "Server room"
+          },
+          {
+            "row_index": 11,
+            "A": "9",
+            "B": "Office Furniture",
+            "C": "Various",
+            "D": "2020",
+            "E": "Good",
+            "F": "4800",
+            "G": null
+          },
+          {
+            "row_index": 12,
+            "A": "10",
+            "B": "Owner Vehicle (Toyota Land Cruiser)",
+            "C": "2022",
+            "D": "Excellent",
+            "E": "46000",
+            "F": "~60% business use documented",
+            "G": null
+          },
+          {
+            "row_index": 13,
+            "A": "11",
+            "B": "Phone System (VoIP)",
+            "C": "8x8",
+            "D": "2022",
+            "E": "Good",
+            "F": "1200",
+            "G": null
+          },
+          {
+            "row_index": 14,
+            "A": "12",
+            "B": "Software Licenses (RMM / PSA)",
+            "C": "ConnectWise + Datto",
+            "D": "2024",
+            "E": "Current",
+            "F": "0",
+            "G": "Subscription \u2014 not capitalizable"
+          },
+          {
+            "row_index": 15,
+            "A": "13",
+            "B": "Security Stack Licenses",
+            "C": "SentinelOne / Acronis",
+            "D": "2024",
+            "E": "Current",
+            "F": "0",
+            "G": "Subscription \u2014 not capitalizable"
+          },
+          {
+            "row_index": 2,
+            "A": "#",
+            "B": "Item",
+            "C": "Make / Model",
+            "D": "Year",
+            "E": "Condition",
+            "F": "Est. Value",
+            "G": "Notes"
+          }
+        ]
+      },
+      "confidence": 0.98
+    },
+    {
+      "document_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67",
+      "file_name": "EquipmentList_AlpineITSolutions.xlsx",
+      "section_id": "b2cf2b05-dc67-416e-ab70-900fca9b1e67:section-2",
+      "page": null,
+      "snippet": "## Equipment List",
+      "extracted_fields": {},
+      "confidence": 0.6
+    },
+    {
+      "document_id": "6fcde5cd-1428-41bd-bcfa-83726777e20e",
+      "file_name": "IncomeStatement_AlpineITSolutions.xlsx",
+      "section_id": "6fcde5cd-1428-41bd-bcfa-83726777e20e:sheet-1",
+      "page": null,
+      "snippet": "1 | Alpine IT Solutions LLC \u2014 Income Statement\n2 | Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD\n3 | Line Item | 2022 | 2023 | 2024 | Notes\n4 | REVENUE\n5 | Managed Services (MRR contracts) | 1284000 | 1408000 | 1562000 | 67%+ recurring\n6 | Project & Implement",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Alpine IT Solutions LLC \u2014 Income Statement",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 2,
+            "A": "Denver, CO  |  Fiscal Year End: December 31  |  All figures in USD",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 3,
+            "A": "Line Item",
+            "B": "2022",
+            "C": "2023",
+            "D": "2024",
+            "E": "Notes"
+          },
+          {
+            "row_index": 4,
+            "A": "REVENUE",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 5,
+            "A": "Managed Services (MRR contracts)",
+            "B": "1284000",
+            "C": "1408000",
+            "D": "1562000",
+            "E": "67%+ recurring"
+          },
+          {
+            "row_index": 6,
+            "A": "Project & Implementation Work",
+            "B": "486000",
+            "C": "528000",
+            "D": "578000",
+            "E": "One-time engagements"
+          },
+          {
+            "row_index": 7,
+            "A": "Hardware & Software Resale",
+            "B": "128000",
+            "C": "148000",
+            "D": "168000",
+            "E": "Pass-through margin ~18%"
+          },
+          {
+            "row_index": 8,
+            "A": "Training & Consulting",
+            "B": "82000",
+            "C": "96000",
+            "D": "102000",
+            "E": ""
+          },
+          {
+            "row_index": 9,
+            "A": "Total Revenue",
+            "B": "1980000",
+            "C": "2180000",
+            "D": "2410000",
+            "E": ""
+          },
+          {
+            "row_index": 10,
+            "A": "Revenue Growth YOY",
+            "B": "",
+            "C": "0.15625",
+            "D": "0.135135135135135",
+            "E": "10.1% \u2192 10.6%"
+          },
+          {
+            "row_index": 11,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 12,
+            "A": "COST OF REVENUE",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 13,
+            "A": "Technical Staff Labor",
+            "B": "634000",
+            "C": "694000",
+            "D": "766000",
+            "E": "3 senior engineers + 2 techs"
+          },
+          {
+            "row_index": 14,
+            "A": "Subcontractors / Specialists",
+            "B": "142000",
+            "C": "154000",
+            "D": "168000",
+            "E": ""
+          },
+          {
+            "row_index": 15,
+            "A": "Hardware / Software COGS",
+            "B": "106000",
+            "C": "122000",
+            "D": "138000",
+            "E": ""
+          },
+          {
+            "row_index": 16,
+            "A": "Cloud Infrastructure (AWS/Azure)",
+            "B": "88000",
+            "C": "98000",
+            "D": "110000",
+            "E": "Passed through to clients"
+          },
+          {
+            "row_index": 17,
+            "A": "Total COGS",
+            "B": "970000",
+            "C": "1068000",
+            "D": "1182000",
+            "E": ""
+          },
+          {
+            "row_index": 18,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 19,
+            "A": "Gross Profit",
+            "B": "1010000",
+            "C": "1112000",
+            "D": "1228000",
+            "E": ""
+          },
+          {
+            "row_index": 20,
+            "A": "Gross Margin",
+            "B": "1.99588477366255",
+            "C": "2.02272727272727",
+            "D": "2.04498269896194",
+            "E": "~51%"
+          },
+          {
+            "row_index": 21,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 22,
+            "A": "OPERATING EXPENSES",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 23,
+            "A": "Owner Draw / Salary",
+            "B": "88000",
+            "C": "92000",
+            "D": "95000",
+            "E": "Market replacement ~$120K"
+          },
+          {
+            "row_index": 24,
+            "A": "Admin / Office Manager",
+            "B": "52000",
+            "C": "55000",
+            "D": "58000",
+            "E": ""
+          },
+          {
+            "row_index": 25,
+            "A": "Rent & Facilities",
+            "B": "42000",
+            "C": "44000",
+            "D": "46000",
+            "E": "Class B office \u2014 lease thru 2028"
+          },
+          {
+            "row_index": 26,
+            "A": "Insurance (E&O / GL / Cyber)",
+            "B": "38000",
+            "C": "42000",
+            "D": "46000",
+            "E": "E&O + cyber mandatory for MSP"
+          },
+          {
+            "row_index": 27,
+            "A": "Software Tools & Licenses",
+            "B": "48000",
+            "C": "52000",
+            "D": "56000",
+            "E": "RMM, PSA, backup, security stack"
+          },
+          {
+            "row_index": 28,
+            "A": "Owner Vehicle",
+            "B": "14200",
+            "C": "14200",
+            "D": "14200",
+            "E": "Toyota Land Cruiser \u2014 business use ~60%"
+          },
+          {
+            "row_index": 29,
+            "A": "Marketing & Lead Gen",
+            "B": "18000",
+            "C": "20000",
+            "D": "22000",
+            "E": ""
+          },
+          {
+            "row_index": 30,
+            "A": "Professional Fees",
+            "B": "22000",
+            "C": "24000",
+            "D": "26000",
+            "E": "CPA + attorney"
+          },
+          {
+            "row_index": 31,
+            "A": "Depreciation",
+            "B": "18000",
+            "C": "20000",
+            "D": "22000",
+            "E": ""
+          },
+          {
+            "row_index": 32,
+            "A": "Misc / Office",
+            "B": "14000",
+            "C": "16000",
+            "D": "18000",
+            "E": ""
+          },
+          {
+            "row_index": 33,
+            "A": "Total OpEx",
+            "B": "354200",
+            "C": "379200",
+            "D": "403200",
+            "E": ""
+          },
+          {
+            "row_index": 34,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 35,
+            "A": "EBITDA",
+            "B": "655800",
+            "C": "732800",
+            "D": "824800",
+            "E": ""
+          },
+          {
+            "row_index": 36,
+            "A": "EBITDA Margin",
+            "B": "0.72880658436214",
+            "C": "0.718181818181818",
+            "D": "0.69757785467128",
+            "E": "~34.2%"
+          },
+          {
+            "row_index": 37,
+            "A": "",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 38,
+            "A": "SDE RECONCILIATION",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": ""
+          },
+          {
+            "row_index": 39,
+            "A": "EBITDA",
+            "B": "655800",
+            "C": "732800",
+            "D": "824800",
+            "E": ""
+          },
+          {
+            "row_index": 40,
+            "A": "Add Back: Owner Draw",
+            "B": "88000",
+            "C": "92000",
+            "D": "95000",
+            "E": ""
+          },
+          {
+            "row_index": 41,
+            "A": "Add Back: Owner Health Insurance",
+            "B": "10400",
+            "C": "10800",
+            "D": "11200",
+            "E": ""
+          },
+          {
+            "row_index": 42,
+            "A": "Add Back: Owner Vehicle (partial)",
+            "B": "8500",
+            "C": "8500",
+            "D": "8500",
+            "E": "60% business use allocation"
+          },
+          {
+            "row_index": 43,
+            "A": "Less: Market-Rate Tech Director",
+            "B": "-120,000",
+            "C": "-120,000",
+            "D": "-120,000",
+            "E": "Replace owner's technical role"
+          },
+          {
+            "row_index": 44,
+            "A": "Less: Market-Rate Admin",
+            "B": "-55,000",
+            "C": "-55,000",
+            "D": "-55,000",
+            "E": ""
+          },
+          {
+            "row_index": 45,
+            "A": "Reported SDE",
+            "B": "387700",
+            "C": "469100",
+            "D": "564500",
+            "E": ""
+          }
+        ],
+        "sde": 564500.0,
+        "add_backs": [
+          {
+            "description": "Add Back: Owner Health Insurance",
+            "amount": 11200.0,
+            "category": "personal_expense"
+          },
+          {
+            "description": "Owner Vehicle",
+            "amount": 14200.0,
+            "category": "personal_expense"
+          }
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "08f2a058-d8b6-41cf-9dce-584aa1e0f2ae",
+      "file_name": "InsuranceCertificate_AlpineITSolutions.docx",
+      "section_id": "08f2a058-d8b6-41cf-9dce-584aa1e0f2ae:section-1",
+      "page": null,
+      "snippet": "CERTIFICATE OF INSURANCE\nAlpine IT Solutions LLC\nPolicy Year: January 1, 2025 \u2013 December 31, 2025\nTotal Annual Premium: $46,000 (approximate)\nNote on Technology E&O / Cyber: Several MSA clients (Apex Financial Group, Rocky Mountain Credit Union, TrueNorth Insurance) contractually",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Coverage Type",
+            "B": "Insurer",
+            "C": "Policy Number",
+            "D": "Limit",
+            "E": "Premium"
+          },
+          {
+            "row_index": 2,
+            "A": "Technology E&O / Cyber Liability",
+            "B": "Chubb Group",
+            "C": "EO-4421-2025",
+            "D": "$2,000,000",
+            "E": "$22,400"
+          },
+          {
+            "row_index": 3,
+            "A": "General Liability",
+            "B": "The Hartford",
+            "C": "GL-8812-2025",
+            "D": "$1,000,000 / $2,000,000",
+            "E": "$6,800"
+          },
+          {
+            "row_index": 4,
+            "A": "Commercial Auto",
+            "B": "Progressive",
+            "C": "CA-3391-2025",
+            "D": "$1,000,000 CSL",
+            "E": "$4,200"
+          },
+          {
+            "row_index": 5,
+            "A": "Workers Compensation",
+            "B": "Pinnacol Assurance",
+            "C": "WC-5541-2025",
+            "D": "Statutory",
+            "E": "$8,600"
+          },
+          {
+            "row_index": 6,
+            "A": "Property (equipment/contents)",
+            "B": "Nationwide",
+            "C": "CP-7712-2025",
+            "D": "$220,000",
+            "E": "$2,400"
+          },
+          {
+            "row_index": 7,
+            "A": "Business Owner Policy (BOP)",
+            "B": "The Hartford",
+            "C": "BP-2214-2025",
+            "D": "Bundled GL/Property",
+            "E": "$1,600"
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "a87bf37b-8efe-486d-b14e-99b842206c7d",
+      "file_name": "LeaseAgreement_AlpineITSolutions.docx",
+      "section_id": "a87bf37b-8efe-486d-b14e-99b842206c7d:section-1",
+      "page": null,
+      "snippet": "COMMERCIAL LEASE AGREEMENT\nThis Commercial Lease Agreement is entered into as of February 1, 2023, between Lodo Office Properties LP (\"Landlord\") and Alpine IT Solutions LLC (\"Tenant\").\n1. Premises\nLandlord leases to Tenant the premises at 1740 Broadway, Suite 420, Denver, Colora",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Period",
+            "B": "Monthly Rent",
+            "C": "Annual Rent"
+          },
+          {
+            "row_index": 2,
+            "A": "Feb 2023 \u2013 Jan 2025",
+            "B": "$3,500",
+            "C": "$42,000"
+          },
+          {
+            "row_index": 3,
+            "A": "Feb 2025 \u2013 Jan 2027",
+            "B": "$3,700",
+            "C": "$44,400"
+          },
+          {
+            "row_index": 4,
+            "A": "Feb 2027 \u2013 Jan 2028",
+            "B": "$3,950",
+            "C": "$47,400"
+          }
+        ]
+      },
+      "confidence": 0.75
+    }
+  ],
+  "clarifications": []
+}

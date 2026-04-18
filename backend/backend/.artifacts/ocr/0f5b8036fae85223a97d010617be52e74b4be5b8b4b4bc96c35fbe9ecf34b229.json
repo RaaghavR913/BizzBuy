@@ -1,0 +1,22 @@
+{
+  "filename": "EmploymentContract_SeniorEngineer.docx",
+  "file_hash": "0f5b8036fae85223a97d010617be52e74b4be5b8b4b4bc96c35fbe9ecf34b229",
+  "page_count": 1,
+  "classification": {
+    "document_type": "other",
+    "confidence": 0.95,
+    "reasoning": "The document contains specific details about employment terms, responsibilities, compensation, confidentiality, and non-solicitation clauses, which are characteristic of an employment agreement. It does not fit into any of the other specified document types such as financial statements, contracts, or lists.",
+    "detected_period": "March 15, 2021"
+  },
+  "pages": [
+    {
+      "page_number": 1,
+      "markdown": "**EMPLOYMENT AGREEMENT**\n\n**Alpine IT Solutions LLC**\n\nSenior Network Engineer\n\nThis Employment Agreement is entered into as of March 15, 2021, between Alpine IT Solutions LLC (\"Company\") and Samantha Nakamura (\"Employee\").\n\n# **1. Position and Duties**\n\nEmployee is hired as Senior Network Engineer. Responsibilities include: managing assigned client environments; helpdesk escalation support; network design and implementation; cybersecurity monitoring and incident response; and maintaining documentation in the company's PSA platform.\n\n# **2. Compensation**\n\nBase Salary: $92,000 per year, paid bi-weekly.\n\nAnnual Review: Performance-based salary review each January. Target increase: 3-5% subject to company performance.\n\nBenefits: Health insurance (80% employer-paid), dental, vision. 15 days PTO per year. Company-provided laptop and mobile device.\n\nCertification Reimbursement: Company reimburses up to $2,000 per year for approved IT certifications (Microsoft, CompTIA, ISC2, etc.).\n\n# **3. Confidentiality**\n\nEmployee agrees not to disclose any confidential client information, trade secrets, or proprietary systems information during employment or for 36 months following termination.\n\n# **4. Non-Solicitation**\n\nFor a period of 24 months following termination of employment, Employee agrees not to directly solicit any client of the Company for competitive IT services. This provision is specifically enforceable in Colorado courts.\n\n# **5. At-Will Employment**\n\nThis is an at-will employment relationship. Either party may terminate this Agreement at any time with 14 days written notice.\n\n**Signed:**\n\nCompany (Alpine IT Solutions LLC): _________________________ Date: _____________\n\nEmployee (Samantha Nakamura): _________________________ Date: _____________",
+      "image_refs": []
+    }
+  ],
+  "full_markdown": "**EMPLOYMENT AGREEMENT**\n\n**Alpine IT Solutions LLC**\n\nSenior Network Engineer\n\nThis Employment Agreement is entered into as of March 15, 2021, between Alpine IT Solutions LLC (\"Company\") and Samantha Nakamura (\"Employee\").\n\n# **1. Position and Duties**\n\nEmployee is hired as Senior Network Engineer. Responsibilities include: managing assigned client environments; helpdesk escalation support; network design and implementation; cybersecurity monitoring and incident response; and maintaining documentation in the company's PSA platform.\n\n# **2. Compensation**\n\nBase Salary: $92,000 per year, paid bi-weekly.\n\nAnnual Review: Performance-based salary review each January. Target increase: 3-5% subject to company performance.\n\nBenefits: Health insurance (80% employer-paid), dental, vision. 15 days PTO per year. Company-provided laptop and mobile device.\n\nCertification Reimbursement: Company reimburses up to $2,000 per year for approved IT certifications (Microsoft, CompTIA, ISC2, etc.).\n\n# **3. Confidentiality**\n\nEmployee agrees not to disclose any confidential client information, trade secrets, or proprietary systems information during employment or for 36 months following termination.\n\n# **4. Non-Solicitation**\n\nFor a period of 24 months following termination of employment, Employee agrees not to directly solicit any client of the Company for competitive IT services. This provision is specifically enforceable in Colorado courts.\n\n# **5. At-Will Employment**\n\nThis is an at-will employment relationship. Either party may terminate this Agreement at any time with 14 days written notice.\n\n**Signed:**\n\nCompany (Alpine IT Solutions LLC): _________________________ Date: _____________\n\nEmployee (Samantha Nakamura): _________________________ Date: _____________",
+  "ocr_model": "mistral-ocr-2512",
+  "processing_time_ms": 1550,
+  "cost_usd": 0.002
+}

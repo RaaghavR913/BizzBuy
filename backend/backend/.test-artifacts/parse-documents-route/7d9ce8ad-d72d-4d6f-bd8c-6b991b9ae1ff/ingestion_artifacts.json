@@ -1,0 +1,4368 @@
+{
+  "analysis_id": "7d9ce8ad-d72d-4d6f-bd8c-6b991b9ae1ff",
+  "storage_version": "1.0",
+  "stored_at": "2026-04-17T02:49:03.909599+00:00",
+  "ingestion_output": {
+    "documents": [
+      {
+        "document_id": "11920a87-8ef1-4c71-8705-90a86f579ff0",
+        "file_name": "PeakAir_CustomerList_PPE.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "customer_list",
+        "declared_type": "customer_list",
+        "canonical_type": "customer_list",
+        "size_bytes": 11499,
+        "status": "parsed",
+        "confidence": 0.8,
+        "notes": [],
+        "sections": [
+          {
+            "section_id": "11920a87-8ef1-4c71-8705-90a86f579ff0:sheet-1",
+            "document_id": "11920a87-8ef1-4c71-8705-90a86f579ff0",
+            "document_type": "customer_list",
+            "section_kind": "customer_list",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 3,
+                  "A": "Customer Name",
+                  "B": "Type",
+                  "C": "Location",
+                  "D": "Service Type",
+                  "E": "Relationship Since",
+                  "F": "2024 Revenue",
+                  "G": "% of Total Rev",
+                  "H": "Contract Type",
+                  "I": "Owner Contact?",
+                  "J": "Notes"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Midwest Industrial Partners",
+                  "B": "Commercial",
+                  "C": "Cedar Falls, IA",
+                  "D": "Annual Maintenance + Emergency",
+                  "E": "2011",
+                  "F": "87500",
+                  "G": "0.089",
+                  "H": "Annual Contract",
+                  "I": "Yes",
+                  "J": "CEO calls Robert directly. No written SLA."
+                },
+                {
+                  "row_index": 5,
+                  "A": "Riverbend Apartments (12 units)",
+                  "B": "Commercial",
+                  "C": "Waterloo, IA",
+                  "D": "HVAC Maintenance & Replacement",
+                  "E": "2015",
+                  "F": "71200",
+                  "G": "0.072",
+                  "H": "Annual Contract",
+                  "I": "Yes",
+                  "J": "Lease renewal not yet signed for 2025."
+                },
+                {
+                  "row_index": 6,
+                  "A": "Cedar Valley School District",
+                  "B": "Commercial",
+                  "C": "Cedar Falls, IA",
+                  "D": "Scheduled Maintenance",
+                  "E": "2018",
+                  "F": "64800",
+                  "G": "0.066",
+                  "H": "Annual Contract",
+                  "I": "No",
+                  "J": "Bid contract \u2014 renewals competitive. 3-yr remaining."
+                },
+                {
+                  "row_index": 7,
+                  "A": "Johnson Family Homes (developer)",
+                  "B": "Commercial",
+                  "C": "Waterloo, IA",
+                  "D": "New Construction Install",
+                  "E": "2019",
+                  "F": "58300",
+                  "G": "0.059",
+                  "H": "Project-by-project",
+                  "I": "Yes",
+                  "J": "Owner-dependent referral relationship."
+                },
+                {
+                  "row_index": 8,
+                  "A": "MedFirst Urgent Care (3 locs)",
+                  "B": "Commercial",
+                  "C": "Cedar Falls, IA",
+                  "D": "PM + Emergency Service",
+                  "E": "2017",
+                  "F": "51400",
+                  "G": "0.052",
+                  "H": "Annual Contract",
+                  "I": "No",
+                  "J": "Stable. Renews automatically."
+                },
+                {
+                  "row_index": 9,
+                  "A": "Hawkeye Auto Group",
+                  "B": "Commercial",
+                  "C": "Marion, IA",
+                  "D": "HVAC Service & Install",
+                  "E": "2020",
+                  "F": "44900",
+                  "G": "0.046",
+                  "H": "T&M",
+                  "I": "Yes",
+                  "J": "Project-based, no contract. Owner-to-owner relationship."
+                },
+                {
+                  "row_index": 10,
+                  "A": "Sunrise Senior Living",
+                  "B": "Commercial",
+                  "C": "Cedar Falls, IA",
+                  "D": "Preventive Maintenance",
+                  "E": "2016",
+                  "F": "38700",
+                  "G": "0.039",
+                  "H": "Annual Contract",
+                  "I": "No",
+                  "J": "Stable long-term account."
+                },
+                {
+                  "row_index": 11,
+                  "A": "Residential (avg. 380 accounts)",
+                  "B": "Residential",
+                  "C": "Linn/Black Hawk Co.",
+                  "D": "Service, Repair, Replace",
+                  "E": "2002",
+                  "F": "462000",
+                  "G": "0.47",
+                  "H": "T&M / Service",
+                  "I": "Yes",
+                  "J": "All estimates & callbacks routed through Robert."
+                },
+                {
+                  "row_index": 12,
+                  "A": "Seasonal Residential (new)",
+                  "B": "Residential",
+                  "C": "Linn County",
+                  "D": "New installs \u2014 one-time",
+                  "E": "2024",
+                  "F": "43700",
+                  "G": "0.044",
+                  "H": "Project",
+                  "I": "No",
+                  "J": "New customers from marketing push."
+                },
+                {
+                  "row_index": 1,
+                  "A": "PeakAir HVAC Services \u2014 Customer List (Partial \u2014 Top Accounts)",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": "",
+                  "I": "",
+                  "J": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "As of March 2025  |  CONFIDENTIAL \u2014 For Qualified Buyers Only  |  Full list released post-LOI",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": "",
+                  "I": "",
+                  "J": ""
+                },
+                {
+                  "row_index": 13,
+                  "A": "Other / Misc Commercial",
+                  "B": "Commercial",
+                  "C": "Various",
+                  "D": "Various",
+                  "E": "Various",
+                  "F": "60500",
+                  "G": "0.062",
+                  "H": "Various",
+                  "I": "Mixed",
+                  "J": "Includes 11 small commercial accounts."
+                },
+                {
+                  "row_index": 14,
+                  "A": "TOTAL / SUMMARY",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "983000",
+                  "G": "0.999",
+                  "H": "",
+                  "I": "",
+                  "J": ""
+                },
+                {
+                  "row_index": 15,
+                  "A": "\u26a0 Concentration Risk: Top 6 commercial accounts represent ~32% of total revenue. All are managed directly by owner Robert Kowalski with no formal written transition plan. Residential segment (47% of revenue) has no CRM system \u2014 customer data lives in QuickBooks and owner's phone contacts.",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": "",
+                  "I": "",
+                  "J": ""
+                }
+              ],
+              "customers": [
+                {
+                  "name": "Midwest Industrial Partners",
+                  "annualRevenue": 87500.0,
+                  "type": "Commercial",
+                  "contractType": "Annual Contract",
+                  "location": "Cedar Falls, IA"
+                },
+                {
+                  "name": "Riverbend Apartments (12 units)",
+                  "annualRevenue": 71200.0,
+                  "type": "Commercial",
+                  "contractType": "Annual Contract",
+                  "location": "Waterloo, IA"
+                },
+                {
+                  "name": "Cedar Valley School District",
+                  "annualRevenue": 64800.0,
+                  "type": "Commercial",
+                  "contractType": "Annual Contract",
+                  "location": "Cedar Falls, IA"
+                },
+                {
+                  "name": "Johnson Family Homes (developer)",
+                  "annualRevenue": 58300.0,
+                  "type": "Commercial",
+                  "contractType": "Project-by-project",
+                  "location": "Waterloo, IA"
+                },
+                {
+                  "name": "MedFirst Urgent Care (3 locs)",
+                  "annualRevenue": 51400.0,
+                  "type": "Commercial",
+                  "contractType": "Annual Contract",
+                  "location": "Cedar Falls, IA"
+                },
+                {
+                  "name": "Hawkeye Auto Group",
+                  "annualRevenue": 44900.0,
+                  "type": "Commercial",
+                  "contractType": "T&M",
+                  "location": "Marion, IA"
+                },
+                {
+                  "name": "Sunrise Senior Living",
+                  "annualRevenue": 38700.0,
+                  "type": "Commercial",
+                  "contractType": "Annual Contract",
+                  "location": "Cedar Falls, IA"
+                },
+                {
+                  "name": "Residential (avg. 380 accounts)",
+                  "annualRevenue": 462000.0,
+                  "type": "Residential",
+                  "contractType": "T&M / Service",
+                  "location": "Linn/Black Hawk Co."
+                },
+                {
+                  "name": "Seasonal Residential (new)",
+                  "annualRevenue": 43700.0,
+                  "type": "Residential",
+                  "contractType": "Project",
+                  "location": "Linn County"
+                },
+                {
+                  "name": "Other / Misc Commercial",
+                  "annualRevenue": 60500.0,
+                  "type": "Commercial",
+                  "contractType": "Various",
+                  "location": "Various"
+                }
+              ]
+            },
+            "raw_text": "1 | PeakAir HVAC Services \u2014 Customer List (Partial \u2014 Top Accounts)\n2 | As of March 2025  |  CONFIDENTIAL \u2014 For Qualified Buyers Only  |  Full list released post-LOI\n3 | Customer Name | Type | Location | Service Type | Relationship Since | 2024 Revenue | % of Total Rev | Contract Type | Owner Contact? | Notes\n4 | Midwest Industrial Partners | Commercial | Cedar Falls, IA | Annual Maintenance + Emergency | 2011 | 87500 | 0.089 | Annual Contract | Yes | CEO calls Robert directly. No written SLA.\n5 | Riverbend Apartments (12 units) | Commercial | Waterloo, IA | HVAC Maintenance & Replacement | 2015 | 71200 | 0.072 | Annual Contract | Yes | Lease renewal not yet signed for 2025.\n6 | Cedar Valley School District | Commercial | Cedar Falls, IA | Scheduled Maintenance | 2018 | 64800 | 0.066 | Annual Contract | No | Bid contract \u2014 renewals competitive. 3-yr remaining.\n7 | Johnson Family Homes (developer) | Commercial | Waterloo, IA | New Construction Install | 2019 | 58300 | 0.059 | Project-by-project | Yes | Owner-dependent referral relationship.\n8 | MedFirst Urgent Care (3 locs) | Commercial | Cedar Falls, IA | PM + Emergency Service | 2017 | 51400 | 0.052 | Annual Contract | No | Stable. Renews automatically.\n9 | Hawkeye Auto Group | Commercial | Marion, IA | HVAC Service & Install | 2020 | 44900 | 0.046 | T&M | Yes | Project-based, no contract. Owner-to-owner relationship.\n10 | Sunrise Senior Living | Commercial | Cedar Falls, IA | Preventive Maintenance | 2016 | 38700 | 0.039 | Annual Contract | No | Stable long-term account.\n11 | Residential (avg. 380 accounts) | Residential | Linn/Black Hawk Co. | Service, Repair, Replace | 2002 | 462000 | 0.47 | T&M / Service | Yes | All estimates & callbacks routed through Robert.\n12 | Seasonal Residential (new) | Residential | Linn County | New installs \u2014 one-time | 2024 | 43700 | 0.044 | Project | No | New customers from marketing push.\n13 | Other / Misc Commercial | Commercial | Various | Various | Various | 60500 | 0.062 | Various | Mixed | Includes 11 small commercial accounts.\n14 | TOTAL / SUMMARY | 983000 | 0.999\n15 | \u26a0 Concentration Risk: Top 6 commercial accounts represent ~32% of total revenue. All are managed directly by owner Robert Kowalski with no formal written transition plan. Residential segment (47% of revenue) has no CRM system \u2014 customer data lives in QuickBooks and owner's phone contacts.",
+            "confidence": 0.8,
+            "section_name": "Customer List",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'Customer List' into a section."
+            ]
+          },
+          {
+            "section_id": "11920a87-8ef1-4c71-8705-90a86f579ff0:sheet-2",
+            "document_id": "11920a87-8ef1-4c71-8705-90a86f579ff0",
+            "document_type": "equipment_list",
+            "section_kind": "equipment_list",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 4,
+                  "A": "2019 Ford Transit 250 (Van 1)",
+                  "B": "2019",
+                  "C": "38000",
+                  "D": "28500",
+                  "E": "9500",
+                  "F": "4000",
+                  "G": "Yes",
+                  "H": "High mileage (198K). Needs brakes."
+                },
+                {
+                  "row_index": 5,
+                  "A": "2021 Ford Transit 350 (Van 2)",
+                  "B": "2021",
+                  "C": "44000",
+                  "D": "17600",
+                  "E": "26400",
+                  "F": "28000",
+                  "G": "Yes",
+                  "H": "Good condition."
+                },
+                {
+                  "row_index": 6,
+                  "A": "2022 Ford Transit 350 (Van 3)",
+                  "B": "2022",
+                  "C": "44000",
+                  "D": "13200",
+                  "E": "30800",
+                  "F": "32000",
+                  "G": "Yes",
+                  "H": "Good condition."
+                },
+                {
+                  "row_index": 7,
+                  "A": "2024 Ford Transit 250 (Van 4)",
+                  "B": "2024",
+                  "C": "48000",
+                  "D": "4800",
+                  "E": "43200",
+                  "F": "45000",
+                  "G": "Yes",
+                  "H": "New purchase \u2014 loan outstanding."
+                },
+                {
+                  "row_index": 8,
+                  "A": "2024 Ford Transit 250 (Van 5)",
+                  "B": "2024",
+                  "C": "46000",
+                  "D": "4600",
+                  "E": "41400",
+                  "F": "43500",
+                  "G": "Yes",
+                  "H": "New purchase \u2014 loan outstanding."
+                },
+                {
+                  "row_index": 9,
+                  "A": "HVAC Manifold Gauge Sets (4x)",
+                  "B": "2020",
+                  "C": "3200",
+                  "D": "2400",
+                  "E": "800",
+                  "F": "1200",
+                  "G": "Yes",
+                  "H": "Functional."
+                },
+                {
+                  "row_index": 10,
+                  "A": "Vacuum Pumps (3x)",
+                  "B": "2021",
+                  "C": "2700",
+                  "D": "1620",
+                  "E": "1080",
+                  "F": "1400",
+                  "G": "Yes",
+                  "H": "Functional."
+                },
+                {
+                  "row_index": 11,
+                  "A": "Recovery Machines (4x)",
+                  "B": "2020",
+                  "C": "4800",
+                  "D": "3600",
+                  "E": "1200",
+                  "F": "1800",
+                  "G": "Yes",
+                  "H": "Functional."
+                },
+                {
+                  "row_index": 12,
+                  "A": "Pipe Threading Machine",
+                  "B": "2018",
+                  "C": "4200",
+                  "D": "4200",
+                  "E": "0",
+                  "F": "500",
+                  "G": "Yes",
+                  "H": "Fully depreciated. Still in use."
+                },
+                {
+                  "row_index": 13,
+                  "A": "Diagnostic & Leak Detection Kit",
+                  "B": "2022",
+                  "C": "6800",
+                  "D": "2720",
+                  "E": "4080",
+                  "F": "4500",
+                  "G": "Yes",
+                  "H": "Good condition."
+                },
+                {
+                  "row_index": 14,
+                  "A": "Office Furniture & Fixtures",
+                  "B": "2019",
+                  "C": "8500",
+                  "D": "7650",
+                  "E": "850",
+                  "F": "1000",
+                  "G": "Yes",
+                  "H": "Basic setup."
+                },
+                {
+                  "row_index": 15,
+                  "A": "Computer & Software (QuickBooks)",
+                  "B": "2021",
+                  "C": "4200",
+                  "D": "3360",
+                  "E": "840",
+                  "F": "500",
+                  "G": "Yes",
+                  "H": "QuickBooks Pro license. 2 seats."
+                },
+                {
+                  "row_index": 16,
+                  "A": "Warehouse Shelving & Racking",
+                  "B": "2020",
+                  "C": "3800",
+                  "D": "2280",
+                  "E": "1520",
+                  "F": "1200",
+                  "G": "Yes",
+                  "H": "Standard warehouse setup."
+                },
+                {
+                  "row_index": 17,
+                  "A": "Robert's Personal F-150 (pickup)",
+                  "B": "2022",
+                  "C": "52000",
+                  "D": "18200",
+                  "E": "33800",
+                  "F": "36000",
+                  "G": "NO",
+                  "H": "Personal vehicle. NOT included in sale. Used partly for business \u2014 see SDE add-backs."
+                },
+                {
+                  "row_index": 1,
+                  "A": "PeakAir HVAC Services \u2014 Property, Plant & Equipment Schedule",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": "",
+                  "I": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "As of December 31, 2024  |  Included in Sale Unless Noted",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": "",
+                  "I": ""
+                },
+                {
+                  "row_index": 3,
+                  "A": "Asset Description",
+                  "B": "Year Acquired",
+                  "C": "Original Cost",
+                  "D": "Accum. Depr.",
+                  "E": "Book Value",
+                  "F": "Est. FMV",
+                  "G": "Included in Sale",
+                  "H": "Notes"
+                },
+                {
+                  "row_index": 18,
+                  "A": "TOTALS",
+                  "B": "",
+                  "C": "310200",
+                  "D": "114730",
+                  "E": "195470",
+                  "F": "200600",
+                  "G": "",
+                  "H": ""
+                },
+                {
+                  "row_index": 19,
+                  "A": "\u26a0 Note: Owner's personal F-150 truck is NOT included in the sale. Two vans (Van 4 & Van 5) were purchased in 2024 and have outstanding loan balances totaling ~$85,000. Buyer should confirm whether vehicle loans are assumed or paid off at closing.",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": "",
+                  "H": "",
+                  "I": ""
+                }
+              ]
+            },
+            "raw_text": "1 | PeakAir HVAC Services \u2014 Property, Plant & Equipment Schedule\n2 | As of December 31, 2024  |  Included in Sale Unless Noted\n3 | Asset Description | Year Acquired | Original Cost | Accum. Depr. | Book Value | Est. FMV | Included in Sale | Notes\n4 | 2019 Ford Transit 250 (Van 1) | 2019 | 38000 | 28500 | 9500 | 4000 | Yes | High mileage (198K). Needs brakes.\n5 | 2021 Ford Transit 350 (Van 2) | 2021 | 44000 | 17600 | 26400 | 28000 | Yes | Good condition.\n6 | 2022 Ford Transit 350 (Van 3) | 2022 | 44000 | 13200 | 30800 | 32000 | Yes | Good condition.\n7 | 2024 Ford Transit 250 (Van 4) | 2024 | 48000 | 4800 | 43200 | 45000 | Yes | New purchase \u2014 loan outstanding.\n8 | 2024 Ford Transit 250 (Van 5) | 2024 | 46000 | 4600 | 41400 | 43500 | Yes | New purchase \u2014 loan outstanding.\n9 | HVAC Manifold Gauge Sets (4x) | 2020 | 3200 | 2400 | 800 | 1200 | Yes | Functional.\n10 | Vacuum Pumps (3x) | 2021 | 2700 | 1620 | 1080 | 1400 | Yes | Functional.\n11 | Recovery Machines (4x) | 2020 | 4800 | 3600 | 1200 | 1800 | Yes | Functional.\n12 | Pipe Threading Machine | 2018 | 4200 | 4200 | 0 | 500 | Yes | Fully depreciated. Still in use.\n13 | Diagnostic & Leak Detection Kit | 2022 | 6800 | 2720 | 4080 | 4500 | Yes | Good condition.\n14 | Office Furniture & Fixtures | 2019 | 8500 | 7650 | 850 | 1000 | Yes | Basic setup.\n15 | Computer & Software (QuickBooks) | 2021 | 4200 | 3360 | 840 | 500 | Yes | QuickBooks Pro license. 2 seats.\n16 | Warehouse Shelving & Racking | 2020 | 3800 | 2280 | 1520 | 1200 | Yes | Standard warehouse setup.\n17 | Robert's Personal F-150 (pickup) | 2022 | 52000 | 18200 | 33800 | 36000 | NO | Personal vehicle. NOT included in sale. Used partly for business \u2014 see SDE add-backs.\n18 | TOTALS | 310200 | 114730 | 195470 | 200600\n19 | \u26a0 Note: Owner's personal F-150 truck is NOT included in the sale. Two vans (Van 4 & Van 5) were purchased in 2024 and have outstanding loan balances totaling ~$85,000. Buyer should confirm whether vehicle loans are assumed or paid off at closing.",
+            "confidence": 0.8,
+            "section_name": "PP&E Schedule",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'PP&E Schedule' into a section."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e",
+        "file_name": "PeakAir_EmployeeContracts.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document_type": "employee_roster",
+        "declared_type": "employee_roster",
+        "canonical_type": "employee_roster",
+        "size_bytes": 11316,
+        "status": "parsed",
+        "confidence": 0.75,
+        "notes": [
+          "Extracted 2 structured table(s) from DOCX."
+        ],
+        "sections": [
+          {
+            "section_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e:section-1",
+            "document_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e",
+            "document_type": "customer_list",
+            "section_kind": "customer_list",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Employee",
+                  "B": "Role",
+                  "C": "Status",
+                  "D": "Tenure",
+                  "E": "Annual Comp",
+                  "F": "Notes"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Robert Kowalski",
+                  "B": "Owner/Operator",
+                  "C": "FT",
+                  "D": "22 yrs",
+                  "E": "$172,000",
+                  "F": "ALL customer relationships; primary estimator"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Tom Gallagher",
+                  "B": "Lead Technician",
+                  "C": "FT",
+                  "D": "9 yrs",
+                  "E": "$68,000",
+                  "F": "NATE-certified; mentors junior techs"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Marcus Webb",
+                  "B": "Field Technician",
+                  "C": "FT",
+                  "D": "2 yrs",
+                  "E": "$52,000",
+                  "F": "Verbal offer from competitor; retention risk"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Darnell Smith",
+                  "B": "Field Technician",
+                  "C": "FT",
+                  "D": "4 yrs",
+                  "E": "$54,000",
+                  "F": "Commercial specialty"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Kevin Reyes",
+                  "B": "Field Technician",
+                  "C": "FT",
+                  "D": "1 yr",
+                  "E": "$48,000",
+                  "F": "Apprentice-level; still in training"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Sandra Lim",
+                  "B": "Office Manager",
+                  "C": "FT",
+                  "D": "11 yrs",
+                  "E": "$46,000",
+                  "F": "Manages scheduling, invoicing, payroll"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Aaron Price",
+                  "B": "Service Coordinator",
+                  "C": "PT",
+                  "D": "3 yrs",
+                  "E": "$28,000",
+                  "F": "Part-time dispatch support"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Jose Fuentes",
+                  "B": "Warehouse / Parts",
+                  "C": "FT",
+                  "D": "5 yrs",
+                  "E": "$38,000",
+                  "F": "Inventory management"
+                }
+              ]
+            },
+            "raw_text": "PeakAir HVAC Services\nEmployee Summary & Key Employment Agreements \u2014 Confidential\nWORKFORCE SUMMARY\nAs of March 1, 2025, PeakAir HVAC Services employs 8 individuals in the following roles:\n\u26a0  Owner Dependence (Critical): Robert Kowalski personally manages ALL commercial account relationships and performs all job estimates over $5,000. No formal CRM system in use \u2014 customer relationships exist in owner's phone and memory. Transition plan has not been documented.\n\u26a0  Key-Person Risk: Sandra Lim (Office Manager, 11 yrs) manages invoicing and scheduling systems. She has indicated informally she may retire within 2\u20133 years.\n\u26a0  Retention Risk: Marcus Webb has received a verbal offer from Apex Comfort Systems (competitor). No non-compete agreement is in place for field technicians.\nEMPLOYMENT TERMS & POLICIES\nSAMPLE EMPLOYMENT AGREEMENT \u2014 FIELD TECHNICIAN\nThe following is representative of the standard employment agreement used for all field technicians. Actual signed copies are available in the due diligence data room.\nTHIS EMPLOYMENT AGREEMENT is entered into as of the applicable hire date between PeakAir HVAC Services ('Company') and the employee named in the accompanying offer letter ('Employee').\n1. POSITION & DUTIES. Employee is employed as a Field HVAC Technician and will perform installation, service, repair, and maintenance of HVAC systems as assigned.\n2. COMPENSATION. Employee shall receive the hourly or annual salary stated in the offer letter. Compensation is reviewed annually at the Company's discretion.\n3. BENEFITS. Employee is eligible for health insurance, Simple IRA participation, and PTO as described in the Employee Handbook.\n4. AT-WILL EMPLOYMENT. Employment is at-will and may be terminated by either party at any time, with or without cause or notice.\n5. CONFIDENTIALITY. Employee agrees not to disclose customer lists, pricing, or trade information during or after employment. No post-employment non-compete restriction applies to field technicians.\n6. TOOLS & EQUIPMENT. Company-owned tools, vehicles, and equipment must be returned upon termination. Personal use of company vehicles is prohibited without written approval.\n7. GOVERNING LAW. This Agreement is governed by the laws of the State of Iowa.\n\u26a0  No non-compete clause is present for field technicians. Technicians who leave could immediately work for or start competing HVAC businesses. Buyer should negotiate employment agreements with key staff as a condition of closing.",
+            "confidence": 0.75,
+            "section_name": "Table 1",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 1."
+            ]
+          },
+          {
+            "section_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e:section-2",
+            "document_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e",
+            "document_type": "customer_list",
+            "section_kind": "customer_list",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2023
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Term",
+                  "B": "Details"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Employment Type",
+                  "B": "All employees are at-will (Iowa law). No term employment contracts in place."
+                },
+                {
+                  "row_index": 3,
+                  "A": "Non-Compete / NDA",
+                  "B": "None signed by field technicians. Owner and Office Manager have confidentiality agreements only. No post-employment restrictions on technicians."
+                },
+                {
+                  "row_index": 4,
+                  "A": "Benefits",
+                  "B": "Health insurance (owner-paid 80% premium), Simple IRA with 3% match, 10 days PTO (accruing), 5 sick days."
+                },
+                {
+                  "row_index": 5,
+                  "A": "Overtime Policy",
+                  "B": "Technicians are eligible for overtime at 1.5x rate. Seasonal overtime (summer AC season) averages 6\u20138 hours/week per technician."
+                },
+                {
+                  "row_index": 6,
+                  "A": "Workers Comp",
+                  "B": "Active policy with Grinnell Mutual. One minor claim in 2023 (resolved)."
+                },
+                {
+                  "row_index": 7,
+                  "A": "Certifications",
+                  "B": "Tom Gallagher: NATE-certified. Darnell Smith: EPA Section 608 Universal. Owner: Master HVAC license (Iowa). Kevin Reyes: currently enrolled in apprenticeship program."
+                },
+                {
+                  "row_index": 8,
+                  "A": "Seasonal Staffing",
+                  "B": "1\u20132 seasonal subcontractors hired May\u2013August. Subcontractor costs have grown from $34,400 (2022) to $78,640 (2024)."
+                }
+              ]
+            },
+            "raw_text": "PeakAir HVAC Services\nEmployee Summary & Key Employment Agreements \u2014 Confidential\nWORKFORCE SUMMARY\nAs of March 1, 2025, PeakAir HVAC Services employs 8 individuals in the following roles:\n\u26a0  Owner Dependence (Critical): Robert Kowalski personally manages ALL commercial account relationships and performs all job estimates over $5,000. No formal CRM system in use \u2014 customer relationships exist in owner's phone and memory. Transition plan has not been documented.\n\u26a0  Key-Person Risk: Sandra Lim (Office Manager, 11 yrs) manages invoicing and scheduling systems. She has indicated informally she may retire within 2\u20133 years.\n\u26a0  Retention Risk: Marcus Webb has received a verbal offer from Apex Comfort Systems (competitor). No non-compete agreement is in place for field technicians.\nEMPLOYMENT TERMS & POLICIES\nSAMPLE EMPLOYMENT AGREEMENT \u2014 FIELD TECHNICIAN\nThe following is representative of the standard employment agreement used for all field technicians. Actual signed copies are available in the due diligence data room.\nTHIS EMPLOYMENT AGREEMENT is entered into as of the applicable hire date between PeakAir HVAC Services ('Company') and the employee named in the accompanying offer letter ('Employee').\n1. POSITION & DUTIES. Employee is employed as a Field HVAC Technician and will perform installation, service, repair, and maintenance of HVAC systems as assigned.\n2. COMPENSATION. Employee shall receive the hourly or annual salary stated in the offer letter. Compensation is reviewed annually at the Company's discretion.\n3. BENEFITS. Employee is eligible for health insurance, Simple IRA participation, and PTO as described in the Employee Handbook.\n4. AT-WILL EMPLOYMENT. Employment is at-will and may be terminated by either party at any time, with or without cause or notice.\n5. CONFIDENTIALITY. Employee agrees not to disclose customer lists, pricing, or trade information during or after employment. No post-employment non-compete restriction applies to field technicians.\n6. TOOLS & EQUIPMENT. Company-owned tools, vehicles, and equipment must be returned upon termination. Personal use of company vehicles is prohibited without written approval.\n7. GOVERNING LAW. This Agreement is governed by the laws of the State of Iowa.\n\u26a0  No non-compete clause is present for field technicians. Technicians who leave could immediately work for or start competing HVAC businesses. Buyer should negotiate employment agreements with key staff as a condition of closing.",
+            "confidence": 0.75,
+            "section_name": "Table 2",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 2."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+        "file_name": "PeakAir_Financials.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "document_type": "profit_and_loss",
+        "declared_type": "profit_and_loss",
+        "canonical_type": "profit_and_loss",
+        "size_bytes": 13813,
+        "status": "parsed",
+        "confidence": 0.8,
+        "notes": [],
+        "sections": [
+          {
+            "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-1",
+            "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+            "document_type": "profit_and_loss",
+            "section_kind": "profit_and_loss",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 3,
+                  "A": "",
+                  "B": "FY 2022",
+                  "C": "FY 2022 %",
+                  "D": "FY 2023",
+                  "E": "FY 2023 %",
+                  "F": "FY 2024",
+                  "G": "FY 2024 %"
+                },
+                {
+                  "row_index": 1,
+                  "A": "PeakAir HVAC Services \u2014 Profit & Loss Statement",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "For the Fiscal Years Ended December 31, 2022 | 2023 | 2024",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": ""
+                },
+                {
+                  "row_index": 4,
+                  "A": "REVENUE",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": ""
+                },
+                {
+                  "row_index": 5,
+                  "A": "Residential HVAC Service & Repair",
+                  "B": "410000",
+                  "C": "0.477",
+                  "D": "438000",
+                  "E": "0.473",
+                  "F": "462000",
+                  "G": "0.47"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Commercial Maintenance Contracts",
+                  "B": "185000",
+                  "C": "0.215",
+                  "D": "178000",
+                  "E": "0.192",
+                  "F": "172000",
+                  "G": "0.175"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Equipment Installation",
+                  "B": "210000",
+                  "C": "0.244",
+                  "D": "248000",
+                  "E": "0.268",
+                  "F": "291000",
+                  "G": "0.296"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Emergency Service Calls",
+                  "B": "55000",
+                  "C": "0.064",
+                  "D": "62000",
+                  "E": "0.067",
+                  "F": "58000",
+                  "G": "0.059"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Total Revenue",
+                  "B": "860000",
+                  "C": "1",
+                  "D": "926000",
+                  "E": "1",
+                  "F": "983000",
+                  "G": "1"
+                },
+                {
+                  "row_index": 10,
+                  "A": "COST OF REVENUE",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": ""
+                },
+                {
+                  "row_index": 11,
+                  "A": "Labor \u2013 Field Technicians",
+                  "B": "258000",
+                  "C": "0.3",
+                  "D": "277800",
+                  "E": "0.3",
+                  "F": "294900",
+                  "G": "0.3"
+                },
+                {
+                  "row_index": 12,
+                  "A": "Parts & Materials",
+                  "B": "103200",
+                  "C": "0.12",
+                  "D": "111120",
+                  "E": "0.12",
+                  "F": "117960",
+                  "G": "0.12"
+                },
+                {
+                  "row_index": 13,
+                  "A": "Subcontractor Costs",
+                  "B": "34400",
+                  "C": "0.04",
+                  "D": "55560",
+                  "E": "0.06",
+                  "F": "78640",
+                  "G": "0.08"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Vehicle Operating Costs",
+                  "B": "25800",
+                  "C": "0.03",
+                  "D": "27780",
+                  "E": "0.03",
+                  "F": "29490",
+                  "G": "0.03"
+                },
+                {
+                  "row_index": 15,
+                  "A": "Total Cost of Revenue",
+                  "B": "421400",
+                  "C": "0.49",
+                  "D": "472260",
+                  "E": "0.51",
+                  "F": "520990",
+                  "G": "0.53"
+                },
+                {
+                  "row_index": 16,
+                  "A": "GROSS PROFIT",
+                  "B": "438600",
+                  "C": "0.51",
+                  "D": "453740",
+                  "E": "0.49",
+                  "F": "462010",
+                  "G": "0.47"
+                },
+                {
+                  "row_index": 17,
+                  "A": "OPERATING EXPENSES",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": ""
+                },
+                {
+                  "row_index": 18,
+                  "A": "Owner Salary & Benefits",
+                  "B": "145000",
+                  "C": "0.168604651162791",
+                  "D": "158000",
+                  "E": "0.170626349892009",
+                  "F": "172000",
+                  "G": "0.174974567650051"
+                },
+                {
+                  "row_index": 19,
+                  "A": "Office Staff Salaries",
+                  "B": "52000",
+                  "C": "0.0604651162790698",
+                  "D": "54600",
+                  "E": "0.058963282937365",
+                  "F": "57330",
+                  "G": "0.0583214649033571"
+                },
+                {
+                  "row_index": 20,
+                  "A": "Rent \u2013 Office & Warehouse",
+                  "B": "36000",
+                  "C": "0.0418604651162791",
+                  "D": "36000",
+                  "E": "0.0388768898488121",
+                  "F": "36000",
+                  "G": "0.0366225839267548"
+                },
+                {
+                  "row_index": 21,
+                  "A": "Advertising & Marketing",
+                  "B": "18000",
+                  "C": "0.0209302325581395",
+                  "D": "21000",
+                  "E": "0.0226781857451404",
+                  "F": "24500",
+                  "G": "0.0249237029501526"
+                },
+                {
+                  "row_index": 22,
+                  "A": "Insurance",
+                  "B": "14400",
+                  "C": "0.0167441860465116",
+                  "D": "15120",
+                  "E": "0.0163282937365011",
+                  "F": "15876",
+                  "G": "0.0161505595116989"
+                },
+                {
+                  "row_index": 23,
+                  "A": "Software & Dispatch Systems",
+                  "B": "6200",
+                  "C": "0.0072093023255814",
+                  "D": "7800",
+                  "E": "0.00842332613390929",
+                  "F": "9400",
+                  "G": "0.00956256358087487"
+                },
+                {
+                  "row_index": 24,
+                  "A": "General & Administrative",
+                  "B": "22000",
+                  "C": "0.0255813953488372",
+                  "D": "24000",
+                  "E": "0.0259179265658747",
+                  "F": "26000",
+                  "G": "0.0264496439471007"
+                },
+                {
+                  "row_index": 25,
+                  "A": "Depreciation",
+                  "B": "18000",
+                  "C": "0.0209302325581395",
+                  "D": "18000",
+                  "E": "0.0194384449244061",
+                  "F": "18000",
+                  "G": "0.0183112919633774"
+                },
+                {
+                  "row_index": 26,
+                  "A": "Total Operating Expenses",
+                  "B": "311600",
+                  "C": "0.362325581395349",
+                  "D": "334520",
+                  "E": "0.361252699784017",
+                  "F": "359106",
+                  "G": "0.365316378433367"
+                },
+                {
+                  "row_index": 27,
+                  "A": "EBITDA (before owner add-backs)",
+                  "B": "145000",
+                  "C": "0.168604651162791",
+                  "D": "137220",
+                  "E": "0.148185745140389",
+                  "F": "120904",
+                  "G": "0.12299491353001"
+                },
+                {
+                  "row_index": 28,
+                  "A": "NET INCOME",
+                  "B": "127000",
+                  "C": "0.147674418604651",
+                  "D": "119220",
+                  "E": "0.128747300215983",
+                  "F": "102904",
+                  "G": "0.104683621566633"
+                },
+                {
+                  "row_index": 29,
+                  "A": "Note: Owner salary is above market rate for a replacement manager. Commercial maintenance contract revenue is declining year-over-year. Subcontractor usage has increased materially, indicating potential capacity constraints.",
+                  "B": "",
+                  "C": "",
+                  "D": "",
+                  "E": "",
+                  "F": "",
+                  "G": ""
+                }
+              ],
+              "revenue": 983000.0,
+              "cogs": 520990.0,
+              "gross_profit": 462010.0,
+              "operating_expenses": 359106.0,
+              "net_income": 102904.0,
+              "owner_salary": 172000.0,
+              "depreciation_amortization": 18000.0,
+              "ebitda": 120904.0
+            },
+            "raw_text": "1 | PeakAir HVAC Services \u2014 Profit & Loss Statement\n2 | For the Fiscal Years Ended December 31, 2022 | 2023 | 2024\n3 | FY 2022 | FY 2022 % | FY 2023 | FY 2023 % | FY 2024 | FY 2024 %\n4 | REVENUE\n5 | Residential HVAC Service & Repair | 410000 | 0.477 | 438000 | 0.473 | 462000 | 0.47\n6 | Commercial Maintenance Contracts | 185000 | 0.215 | 178000 | 0.192 | 172000 | 0.175\n7 | Equipment Installation | 210000 | 0.244 | 248000 | 0.268 | 291000 | 0.296\n8 | Emergency Service Calls | 55000 | 0.064 | 62000 | 0.067 | 58000 | 0.059\n9 | Total Revenue | 860000 | 1 | 926000 | 1 | 983000 | 1\n10 | COST OF REVENUE\n11 | Labor \u2013 Field Technicians | 258000 | 0.3 | 277800 | 0.3 | 294900 | 0.3\n12 | Parts & Materials | 103200 | 0.12 | 111120 | 0.12 | 117960 | 0.12\n13 | Subcontractor Costs | 34400 | 0.04 | 55560 | 0.06 | 78640 | 0.08\n14 | Vehicle Operating Costs | 25800 | 0.03 | 27780 | 0.03 | 29490 | 0.03\n15 | Total Cost of Revenue | 421400 | 0.49 | 472260 | 0.51 | 520990 | 0.53\n16 | GROSS PROFIT | 438600 | 0.51 | 453740 | 0.49 | 462010 | 0.47\n17 | OPERATING EXPENSES\n18 | Owner Salary & Benefits | 145000 | 0.168604651162791 | 158000 | 0.170626349892009 | 172000 | 0.174974567650051\n19 | Office Staff Salaries | 52000 | 0.0604651162790698 | 54600 | 0.058963282937365 | 57330 | 0.0583214649033571\n20 | Rent \u2013 Office & Warehouse | 36000 | 0.0418604651162791 | 36000 | 0.0388768898488121 | 36000 | 0.0366225839267548\n21 | Advertising & Marketing | 18000 | 0.0209302325581395 | 21000 | 0.0226781857451404 | 24500 | 0.0249237029501526\n22 | Insurance | 14400 | 0.0167441860465116 | 15120 | 0.0163282937365011 | 15876 | 0.0161505595116989\n23 | Software & Dispatch Systems | 6200 | 0.0072093023255814 | 7800 | 0.00842332613390929 | 9400 | 0.00956256358087487\n24 | General & Administrative | 22000 | 0.0255813953488372 | 24000 | 0.0259179265658747 | 26000 | 0.0264496439471007\n25 | Depreciation | 18000 | 0.0209302325581395 | 18000 | 0.0194384449244061 | 18000 | 0.0183112919633774\n26 | Total Operating Expenses | 311600 | 0.362325581395349 | 334520 | 0.361252699784017 | 359106 | 0.365316378433367\n27 | EBITDA (before owner add-backs) | 145000 | 0.168604651162791 | 137220 | 0.148185745140389 | 120904 | 0.12299491353001\n28 | NET INCOME | 127000 | 0.147674418604651 | 119220 | 0.128747300215983 | 102904 | 0.104683621566633\n29 | Note: Owner salary is above market rate for a replacement manager. Commercial maintenance contract revenue is declining year-over-year. Subcontractor usage has increased materially, indicating potential capacity constraints.",
+            "confidence": 0.8,
+            "section_name": "P&L Statement",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'P&L Statement' into a section."
+            ]
+          },
+          {
+            "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-2-1",
+            "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 3,
+                  "A": "",
+                  "B": "FY 2022",
+                  "C": "FY 2023",
+                  "D": "FY 2024"
+                },
+                {
+                  "row_index": 1,
+                  "A": "PeakAir HVAC Services \u2014 Balance Sheet",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "As of December 31",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 4,
+                  "A": "ASSETS",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 5,
+                  "A": "Current Assets",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 6,
+                  "A": "Cash & Cash Equivalents",
+                  "B": "52000",
+                  "C": "48000",
+                  "D": "41000"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Accounts Receivable",
+                  "B": "68000",
+                  "C": "82000",
+                  "D": "98000"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Inventory \u2013 Parts & Supplies",
+                  "B": "24000",
+                  "C": "26000",
+                  "D": "27500"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Prepaid Expenses",
+                  "B": "6000",
+                  "C": "6500",
+                  "D": "7000"
+                },
+                {
+                  "row_index": 10,
+                  "A": "Total Current Assets",
+                  "B": "150000",
+                  "C": "162500",
+                  "D": "173500"
+                },
+                {
+                  "row_index": 11,
+                  "A": "Non-Current Assets",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 12,
+                  "A": "Service Vehicles (5 vans)",
+                  "B": "180000",
+                  "C": "180000",
+                  "D": "220000"
+                },
+                {
+                  "row_index": 13,
+                  "A": "Less: Accumulated Depreciation",
+                  "B": "54000",
+                  "C": "72000",
+                  "D": "90000"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Tools & Equipment",
+                  "B": "38000",
+                  "C": "38000",
+                  "D": "44000"
+                },
+                {
+                  "row_index": 15,
+                  "A": "Less: Accumulated Depreciation",
+                  "B": "19000",
+                  "C": "26600",
+                  "D": "34200"
+                },
+                {
+                  "row_index": 16,
+                  "A": "Total Property, Plant & Equipment",
+                  "B": "145000",
+                  "C": "119400",
+                  "D": "139800"
+                },
+                {
+                  "row_index": 17,
+                  "A": "TOTAL ASSETS",
+                  "B": "295000",
+                  "C": "281900",
+                  "D": "313300"
+                },
+                {
+                  "row_index": 18,
+                  "A": "LIABILITIES",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 19,
+                  "A": "Current Liabilities",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 20,
+                  "A": "Accounts Payable",
+                  "B": "18000",
+                  "C": "22000",
+                  "D": "28000"
+                },
+                {
+                  "row_index": 21,
+                  "A": "Accrued Wages",
+                  "B": "8500",
+                  "C": "9200",
+                  "D": "9800"
+                },
+                {
+                  "row_index": 22,
+                  "A": "Deferred Revenue",
+                  "B": "12000",
+                  "C": "10500",
+                  "D": "9200"
+                },
+                {
+                  "row_index": 23,
+                  "A": "Current Portion \u2013 Vehicle Loan",
+                  "B": "22000",
+                  "C": "22000",
+                  "D": "22000"
+                },
+                {
+                  "row_index": 24,
+                  "A": "Total Current Liabilities",
+                  "B": "60500",
+                  "C": "63700",
+                  "D": "69000"
+                },
+                {
+                  "row_index": 25,
+                  "A": "Long-Term Liabilities",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 26,
+                  "A": "Vehicle Loan (3 vans)",
+                  "B": "88000",
+                  "C": "66000",
+                  "D": "98000"
+                },
+                {
+                  "row_index": 27,
+                  "A": "Equipment Financing",
+                  "B": "14000",
+                  "C": "10500",
+                  "D": "7000"
+                },
+                {
+                  "row_index": 28,
+                  "A": "Total Long-Term Liabilities",
+                  "B": "102000",
+                  "C": "76500",
+                  "D": "105000"
+                },
+                {
+                  "row_index": 29,
+                  "A": "TOTAL LIABILITIES",
+                  "B": "162500",
+                  "C": "140200",
+                  "D": "174000"
+                },
+                {
+                  "row_index": 30,
+                  "A": "OWNER'S EQUITY",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 31,
+                  "A": "Owner's Capital",
+                  "B": "132500",
+                  "C": "141700",
+                  "D": "139300"
+                },
+                {
+                  "row_index": 32,
+                  "A": "Total Owner's Equity",
+                  "B": "132500",
+                  "C": "141700",
+                  "D": "139300"
+                },
+                {
+                  "row_index": 33,
+                  "A": "TOTAL LIABILITIES & EQUITY",
+                  "B": "295000",
+                  "C": "281900",
+                  "D": "313300"
+                }
+              ],
+              "current_assets": 173500.0,
+              "cash_and_equivalents": 41000.0,
+              "accounts_receivable": 98000.0,
+              "inventory": 27500.0,
+              "current_liabilities": 69000.0,
+              "accounts_payable": 28000.0,
+              "total_assets": 313300.0,
+              "total_liabilities": 174000.0,
+              "equity": 139300.0
+            },
+            "raw_text": "1 | PeakAir HVAC Services \u2014 Balance Sheet\n2 | As of December 31\n3 | FY 2022 | FY 2023 | FY 2024\n4 | ASSETS\n5 | Current Assets\n6 | Cash & Cash Equivalents | 52000 | 48000 | 41000\n7 | Accounts Receivable | 68000 | 82000 | 98000\n8 | Inventory \u2013 Parts & Supplies | 24000 | 26000 | 27500\n9 | Prepaid Expenses | 6000 | 6500 | 7000\n10 | Total Current Assets | 150000 | 162500 | 173500\n11 | Non-Current Assets\n12 | Service Vehicles (5 vans) | 180000 | 180000 | 220000\n13 | Less: Accumulated Depreciation | 54000 | 72000 | 90000\n14 | Tools & Equipment | 38000 | 38000 | 44000\n15 | Less: Accumulated Depreciation | 19000 | 26600 | 34200\n16 | Total Property, Plant & Equipment | 145000 | 119400 | 139800\n17 | TOTAL ASSETS | 295000 | 281900 | 313300\n18 | LIABILITIES\n19 | Current Liabilities\n20 | Accounts Payable | 18000 | 22000 | 28000\n21 | Accrued Wages | 8500 | 9200 | 9800\n22 | Deferred Revenue | 12000 | 10500 | 9200\n23 | Current Portion \u2013 Vehicle Loan | 22000 | 22000 | 22000\n24 | Total Current Liabilities | 60500 | 63700 | 69000\n25 | Long-Term Liabilities\n26 | Vehicle Loan (3 vans) | 88000 | 66000 | 98000\n27 | Equipment Financing | 14000 | 10500 | 7000\n28 | Total Long-Term Liabilities | 102000 | 76500 | 105000\n29 | TOTAL LIABILITIES | 162500 | 140200 | 174000\n30 | OWNER'S EQUITY\n31 | Owner's Capital | 132500 | 141700 | 139300\n32 | Total Owner's Equity | 132500 | 141700 | 139300\n33 | TOTAL LIABILITIES & EQUITY | 295000 | 281900 | 313300\n34 | Note: Cash balance declining despite revenue growth; accounts receivable growth is outpacing revenue growth suggesting collections issues. Deferred maintenance contract revenue is declining, consistent with P&L trend.",
+            "confidence": 0.8,
+            "section_name": "Balance Sheet",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'Balance Sheet' into a section."
+            ]
+          },
+          {
+            "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-2-2",
+            "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+            "document_type": "balance_sheet",
+            "section_kind": "balance_sheet",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 3,
+                  "A": "",
+                  "B": "FY 2022",
+                  "C": "FY 2023",
+                  "D": "FY 2024"
+                },
+                {
+                  "row_index": 34,
+                  "A": "Note: Cash balance declining despite revenue growth; accounts receivable growth is outpacing revenue growth suggesting collections issues. Deferred maintenance contract revenue is declining, consistent with P&L trend.",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                }
+              ]
+            },
+            "raw_text": "1 | PeakAir HVAC Services \u2014 Balance Sheet\n2 | As of December 31\n3 | FY 2022 | FY 2023 | FY 2024\n4 | ASSETS\n5 | Current Assets\n6 | Cash & Cash Equivalents | 52000 | 48000 | 41000\n7 | Accounts Receivable | 68000 | 82000 | 98000\n8 | Inventory \u2013 Parts & Supplies | 24000 | 26000 | 27500\n9 | Prepaid Expenses | 6000 | 6500 | 7000\n10 | Total Current Assets | 150000 | 162500 | 173500\n11 | Non-Current Assets\n12 | Service Vehicles (5 vans) | 180000 | 180000 | 220000\n13 | Less: Accumulated Depreciation | 54000 | 72000 | 90000\n14 | Tools & Equipment | 38000 | 38000 | 44000\n15 | Less: Accumulated Depreciation | 19000 | 26600 | 34200\n16 | Total Property, Plant & Equipment | 145000 | 119400 | 139800\n17 | TOTAL ASSETS | 295000 | 281900 | 313300\n18 | LIABILITIES\n19 | Current Liabilities\n20 | Accounts Payable | 18000 | 22000 | 28000\n21 | Accrued Wages | 8500 | 9200 | 9800\n22 | Deferred Revenue | 12000 | 10500 | 9200\n23 | Current Portion \u2013 Vehicle Loan | 22000 | 22000 | 22000\n24 | Total Current Liabilities | 60500 | 63700 | 69000\n25 | Long-Term Liabilities\n26 | Vehicle Loan (3 vans) | 88000 | 66000 | 98000\n27 | Equipment Financing | 14000 | 10500 | 7000\n28 | Total Long-Term Liabilities | 102000 | 76500 | 105000\n29 | TOTAL LIABILITIES | 162500 | 140200 | 174000\n30 | OWNER'S EQUITY\n31 | Owner's Capital | 132500 | 141700 | 139300\n32 | Total Owner's Equity | 132500 | 141700 | 139300\n33 | TOTAL LIABILITIES & EQUITY | 295000 | 281900 | 313300\n34 | Note: Cash balance declining despite revenue growth; accounts receivable growth is outpacing revenue growth suggesting collections issues. Deferred maintenance contract revenue is declining, consistent with P&L trend.",
+            "confidence": 0.8,
+            "section_name": "Balance Sheet",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'Balance Sheet' into a section."
+            ]
+          },
+          {
+            "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-3",
+            "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+            "document_type": "profit_and_loss",
+            "section_kind": "sde_summary",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 3,
+                  "A": "",
+                  "B": "FY 2022",
+                  "C": "FY 2023",
+                  "D": "FY 2024"
+                },
+                {
+                  "row_index": 1,
+                  "A": "PeakAir HVAC Services \u2014 Seller's Discretionary Earnings (SDE)",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 2,
+                  "A": "Prepared by Owner \u2014 March 2025 | Trailing 3-Year Analysis",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 4,
+                  "A": "STEP 1 \u2014 START WITH NET INCOME",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 5,
+                  "A": "Net Income (from P&L)",
+                  "B": "127000",
+                  "C": "119220",
+                  "D": "102904"
+                },
+                {
+                  "row_index": 6,
+                  "A": "STEP 2 \u2014 ADD BACK NON-CASH & ONE-TIME ITEMS",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 7,
+                  "A": "Depreciation & Amortization",
+                  "B": "18000",
+                  "C": "18000",
+                  "D": "18000"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Interest Expense on Vehicle Loans",
+                  "B": "5280",
+                  "C": "3960",
+                  "D": "5880"
+                },
+                {
+                  "row_index": 9,
+                  "A": "One-Time Legal Fees (trademark dispute)",
+                  "B": "0",
+                  "C": "12000",
+                  "D": "0"
+                },
+                {
+                  "row_index": 10,
+                  "A": "STEP 3 \u2014 ADD BACK OWNER-RELATED EXPENSES",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 11,
+                  "A": "Owner Salary (above market rate)",
+                  "B": "145000",
+                  "C": "158000",
+                  "D": "172000"
+                },
+                {
+                  "row_index": 12,
+                  "A": "Owner Health Insurance",
+                  "B": "8400",
+                  "C": "8820",
+                  "D": "9261"
+                },
+                {
+                  "row_index": 13,
+                  "A": "Owner Vehicle (personal use)",
+                  "B": "14400",
+                  "C": "14400",
+                  "D": "14400"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Owner Cell Phone & Personal Expenses",
+                  "B": "3600",
+                  "C": "3600",
+                  "D": "3600"
+                },
+                {
+                  "row_index": 15,
+                  "A": "Owner Retirement Contributions",
+                  "B": "18000",
+                  "C": "18000",
+                  "D": "20000"
+                },
+                {
+                  "row_index": 16,
+                  "A": "TOTAL SELLER'S DISCRETIONARY EARNINGS (SDE)",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 17,
+                  "A": "Total SDE",
+                  "B": "339680",
+                  "C": "355980",
+                  "D": "346045"
+                },
+                {
+                  "row_index": 18,
+                  "A": "INDICATIVE VALUATION BRIDGE",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                },
+                {
+                  "row_index": 19,
+                  "A": "Trailing 12-Month SDE (FY 2024)",
+                  "B": "",
+                  "C": "",
+                  "D": "346045"
+                },
+                {
+                  "row_index": 20,
+                  "A": "Applied Multiple (2.5x \u2013 3.0x)",
+                  "B": "",
+                  "C": "",
+                  "D": "2.5x \u2013 3.0x"
+                },
+                {
+                  "row_index": 21,
+                  "A": "Estimated Enterprise Value Range",
+                  "B": "",
+                  "C": "",
+                  "D": "$865K \u2013 $1.04M"
+                },
+                {
+                  "row_index": 22,
+                  "A": "Asking Price (per listing)",
+                  "B": "",
+                  "C": "",
+                  "D": "$1,150,000"
+                },
+                {
+                  "row_index": 23,
+                  "A": "\u26a0 Caution: Owner has included a personal vehicle ($14,400/yr) as a full add-back. Market-rate manager salary replacement is estimated at ~$85,000\u2013$95,000/yr vs. owner's current $172,000. Adjusted SDE after applying replacement manager salary would be approximately $236,000\u2013$246,000, implying asking price is at ~4.7x adjusted SDE.",
+                  "B": "",
+                  "C": "",
+                  "D": ""
+                }
+              ],
+              "sde": 346045.0,
+              "interest_expense": 5880.0,
+              "owner_salary": 172000.0,
+              "depreciation_amortization": 18000.0,
+              "asking_price": 1150000.0,
+              "add_backs": [
+                {
+                  "description": "Owner Health Insurance",
+                  "amount": 9261.0,
+                  "category": "personal_expense"
+                },
+                {
+                  "description": "Owner Vehicle (personal use)",
+                  "amount": 14400.0,
+                  "category": "personal_expense"
+                },
+                {
+                  "description": "Owner Cell Phone & Personal Expenses",
+                  "amount": 3600.0,
+                  "category": "personal_expense"
+                },
+                {
+                  "description": "Owner Retirement Contributions",
+                  "amount": 20000.0,
+                  "category": "personal_expense"
+                }
+              ]
+            },
+            "raw_text": "1 | PeakAir HVAC Services \u2014 Seller's Discretionary Earnings (SDE)\n2 | Prepared by Owner \u2014 March 2025 | Trailing 3-Year Analysis\n3 | FY 2022 | FY 2023 | FY 2024\n4 | STEP 1 \u2014 START WITH NET INCOME\n5 | Net Income (from P&L) | 127000 | 119220 | 102904\n6 | STEP 2 \u2014 ADD BACK NON-CASH & ONE-TIME ITEMS\n7 | Depreciation & Amortization | 18000 | 18000 | 18000\n8 | Interest Expense on Vehicle Loans | 5280 | 3960 | 5880\n9 | One-Time Legal Fees (trademark dispute) | 0 | 12000 | 0\n10 | STEP 3 \u2014 ADD BACK OWNER-RELATED EXPENSES\n11 | Owner Salary (above market rate) | 145000 | 158000 | 172000\n12 | Owner Health Insurance | 8400 | 8820 | 9261\n13 | Owner Vehicle (personal use) | 14400 | 14400 | 14400\n14 | Owner Cell Phone & Personal Expenses | 3600 | 3600 | 3600\n15 | Owner Retirement Contributions | 18000 | 18000 | 20000\n16 | TOTAL SELLER'S DISCRETIONARY EARNINGS (SDE)\n17 | Total SDE | 339680 | 355980 | 346045\n18 | INDICATIVE VALUATION BRIDGE\n19 | Trailing 12-Month SDE (FY 2024) | 346045\n20 | Applied Multiple (2.5x \u2013 3.0x) | 2.5x \u2013 3.0x\n21 | Estimated Enterprise Value Range | $865K \u2013 $1.04M\n22 | Asking Price (per listing) | $1,150,000\n23 | \u26a0 Caution: Owner has included a personal vehicle ($14,400/yr) as a full add-back. Market-rate manager salary replacement is estimated at ~$85,000\u2013$95,000/yr vs. owner's current $172,000. Adjusted SDE after applying replacement manager salary would be approximately $236,000\u2013$246,000, implying asking price is at ~4.7x adjusted SDE.",
+            "confidence": 0.8,
+            "section_name": "SDE Summary",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "spreadsheet",
+            "content_type": "sheet",
+            "status": "parsed",
+            "notes": [
+              "Normalized spreadsheet sheet 'SDE Summary' into a section."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "177dc530-bdd1-4482-9c28-9cefb0e34996",
+        "file_name": "PeakAir_LeaseAgreement.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document_type": "lease_agreement",
+        "declared_type": "lease_agreement",
+        "canonical_type": "lease_agreement",
+        "size_bytes": 10479,
+        "status": "parsed",
+        "confidence": 0.75,
+        "notes": [
+          "Extracted 1 structured table(s) from DOCX."
+        ],
+        "sections": [
+          {
+            "section_id": "177dc530-bdd1-4482-9c28-9cefb0e34996:section-1",
+            "document_id": "177dc530-bdd1-4482-9c28-9cefb0e34996",
+            "document_type": "lease_agreement",
+            "section_kind": "lease_agreement",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2020
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Landlord",
+                  "B": "Kowalski Property Holdings LLC"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Tenant",
+                  "B": "PeakAir HVAC Services (Robert Kowalski, Sole Proprietor)"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Premises",
+                  "B": "1482 Commerce Pkwy, Suite 4, Cedar Falls, IA 50613 \u2014 approx. 3,200 sq ft"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Lease Term",
+                  "B": "January 1, 2020 \u2013 December 31, 2025 (72 months)"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Monthly Base Rent",
+                  "B": "$3,000/month (below market \u2014 see Section 4)"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Annual Rent",
+                  "B": "$36,000/year"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Security Deposit",
+                  "B": "$6,000 (held by Landlord)"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Renewal Option",
+                  "B": "One 2-year option at landlord's discretion; no automatic renewal"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Permitted Use",
+                  "B": "HVAC service office, parts storage, vehicle staging"
+                },
+                {
+                  "row_index": 10,
+                  "A": "Assignment / Subletting",
+                  "B": "Requires written landlord consent \u2014 not to be unreasonably withheld"
+                },
+                {
+                  "row_index": 11,
+                  "A": "Personal Guarantee",
+                  "B": "Robert Kowalski personally guarantees all obligations"
+                },
+                {
+                  "row_index": 12,
+                  "A": "Governing Law",
+                  "B": "State of Iowa"
+                }
+              ]
+            },
+            "raw_text": "COMMERCIAL LEASE AGREEMENT\n1482 Commerce Pkwy, Suite 4, Cedar Falls, IA 50613\nLEASE SUMMARY\n\u26a0 BUYER ALERT: Landlord and Tenant are related parties (same owner). Lease expires December 31, 2025 \u2014 approximately 12 months post-projected closing. Buyer must independently negotiate a new lease. Market comparable rents in this submarket are estimated at $4,200\u2013$4,800/month for similar space.\n1. PREMISES\nLandlord leases to Tenant the commercial premises described above, including exclusive use of the warehouse/storage bay and two designated parking spaces for service vehicles, plus access to shared loading dock.\n2. TERM\nThe Lease term commences January 1, 2020 and expires December 31, 2025. Tenant has one option to renew for two (2) additional years, exercisable no later than ninety (90) days before expiration, subject to Landlord's written consent. There is no automatic holdover provision; month-to-month tenancy requires a 60-day notice from either party.\n3. RENT\nTenant shall pay Base Rent of Three Thousand Dollars ($3,000) per month, due on the 1st of each month. Rent is inclusive of common area maintenance (CAM). No annual escalation clause is included in this lease. Note: Rent was set in 2020 and has not been adjusted to reflect market conditions.\n4. UTILITIES\nTenant is responsible for electricity, gas, telephone, and internet. Landlord provides water and sewer. Tenant's average monthly utility spend is approximately $1,100.\n5. MAINTENANCE & REPAIRS\nTenant is responsible for interior maintenance. Landlord is responsible for roof, exterior walls, and parking lot. HVAC maintenance for the premises is Tenant's responsibility. Any structural repairs exceeding $2,000 require Landlord written approval.\n6. ASSIGNMENT & SUBLETTING\nTenant may not assign this Lease or sublet any portion without prior written consent of Landlord. In the event of a sale of Tenant's business, Landlord's consent to assignment shall not be unreasonably withheld, conditioned, or delayed, provided the assignee demonstrates financial capability acceptable to Landlord.\n7. PERMITTED USE\nPremises shall be used solely for HVAC contracting office operations, parts inventory, service vehicle staging, and related purposes. No retail sales to walk-in public. No hazardous materials storage beyond standard refrigerant quantities permitted by applicable EPA regulations.\n8. INSURANCE\nTenant shall maintain general commercial liability insurance of no less than $1,000,000 per occurrence and $2,000,000 aggregate. Tenant shall provide Landlord with certificate of insurance naming Landlord as additional insured.\n9. DEFAULT\nIf Tenant fails to pay rent within 5 days of due date, a 5% late fee applies. Default on rent for 10 days grants Landlord right to terminate. Tenant shall have 30 days to cure non-monetary defaults after written notice.\n10. NOTICES\nAll notices shall be sent by certified mail or overnight courier to the addresses stated in the Lease Summary above.\nSIGNATURES\nLANDLORD: Kowalski Property Holdings LLC\nBy: ________________________________     Date: _______________\nRobert Kowalski, Managing Member\nTENANT: PeakAir HVAC Services\nBy: ________________________________     Date: _______________\nRobert Kowalski, Owner",
+            "confidence": 0.75,
+            "section_name": "Table 1",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 1."
+            ]
+          }
+        ]
+      },
+      {
+        "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+        "file_name": "PeakAir_TaxReturns.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "document_type": "tax_return_schedule_c",
+        "declared_type": "tax_return_schedule_c",
+        "canonical_type": "tax_return_schedule_c",
+        "size_bytes": 13614,
+        "status": "parsed",
+        "confidence": 0.75,
+        "notes": [
+          "Extracted 5 structured table(s) from DOCX."
+        ],
+        "sections": [
+          {
+            "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-1",
+            "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+            "document_type": "profit_and_loss",
+            "section_kind": "sde_summary",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": null
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Field",
+                  "B": "Details"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Taxpayer Name",
+                  "B": "Robert & Linda Kowalski"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Business Name",
+                  "B": "PeakAir HVAC Services"
+                },
+                {
+                  "row_index": 4,
+                  "A": "EIN",
+                  "B": "XX-XXXXXXX (redacted for sale)"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Business Type",
+                  "B": "Sole Proprietorship (Schedule C filer)"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Primary NAICS",
+                  "B": "238220 \u2014 Plumbing, Heating & A/C Contractors"
+                },
+                {
+                  "row_index": 7,
+                  "A": "Filing Status",
+                  "B": "Married Filing Jointly"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Business Address",
+                  "B": "1482 Commerce Pkwy, Suite 4, Cedar Falls, IA 50613"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Prepared By",
+                  "B": "Morrison & Greer CPA Group, Cedar Falls, IA"
+                }
+              ]
+            },
+            "raw_text": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 \u2014 TAX YEAR ENDED DECEMBER 31, 2022\nReturn filed: April 12, 2023  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Gross receipts on tax return ($851,200) differ from internally prepared P&L ($860,000) by $8,800. Owner states this is due to timing of year-end deposits. Verify with bank statements.\n\u26a0  Car & truck expenses include one vehicle used partly for personal commuting. See vehicle log in due diligence package.\nFY 2023 \u2014 TAX YEAR ENDED DECEMBER 31, 2023\nReturn filed: March 28, 2024  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Legal & Professional fees ($17,800) include a $12,000 trademark dispute settlement classified as 'professional services.' One-time per owner.\n\u26a0  Gross receipts gap of $3,500 vs. P&L. Consistent with owner's explanation of deposit timing.\nFY 2024 \u2014 TAX YEAR ENDED DECEMBER 31, 2024\nReturn filed: March 15, 2025  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Meals & Entertainment jumped from $3,200 (2023) to $8,900 (2024) \u2014 a 178% increase with no corresponding revenue event noted. Recommend requesting receipts.\nTHREE-YEAR SUMMARY \u2014 SCHEDULE C NET PROFIT\nIMPORTANT: This is a Schedule C entity. Owner compensation is taken as draws and is NOT reflected in Schedule C net profit. Buyers must add back owner draw to compute true SDE. Tax return net profit alone will significantly understate business earnings.",
+            "confidence": 0.75,
+            "section_name": "Table 1",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 1."
+            ]
+          },
+          {
+            "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-2",
+            "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+            "document_type": "profit_and_loss",
+            "section_kind": "profit_and_loss",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2022
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Schedule C Summary \u2014 FY 2022"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Business Activity",
+                  "B": "HVAC Installation, Service & Repair"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Gross Receipts / Sales",
+                  "B": "$851,200"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Cost of Goods Sold",
+                  "B": "$419,800"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Gross Profit",
+                  "B": "$431,400"
+                },
+                {
+                  "row_index": 6,
+                  "A": null,
+                  "B": null
+                },
+                {
+                  "row_index": 7,
+                  "A": "Advertising",
+                  "B": "$17,600"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Car & Truck Expenses",
+                  "B": "$38,200"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Depreciation (Form 4562)",
+                  "B": "$18,000"
+                },
+                {
+                  "row_index": 10,
+                  "A": "Insurance",
+                  "B": "$14,400"
+                },
+                {
+                  "row_index": 11,
+                  "A": "Legal & Professional",
+                  "B": "$4,200"
+                },
+                {
+                  "row_index": 12,
+                  "A": "Meals & Entertainment (50%)",
+                  "B": "$2,100"
+                },
+                {
+                  "row_index": 13,
+                  "A": "Office Expenses",
+                  "B": "$6,100"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Rent / Lease",
+                  "B": "$36,000"
+                },
+                {
+                  "row_index": 15,
+                  "A": "Salaries & Wages (non-owner)",
+                  "B": "$52,000"
+                },
+                {
+                  "row_index": 16,
+                  "A": "Utilities",
+                  "B": "$3,800"
+                },
+                {
+                  "row_index": 17,
+                  "A": "Other Expenses",
+                  "B": "$8,400"
+                },
+                {
+                  "row_index": 18,
+                  "A": "Total Expenses",
+                  "B": "$200,800"
+                },
+                {
+                  "row_index": 19,
+                  "A": null,
+                  "B": null
+                },
+                {
+                  "row_index": 20,
+                  "A": "NET PROFIT (Schedule C Line 31)",
+                  "B": "$230,600"
+                },
+                {
+                  "row_index": 21,
+                  "A": "Owner Draw / Compensation (not on Sch C)",
+                  "B": "$145,000"
+                }
+              ],
+              "cogs": 419800.0,
+              "gross_profit": 431400.0,
+              "net_income": 230600.0,
+              "owner_salary": 145000.0,
+              "depreciation_amortization": 18000.0
+            },
+            "raw_text": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 \u2014 TAX YEAR ENDED DECEMBER 31, 2022\nReturn filed: April 12, 2023  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Gross receipts on tax return ($851,200) differ from internally prepared P&L ($860,000) by $8,800. Owner states this is due to timing of year-end deposits. Verify with bank statements.\n\u26a0  Car & truck expenses include one vehicle used partly for personal commuting. See vehicle log in due diligence package.\nFY 2023 \u2014 TAX YEAR ENDED DECEMBER 31, 2023\nReturn filed: March 28, 2024  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Legal & Professional fees ($17,800) include a $12,000 trademark dispute settlement classified as 'professional services.' One-time per owner.\n\u26a0  Gross receipts gap of $3,500 vs. P&L. Consistent with owner's explanation of deposit timing.\nFY 2024 \u2014 TAX YEAR ENDED DECEMBER 31, 2024\nReturn filed: March 15, 2025  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Meals & Entertainment jumped from $3,200 (2023) to $8,900 (2024) \u2014 a 178% increase with no corresponding revenue event noted. Recommend requesting receipts.\nTHREE-YEAR SUMMARY \u2014 SCHEDULE C NET PROFIT\nIMPORTANT: This is a Schedule C entity. Owner compensation is taken as draws and is NOT reflected in Schedule C net profit. Buyers must add back owner draw to compute true SDE. Tax return net profit alone will significantly understate business earnings.",
+            "confidence": 0.75,
+            "section_name": "Table 2",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 2."
+            ]
+          },
+          {
+            "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-3",
+            "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+            "document_type": "profit_and_loss",
+            "section_kind": "profit_and_loss",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2023
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Schedule C Summary \u2014 FY 2023"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Business Activity",
+                  "B": "HVAC Installation, Service & Repair"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Gross Receipts / Sales",
+                  "B": "$922,500"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Cost of Goods Sold",
+                  "B": "$471,000"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Gross Profit",
+                  "B": "$451,500"
+                },
+                {
+                  "row_index": 6,
+                  "A": null,
+                  "B": null
+                },
+                {
+                  "row_index": 7,
+                  "A": "Advertising",
+                  "B": "$20,500"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Car & Truck Expenses",
+                  "B": "$39,780"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Depreciation (Form 4562)",
+                  "B": "$18,000"
+                },
+                {
+                  "row_index": 10,
+                  "A": "Insurance",
+                  "B": "$15,120"
+                },
+                {
+                  "row_index": 11,
+                  "A": "Legal & Professional",
+                  "B": "$17,800"
+                },
+                {
+                  "row_index": 12,
+                  "A": "Meals & Entertainment (50%)",
+                  "B": "$3,200"
+                },
+                {
+                  "row_index": 13,
+                  "A": "Office Expenses",
+                  "B": "$7,200"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Rent / Lease",
+                  "B": "$36,000"
+                },
+                {
+                  "row_index": 15,
+                  "A": "Salaries & Wages (non-owner)",
+                  "B": "$54,600"
+                },
+                {
+                  "row_index": 16,
+                  "A": "Utilities",
+                  "B": "$4,100"
+                },
+                {
+                  "row_index": 17,
+                  "A": "Other Expenses",
+                  "B": "$9,800"
+                },
+                {
+                  "row_index": 18,
+                  "A": "Total Expenses",
+                  "B": "$226,100"
+                },
+                {
+                  "row_index": 19,
+                  "A": null,
+                  "B": null
+                },
+                {
+                  "row_index": 20,
+                  "A": "NET PROFIT (Schedule C Line 31)",
+                  "B": "$225,400"
+                },
+                {
+                  "row_index": 21,
+                  "A": "Owner Draw / Compensation (not on Sch C)",
+                  "B": "$158,000"
+                }
+              ],
+              "cogs": 471000.0,
+              "gross_profit": 451500.0,
+              "net_income": 225400.0,
+              "owner_salary": 158000.0,
+              "depreciation_amortization": 18000.0
+            },
+            "raw_text": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 \u2014 TAX YEAR ENDED DECEMBER 31, 2022\nReturn filed: April 12, 2023  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Gross receipts on tax return ($851,200) differ from internally prepared P&L ($860,000) by $8,800. Owner states this is due to timing of year-end deposits. Verify with bank statements.\n\u26a0  Car & truck expenses include one vehicle used partly for personal commuting. See vehicle log in due diligence package.\nFY 2023 \u2014 TAX YEAR ENDED DECEMBER 31, 2023\nReturn filed: March 28, 2024  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Legal & Professional fees ($17,800) include a $12,000 trademark dispute settlement classified as 'professional services.' One-time per owner.\n\u26a0  Gross receipts gap of $3,500 vs. P&L. Consistent with owner's explanation of deposit timing.\nFY 2024 \u2014 TAX YEAR ENDED DECEMBER 31, 2024\nReturn filed: March 15, 2025  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Meals & Entertainment jumped from $3,200 (2023) to $8,900 (2024) \u2014 a 178% increase with no corresponding revenue event noted. Recommend requesting receipts.\nTHREE-YEAR SUMMARY \u2014 SCHEDULE C NET PROFIT\nIMPORTANT: This is a Schedule C entity. Owner compensation is taken as draws and is NOT reflected in Schedule C net profit. Buyers must add back owner draw to compute true SDE. Tax return net profit alone will significantly understate business earnings.",
+            "confidence": 0.75,
+            "section_name": "Table 3",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 3."
+            ]
+          },
+          {
+            "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-4",
+            "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+            "document_type": "profit_and_loss",
+            "section_kind": "profit_and_loss",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": "Schedule C Summary \u2014 FY 2024"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Business Activity",
+                  "B": "HVAC Installation, Service & Repair"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Gross Receipts / Sales",
+                  "B": "$983,000"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Cost of Goods Sold",
+                  "B": "$518,500"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Gross Profit",
+                  "B": "$464,500"
+                },
+                {
+                  "row_index": 6,
+                  "A": null,
+                  "B": null
+                },
+                {
+                  "row_index": 7,
+                  "A": "Advertising",
+                  "B": "$24,000"
+                },
+                {
+                  "row_index": 8,
+                  "A": "Car & Truck Expenses",
+                  "B": "$42,890"
+                },
+                {
+                  "row_index": 9,
+                  "A": "Depreciation (Form 4562)",
+                  "B": "$18,000"
+                },
+                {
+                  "row_index": 10,
+                  "A": "Insurance",
+                  "B": "$15,876"
+                },
+                {
+                  "row_index": 11,
+                  "A": "Legal & Professional",
+                  "B": "$6,500"
+                },
+                {
+                  "row_index": 12,
+                  "A": "Meals & Entertainment (50%)",
+                  "B": "$8,900"
+                },
+                {
+                  "row_index": 13,
+                  "A": "Office Expenses",
+                  "B": "$9,000"
+                },
+                {
+                  "row_index": 14,
+                  "A": "Rent / Lease",
+                  "B": "$36,000"
+                },
+                {
+                  "row_index": 15,
+                  "A": "Salaries & Wages (non-owner)",
+                  "B": "$57,330"
+                },
+                {
+                  "row_index": 16,
+                  "A": "Utilities",
+                  "B": "$4,400"
+                },
+                {
+                  "row_index": 17,
+                  "A": "Other Expenses",
+                  "B": "$11,200"
+                },
+                {
+                  "row_index": 18,
+                  "A": "Total Expenses",
+                  "B": "$234,096"
+                },
+                {
+                  "row_index": 19,
+                  "A": null,
+                  "B": null
+                },
+                {
+                  "row_index": 20,
+                  "A": "NET PROFIT (Schedule C Line 31)",
+                  "B": "$230,404"
+                },
+                {
+                  "row_index": 21,
+                  "A": "Owner Draw / Compensation (not on Sch C)",
+                  "B": "$172,000"
+                }
+              ],
+              "cogs": 518500.0,
+              "gross_profit": 464500.0,
+              "net_income": 230404.0,
+              "owner_salary": 172000.0,
+              "depreciation_amortization": 18000.0
+            },
+            "raw_text": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 \u2014 TAX YEAR ENDED DECEMBER 31, 2022\nReturn filed: April 12, 2023  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Gross receipts on tax return ($851,200) differ from internally prepared P&L ($860,000) by $8,800. Owner states this is due to timing of year-end deposits. Verify with bank statements.\n\u26a0  Car & truck expenses include one vehicle used partly for personal commuting. See vehicle log in due diligence package.\nFY 2023 \u2014 TAX YEAR ENDED DECEMBER 31, 2023\nReturn filed: March 28, 2024  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Legal & Professional fees ($17,800) include a $12,000 trademark dispute settlement classified as 'professional services.' One-time per owner.\n\u26a0  Gross receipts gap of $3,500 vs. P&L. Consistent with owner's explanation of deposit timing.\nFY 2024 \u2014 TAX YEAR ENDED DECEMBER 31, 2024\nReturn filed: March 15, 2025  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Meals & Entertainment jumped from $3,200 (2023) to $8,900 (2024) \u2014 a 178% increase with no corresponding revenue event noted. Recommend requesting receipts.\nTHREE-YEAR SUMMARY \u2014 SCHEDULE C NET PROFIT\nIMPORTANT: This is a Schedule C entity. Owner compensation is taken as draws and is NOT reflected in Schedule C net profit. Buyers must add back owner draw to compute true SDE. Tax return net profit alone will significantly understate business earnings.",
+            "confidence": 0.75,
+            "section_name": "Table 4",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 4."
+            ]
+          },
+          {
+            "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-5",
+            "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+            "document_type": "profit_and_loss",
+            "section_kind": "sde_summary",
+            "timeframe": {
+              "start_date": null,
+              "end_date": null,
+              "fiscal_year": 2024
+            },
+            "extracted_data": {
+              "rows": [
+                {
+                  "row_index": 1,
+                  "A": null,
+                  "B": "FY 2022",
+                  "C": "FY 2023",
+                  "D": "FY 2024"
+                },
+                {
+                  "row_index": 2,
+                  "A": "Gross Receipts (Tax Return)",
+                  "B": "$851,200",
+                  "C": "$922,500",
+                  "D": "$983,000"
+                },
+                {
+                  "row_index": 3,
+                  "A": "Gross Receipts (P&L)",
+                  "B": "$860,000",
+                  "C": "$926,000",
+                  "D": "$983,000"
+                },
+                {
+                  "row_index": 4,
+                  "A": "Variance",
+                  "B": "($8,800)",
+                  "C": "($3,500)",
+                  "D": "\u2014"
+                },
+                {
+                  "row_index": 5,
+                  "A": "Schedule C Net Profit",
+                  "B": "$230,600",
+                  "C": "$225,400",
+                  "D": "$230,404"
+                },
+                {
+                  "row_index": 6,
+                  "A": "Owner Compensation (separate)",
+                  "B": "$145,000",
+                  "C": "$158,000",
+                  "D": "$172,000"
+                }
+              ]
+            },
+            "raw_text": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 \u2014 TAX YEAR ENDED DECEMBER 31, 2022\nReturn filed: April 12, 2023  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Gross receipts on tax return ($851,200) differ from internally prepared P&L ($860,000) by $8,800. Owner states this is due to timing of year-end deposits. Verify with bank statements.\n\u26a0  Car & truck expenses include one vehicle used partly for personal commuting. See vehicle log in due diligence package.\nFY 2023 \u2014 TAX YEAR ENDED DECEMBER 31, 2023\nReturn filed: March 28, 2024  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Legal & Professional fees ($17,800) include a $12,000 trademark dispute settlement classified as 'professional services.' One-time per owner.\n\u26a0  Gross receipts gap of $3,500 vs. P&L. Consistent with owner's explanation of deposit timing.\nFY 2024 \u2014 TAX YEAR ENDED DECEMBER 31, 2024\nReturn filed: March 15, 2025  |  Preparer: Morrison & Greer CPA  |  No audit history\n\u26a0  Meals & Entertainment jumped from $3,200 (2023) to $8,900 (2024) \u2014 a 178% increase with no corresponding revenue event noted. Recommend requesting receipts.\nTHREE-YEAR SUMMARY \u2014 SCHEDULE C NET PROFIT\nIMPORTANT: This is a Schedule C entity. Owner compensation is taken as draws and is NOT reflected in Schedule C net profit. Buyers must add back owner draw to compute true SDE. Tax return net profit alone will significantly understate business earnings.",
+            "confidence": 0.75,
+            "section_name": "Table 5",
+            "page": null,
+            "page_start": null,
+            "page_end": null,
+            "source_format": "unknown",
+            "content_type": "structured",
+            "status": "parsed",
+            "notes": [
+              "Extracted from DOCX table 5."
+            ]
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "total_documents": 5,
+      "successfully_parsed": 5,
+      "ingestion_source": "structured",
+      "failed_documents": [],
+      "failed_artifacts": [],
+      "missing_inputs": [
+        {
+          "key": "cash_flow_statement",
+          "description": "Cash flow statements were not provided.",
+          "document_type": "cash_flow_statement",
+          "required": false,
+          "reason": null
+        },
+        {
+          "key": "ar_aging_report",
+          "description": "An A/R aging report was not provided.",
+          "document_type": "ar_aging_report",
+          "required": false,
+          "reason": null
+        }
+      ],
+      "analysis_id": "7d9ce8ad-d72d-4d6f-bd8c-6b991b9ae1ff",
+      "overall_confidence": 0.77,
+      "artifact_refs": [
+        {
+          "artifact_key": "ingestion_artifacts",
+          "storage_kind": "filesystem",
+          "path": "backend/.test-artifacts/parse-documents-route/7d9ce8ad-d72d-4d6f-bd8c-6b991b9ae1ff/ingestion_artifacts.json",
+          "content_type": "application/json"
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "document_inventory": [
+    {
+      "document_id": "11920a87-8ef1-4c71-8705-90a86f579ff0",
+      "file_name": "PeakAir_CustomerList_PPE.xlsx",
+      "document_type": "customer_list",
+      "status": "parsed",
+      "confidence": 0.8,
+      "section_ids": [
+        "11920a87-8ef1-4c71-8705-90a86f579ff0:sheet-1",
+        "11920a87-8ef1-4c71-8705-90a86f579ff0:sheet-2"
+      ],
+      "notes": []
+    },
+    {
+      "document_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e",
+      "file_name": "PeakAir_EmployeeContracts.docx",
+      "document_type": "employee_roster",
+      "status": "parsed",
+      "confidence": 0.75,
+      "section_ids": [
+        "e606c49b-8bf1-4248-a6ec-6fee8ccd999e:section-1",
+        "e606c49b-8bf1-4248-a6ec-6fee8ccd999e:section-2"
+      ],
+      "notes": [
+        "Extracted 2 structured table(s) from DOCX."
+      ]
+    },
+    {
+      "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+      "file_name": "PeakAir_Financials.xlsx",
+      "document_type": "profit_and_loss",
+      "status": "parsed",
+      "confidence": 0.8,
+      "section_ids": [
+        "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-1",
+        "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-2-1",
+        "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-2-2",
+        "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-3"
+      ],
+      "notes": []
+    },
+    {
+      "document_id": "177dc530-bdd1-4482-9c28-9cefb0e34996",
+      "file_name": "PeakAir_LeaseAgreement.docx",
+      "document_type": "lease_agreement",
+      "status": "parsed",
+      "confidence": 0.75,
+      "section_ids": [
+        "177dc530-bdd1-4482-9c28-9cefb0e34996:section-1"
+      ],
+      "notes": [
+        "Extracted 1 structured table(s) from DOCX."
+      ]
+    },
+    {
+      "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+      "file_name": "PeakAir_TaxReturns.docx",
+      "document_type": "tax_return_schedule_c",
+      "status": "parsed",
+      "confidence": 0.75,
+      "section_ids": [
+        "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-1",
+        "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-2",
+        "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-3",
+        "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-4",
+        "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-5"
+      ],
+      "notes": [
+        "Extracted 5 structured table(s) from DOCX."
+      ]
+    }
+  ],
+  "evidence_index": [
+    {
+      "document_id": "11920a87-8ef1-4c71-8705-90a86f579ff0",
+      "file_name": "PeakAir_CustomerList_PPE.xlsx",
+      "section_id": "11920a87-8ef1-4c71-8705-90a86f579ff0:sheet-1",
+      "page": null,
+      "snippet": "1 | PeakAir HVAC Services \u2014 Customer List (Partial \u2014 Top Accounts)\n2 | As of March 2025  |  CONFIDENTIAL \u2014 For Qualified Buyers Only  |  Full list released post-LOI\n3 | Customer Name | Type | Location | Service Type | Relationship Since | 2024 Revenue | % of Total Rev | Contract ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 3,
+            "A": "Customer Name",
+            "B": "Type",
+            "C": "Location",
+            "D": "Service Type",
+            "E": "Relationship Since",
+            "F": "2024 Revenue",
+            "G": "% of Total Rev",
+            "H": "Contract Type",
+            "I": "Owner Contact?",
+            "J": "Notes"
+          },
+          {
+            "row_index": 4,
+            "A": "Midwest Industrial Partners",
+            "B": "Commercial",
+            "C": "Cedar Falls, IA",
+            "D": "Annual Maintenance + Emergency",
+            "E": "2011",
+            "F": "87500",
+            "G": "0.089",
+            "H": "Annual Contract",
+            "I": "Yes",
+            "J": "CEO calls Robert directly. No written SLA."
+          },
+          {
+            "row_index": 5,
+            "A": "Riverbend Apartments (12 units)",
+            "B": "Commercial",
+            "C": "Waterloo, IA",
+            "D": "HVAC Maintenance & Replacement",
+            "E": "2015",
+            "F": "71200",
+            "G": "0.072",
+            "H": "Annual Contract",
+            "I": "Yes",
+            "J": "Lease renewal not yet signed for 2025."
+          },
+          {
+            "row_index": 6,
+            "A": "Cedar Valley School District",
+            "B": "Commercial",
+            "C": "Cedar Falls, IA",
+            "D": "Scheduled Maintenance",
+            "E": "2018",
+            "F": "64800",
+            "G": "0.066",
+            "H": "Annual Contract",
+            "I": "No",
+            "J": "Bid contract \u2014 renewals competitive. 3-yr remaining."
+          },
+          {
+            "row_index": 7,
+            "A": "Johnson Family Homes (developer)",
+            "B": "Commercial",
+            "C": "Waterloo, IA",
+            "D": "New Construction Install",
+            "E": "2019",
+            "F": "58300",
+            "G": "0.059",
+            "H": "Project-by-project",
+            "I": "Yes",
+            "J": "Owner-dependent referral relationship."
+          },
+          {
+            "row_index": 8,
+            "A": "MedFirst Urgent Care (3 locs)",
+            "B": "Commercial",
+            "C": "Cedar Falls, IA",
+            "D": "PM + Emergency Service",
+            "E": "2017",
+            "F": "51400",
+            "G": "0.052",
+            "H": "Annual Contract",
+            "I": "No",
+            "J": "Stable. Renews automatically."
+          },
+          {
+            "row_index": 9,
+            "A": "Hawkeye Auto Group",
+            "B": "Commercial",
+            "C": "Marion, IA",
+            "D": "HVAC Service & Install",
+            "E": "2020",
+            "F": "44900",
+            "G": "0.046",
+            "H": "T&M",
+            "I": "Yes",
+            "J": "Project-based, no contract. Owner-to-owner relationship."
+          },
+          {
+            "row_index": 10,
+            "A": "Sunrise Senior Living",
+            "B": "Commercial",
+            "C": "Cedar Falls, IA",
+            "D": "Preventive Maintenance",
+            "E": "2016",
+            "F": "38700",
+            "G": "0.039",
+            "H": "Annual Contract",
+            "I": "No",
+            "J": "Stable long-term account."
+          },
+          {
+            "row_index": 11,
+            "A": "Residential (avg. 380 accounts)",
+            "B": "Residential",
+            "C": "Linn/Black Hawk Co.",
+            "D": "Service, Repair, Replace",
+            "E": "2002",
+            "F": "462000",
+            "G": "0.47",
+            "H": "T&M / Service",
+            "I": "Yes",
+            "J": "All estimates & callbacks routed through Robert."
+          },
+          {
+            "row_index": 12,
+            "A": "Seasonal Residential (new)",
+            "B": "Residential",
+            "C": "Linn County",
+            "D": "New installs \u2014 one-time",
+            "E": "2024",
+            "F": "43700",
+            "G": "0.044",
+            "H": "Project",
+            "I": "No",
+            "J": "New customers from marketing push."
+          },
+          {
+            "row_index": 1,
+            "A": "PeakAir HVAC Services \u2014 Customer List (Partial \u2014 Top Accounts)",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": "",
+            "I": "",
+            "J": ""
+          },
+          {
+            "row_index": 2,
+            "A": "As of March 2025  |  CONFIDENTIAL \u2014 For Qualified Buyers Only  |  Full list released post-LOI",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": "",
+            "I": "",
+            "J": ""
+          },
+          {
+            "row_index": 13,
+            "A": "Other / Misc Commercial",
+            "B": "Commercial",
+            "C": "Various",
+            "D": "Various",
+            "E": "Various",
+            "F": "60500",
+            "G": "0.062",
+            "H": "Various",
+            "I": "Mixed",
+            "J": "Includes 11 small commercial accounts."
+          },
+          {
+            "row_index": 14,
+            "A": "TOTAL / SUMMARY",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "983000",
+            "G": "0.999",
+            "H": "",
+            "I": "",
+            "J": ""
+          },
+          {
+            "row_index": 15,
+            "A": "\u26a0 Concentration Risk: Top 6 commercial accounts represent ~32% of total revenue. All are managed directly by owner Robert Kowalski with no formal written transition plan. Residential segment (47% of revenue) has no CRM system \u2014 customer data lives in QuickBooks and owner's phone contacts.",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": "",
+            "I": "",
+            "J": ""
+          }
+        ],
+        "customers": [
+          {
+            "name": "Midwest Industrial Partners",
+            "annualRevenue": 87500.0,
+            "type": "Commercial",
+            "contractType": "Annual Contract",
+            "location": "Cedar Falls, IA"
+          },
+          {
+            "name": "Riverbend Apartments (12 units)",
+            "annualRevenue": 71200.0,
+            "type": "Commercial",
+            "contractType": "Annual Contract",
+            "location": "Waterloo, IA"
+          },
+          {
+            "name": "Cedar Valley School District",
+            "annualRevenue": 64800.0,
+            "type": "Commercial",
+            "contractType": "Annual Contract",
+            "location": "Cedar Falls, IA"
+          },
+          {
+            "name": "Johnson Family Homes (developer)",
+            "annualRevenue": 58300.0,
+            "type": "Commercial",
+            "contractType": "Project-by-project",
+            "location": "Waterloo, IA"
+          },
+          {
+            "name": "MedFirst Urgent Care (3 locs)",
+            "annualRevenue": 51400.0,
+            "type": "Commercial",
+            "contractType": "Annual Contract",
+            "location": "Cedar Falls, IA"
+          },
+          {
+            "name": "Hawkeye Auto Group",
+            "annualRevenue": 44900.0,
+            "type": "Commercial",
+            "contractType": "T&M",
+            "location": "Marion, IA"
+          },
+          {
+            "name": "Sunrise Senior Living",
+            "annualRevenue": 38700.0,
+            "type": "Commercial",
+            "contractType": "Annual Contract",
+            "location": "Cedar Falls, IA"
+          },
+          {
+            "name": "Residential (avg. 380 accounts)",
+            "annualRevenue": 462000.0,
+            "type": "Residential",
+            "contractType": "T&M / Service",
+            "location": "Linn/Black Hawk Co."
+          },
+          {
+            "name": "Seasonal Residential (new)",
+            "annualRevenue": 43700.0,
+            "type": "Residential",
+            "contractType": "Project",
+            "location": "Linn County"
+          },
+          {
+            "name": "Other / Misc Commercial",
+            "annualRevenue": 60500.0,
+            "type": "Commercial",
+            "contractType": "Various",
+            "location": "Various"
+          }
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "11920a87-8ef1-4c71-8705-90a86f579ff0",
+      "file_name": "PeakAir_CustomerList_PPE.xlsx",
+      "section_id": "11920a87-8ef1-4c71-8705-90a86f579ff0:sheet-2",
+      "page": null,
+      "snippet": "1 | PeakAir HVAC Services \u2014 Property, Plant & Equipment Schedule\n2 | As of December 31, 2024  |  Included in Sale Unless Noted\n3 | Asset Description | Year Acquired | Original Cost | Accum. Depr. | Book Value | Est. FMV | Included in Sale | Notes\n4 | 2019 Ford Transit 250 (Van 1)",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 4,
+            "A": "2019 Ford Transit 250 (Van 1)",
+            "B": "2019",
+            "C": "38000",
+            "D": "28500",
+            "E": "9500",
+            "F": "4000",
+            "G": "Yes",
+            "H": "High mileage (198K). Needs brakes."
+          },
+          {
+            "row_index": 5,
+            "A": "2021 Ford Transit 350 (Van 2)",
+            "B": "2021",
+            "C": "44000",
+            "D": "17600",
+            "E": "26400",
+            "F": "28000",
+            "G": "Yes",
+            "H": "Good condition."
+          },
+          {
+            "row_index": 6,
+            "A": "2022 Ford Transit 350 (Van 3)",
+            "B": "2022",
+            "C": "44000",
+            "D": "13200",
+            "E": "30800",
+            "F": "32000",
+            "G": "Yes",
+            "H": "Good condition."
+          },
+          {
+            "row_index": 7,
+            "A": "2024 Ford Transit 250 (Van 4)",
+            "B": "2024",
+            "C": "48000",
+            "D": "4800",
+            "E": "43200",
+            "F": "45000",
+            "G": "Yes",
+            "H": "New purchase \u2014 loan outstanding."
+          },
+          {
+            "row_index": 8,
+            "A": "2024 Ford Transit 250 (Van 5)",
+            "B": "2024",
+            "C": "46000",
+            "D": "4600",
+            "E": "41400",
+            "F": "43500",
+            "G": "Yes",
+            "H": "New purchase \u2014 loan outstanding."
+          },
+          {
+            "row_index": 9,
+            "A": "HVAC Manifold Gauge Sets (4x)",
+            "B": "2020",
+            "C": "3200",
+            "D": "2400",
+            "E": "800",
+            "F": "1200",
+            "G": "Yes",
+            "H": "Functional."
+          },
+          {
+            "row_index": 10,
+            "A": "Vacuum Pumps (3x)",
+            "B": "2021",
+            "C": "2700",
+            "D": "1620",
+            "E": "1080",
+            "F": "1400",
+            "G": "Yes",
+            "H": "Functional."
+          },
+          {
+            "row_index": 11,
+            "A": "Recovery Machines (4x)",
+            "B": "2020",
+            "C": "4800",
+            "D": "3600",
+            "E": "1200",
+            "F": "1800",
+            "G": "Yes",
+            "H": "Functional."
+          },
+          {
+            "row_index": 12,
+            "A": "Pipe Threading Machine",
+            "B": "2018",
+            "C": "4200",
+            "D": "4200",
+            "E": "0",
+            "F": "500",
+            "G": "Yes",
+            "H": "Fully depreciated. Still in use."
+          },
+          {
+            "row_index": 13,
+            "A": "Diagnostic & Leak Detection Kit",
+            "B": "2022",
+            "C": "6800",
+            "D": "2720",
+            "E": "4080",
+            "F": "4500",
+            "G": "Yes",
+            "H": "Good condition."
+          },
+          {
+            "row_index": 14,
+            "A": "Office Furniture & Fixtures",
+            "B": "2019",
+            "C": "8500",
+            "D": "7650",
+            "E": "850",
+            "F": "1000",
+            "G": "Yes",
+            "H": "Basic setup."
+          },
+          {
+            "row_index": 15,
+            "A": "Computer & Software (QuickBooks)",
+            "B": "2021",
+            "C": "4200",
+            "D": "3360",
+            "E": "840",
+            "F": "500",
+            "G": "Yes",
+            "H": "QuickBooks Pro license. 2 seats."
+          },
+          {
+            "row_index": 16,
+            "A": "Warehouse Shelving & Racking",
+            "B": "2020",
+            "C": "3800",
+            "D": "2280",
+            "E": "1520",
+            "F": "1200",
+            "G": "Yes",
+            "H": "Standard warehouse setup."
+          },
+          {
+            "row_index": 17,
+            "A": "Robert's Personal F-150 (pickup)",
+            "B": "2022",
+            "C": "52000",
+            "D": "18200",
+            "E": "33800",
+            "F": "36000",
+            "G": "NO",
+            "H": "Personal vehicle. NOT included in sale. Used partly for business \u2014 see SDE add-backs."
+          },
+          {
+            "row_index": 1,
+            "A": "PeakAir HVAC Services \u2014 Property, Plant & Equipment Schedule",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": "",
+            "I": ""
+          },
+          {
+            "row_index": 2,
+            "A": "As of December 31, 2024  |  Included in Sale Unless Noted",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": "",
+            "I": ""
+          },
+          {
+            "row_index": 3,
+            "A": "Asset Description",
+            "B": "Year Acquired",
+            "C": "Original Cost",
+            "D": "Accum. Depr.",
+            "E": "Book Value",
+            "F": "Est. FMV",
+            "G": "Included in Sale",
+            "H": "Notes"
+          },
+          {
+            "row_index": 18,
+            "A": "TOTALS",
+            "B": "",
+            "C": "310200",
+            "D": "114730",
+            "E": "195470",
+            "F": "200600",
+            "G": "",
+            "H": ""
+          },
+          {
+            "row_index": 19,
+            "A": "\u26a0 Note: Owner's personal F-150 truck is NOT included in the sale. Two vans (Van 4 & Van 5) were purchased in 2024 and have outstanding loan balances totaling ~$85,000. Buyer should confirm whether vehicle loans are assumed or paid off at closing.",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": "",
+            "H": "",
+            "I": ""
+          }
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e",
+      "file_name": "PeakAir_EmployeeContracts.docx",
+      "section_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e:section-1",
+      "page": null,
+      "snippet": "PeakAir HVAC Services\nEmployee Summary & Key Employment Agreements \u2014 Confidential\nWORKFORCE SUMMARY\nAs of March 1, 2025, PeakAir HVAC Services employs 8 individuals in the following roles:\n\u26a0  Owner Dependence (Critical): Robert Kowalski personally manages ALL commercial account r",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Employee",
+            "B": "Role",
+            "C": "Status",
+            "D": "Tenure",
+            "E": "Annual Comp",
+            "F": "Notes"
+          },
+          {
+            "row_index": 2,
+            "A": "Robert Kowalski",
+            "B": "Owner/Operator",
+            "C": "FT",
+            "D": "22 yrs",
+            "E": "$172,000",
+            "F": "ALL customer relationships; primary estimator"
+          },
+          {
+            "row_index": 3,
+            "A": "Tom Gallagher",
+            "B": "Lead Technician",
+            "C": "FT",
+            "D": "9 yrs",
+            "E": "$68,000",
+            "F": "NATE-certified; mentors junior techs"
+          },
+          {
+            "row_index": 4,
+            "A": "Marcus Webb",
+            "B": "Field Technician",
+            "C": "FT",
+            "D": "2 yrs",
+            "E": "$52,000",
+            "F": "Verbal offer from competitor; retention risk"
+          },
+          {
+            "row_index": 5,
+            "A": "Darnell Smith",
+            "B": "Field Technician",
+            "C": "FT",
+            "D": "4 yrs",
+            "E": "$54,000",
+            "F": "Commercial specialty"
+          },
+          {
+            "row_index": 6,
+            "A": "Kevin Reyes",
+            "B": "Field Technician",
+            "C": "FT",
+            "D": "1 yr",
+            "E": "$48,000",
+            "F": "Apprentice-level; still in training"
+          },
+          {
+            "row_index": 7,
+            "A": "Sandra Lim",
+            "B": "Office Manager",
+            "C": "FT",
+            "D": "11 yrs",
+            "E": "$46,000",
+            "F": "Manages scheduling, invoicing, payroll"
+          },
+          {
+            "row_index": 8,
+            "A": "Aaron Price",
+            "B": "Service Coordinator",
+            "C": "PT",
+            "D": "3 yrs",
+            "E": "$28,000",
+            "F": "Part-time dispatch support"
+          },
+          {
+            "row_index": 9,
+            "A": "Jose Fuentes",
+            "B": "Warehouse / Parts",
+            "C": "FT",
+            "D": "5 yrs",
+            "E": "$38,000",
+            "F": "Inventory management"
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e",
+      "file_name": "PeakAir_EmployeeContracts.docx",
+      "section_id": "e606c49b-8bf1-4248-a6ec-6fee8ccd999e:section-2",
+      "page": null,
+      "snippet": "PeakAir HVAC Services\nEmployee Summary & Key Employment Agreements \u2014 Confidential\nWORKFORCE SUMMARY\nAs of March 1, 2025, PeakAir HVAC Services employs 8 individuals in the following roles:\n\u26a0  Owner Dependence (Critical): Robert Kowalski personally manages ALL commercial account r",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Term",
+            "B": "Details"
+          },
+          {
+            "row_index": 2,
+            "A": "Employment Type",
+            "B": "All employees are at-will (Iowa law). No term employment contracts in place."
+          },
+          {
+            "row_index": 3,
+            "A": "Non-Compete / NDA",
+            "B": "None signed by field technicians. Owner and Office Manager have confidentiality agreements only. No post-employment restrictions on technicians."
+          },
+          {
+            "row_index": 4,
+            "A": "Benefits",
+            "B": "Health insurance (owner-paid 80% premium), Simple IRA with 3% match, 10 days PTO (accruing), 5 sick days."
+          },
+          {
+            "row_index": 5,
+            "A": "Overtime Policy",
+            "B": "Technicians are eligible for overtime at 1.5x rate. Seasonal overtime (summer AC season) averages 6\u20138 hours/week per technician."
+          },
+          {
+            "row_index": 6,
+            "A": "Workers Comp",
+            "B": "Active policy with Grinnell Mutual. One minor claim in 2023 (resolved)."
+          },
+          {
+            "row_index": 7,
+            "A": "Certifications",
+            "B": "Tom Gallagher: NATE-certified. Darnell Smith: EPA Section 608 Universal. Owner: Master HVAC license (Iowa). Kevin Reyes: currently enrolled in apprenticeship program."
+          },
+          {
+            "row_index": 8,
+            "A": "Seasonal Staffing",
+            "B": "1\u20132 seasonal subcontractors hired May\u2013August. Subcontractor costs have grown from $34,400 (2022) to $78,640 (2024)."
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+      "file_name": "PeakAir_Financials.xlsx",
+      "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-1",
+      "page": null,
+      "snippet": "1 | PeakAir HVAC Services \u2014 Profit & Loss Statement\n2 | For the Fiscal Years Ended December 31, 2022 | 2023 | 2024\n3 | FY 2022 | FY 2022 % | FY 2023 | FY 2023 % | FY 2024 | FY 2024 %\n4 | REVENUE\n5 | Residential HVAC Service & Repair | 410000 | 0.477 | 438000 | 0.473 | 462000 | 0.",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 3,
+            "A": "",
+            "B": "FY 2022",
+            "C": "FY 2022 %",
+            "D": "FY 2023",
+            "E": "FY 2023 %",
+            "F": "FY 2024",
+            "G": "FY 2024 %"
+          },
+          {
+            "row_index": 1,
+            "A": "PeakAir HVAC Services \u2014 Profit & Loss Statement",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": ""
+          },
+          {
+            "row_index": 2,
+            "A": "For the Fiscal Years Ended December 31, 2022 | 2023 | 2024",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": ""
+          },
+          {
+            "row_index": 4,
+            "A": "REVENUE",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": ""
+          },
+          {
+            "row_index": 5,
+            "A": "Residential HVAC Service & Repair",
+            "B": "410000",
+            "C": "0.477",
+            "D": "438000",
+            "E": "0.473",
+            "F": "462000",
+            "G": "0.47"
+          },
+          {
+            "row_index": 6,
+            "A": "Commercial Maintenance Contracts",
+            "B": "185000",
+            "C": "0.215",
+            "D": "178000",
+            "E": "0.192",
+            "F": "172000",
+            "G": "0.175"
+          },
+          {
+            "row_index": 7,
+            "A": "Equipment Installation",
+            "B": "210000",
+            "C": "0.244",
+            "D": "248000",
+            "E": "0.268",
+            "F": "291000",
+            "G": "0.296"
+          },
+          {
+            "row_index": 8,
+            "A": "Emergency Service Calls",
+            "B": "55000",
+            "C": "0.064",
+            "D": "62000",
+            "E": "0.067",
+            "F": "58000",
+            "G": "0.059"
+          },
+          {
+            "row_index": 9,
+            "A": "Total Revenue",
+            "B": "860000",
+            "C": "1",
+            "D": "926000",
+            "E": "1",
+            "F": "983000",
+            "G": "1"
+          },
+          {
+            "row_index": 10,
+            "A": "COST OF REVENUE",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": ""
+          },
+          {
+            "row_index": 11,
+            "A": "Labor \u2013 Field Technicians",
+            "B": "258000",
+            "C": "0.3",
+            "D": "277800",
+            "E": "0.3",
+            "F": "294900",
+            "G": "0.3"
+          },
+          {
+            "row_index": 12,
+            "A": "Parts & Materials",
+            "B": "103200",
+            "C": "0.12",
+            "D": "111120",
+            "E": "0.12",
+            "F": "117960",
+            "G": "0.12"
+          },
+          {
+            "row_index": 13,
+            "A": "Subcontractor Costs",
+            "B": "34400",
+            "C": "0.04",
+            "D": "55560",
+            "E": "0.06",
+            "F": "78640",
+            "G": "0.08"
+          },
+          {
+            "row_index": 14,
+            "A": "Vehicle Operating Costs",
+            "B": "25800",
+            "C": "0.03",
+            "D": "27780",
+            "E": "0.03",
+            "F": "29490",
+            "G": "0.03"
+          },
+          {
+            "row_index": 15,
+            "A": "Total Cost of Revenue",
+            "B": "421400",
+            "C": "0.49",
+            "D": "472260",
+            "E": "0.51",
+            "F": "520990",
+            "G": "0.53"
+          },
+          {
+            "row_index": 16,
+            "A": "GROSS PROFIT",
+            "B": "438600",
+            "C": "0.51",
+            "D": "453740",
+            "E": "0.49",
+            "F": "462010",
+            "G": "0.47"
+          },
+          {
+            "row_index": 17,
+            "A": "OPERATING EXPENSES",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": ""
+          },
+          {
+            "row_index": 18,
+            "A": "Owner Salary & Benefits",
+            "B": "145000",
+            "C": "0.168604651162791",
+            "D": "158000",
+            "E": "0.170626349892009",
+            "F": "172000",
+            "G": "0.174974567650051"
+          },
+          {
+            "row_index": 19,
+            "A": "Office Staff Salaries",
+            "B": "52000",
+            "C": "0.0604651162790698",
+            "D": "54600",
+            "E": "0.058963282937365",
+            "F": "57330",
+            "G": "0.0583214649033571"
+          },
+          {
+            "row_index": 20,
+            "A": "Rent \u2013 Office & Warehouse",
+            "B": "36000",
+            "C": "0.0418604651162791",
+            "D": "36000",
+            "E": "0.0388768898488121",
+            "F": "36000",
+            "G": "0.0366225839267548"
+          },
+          {
+            "row_index": 21,
+            "A": "Advertising & Marketing",
+            "B": "18000",
+            "C": "0.0209302325581395",
+            "D": "21000",
+            "E": "0.0226781857451404",
+            "F": "24500",
+            "G": "0.0249237029501526"
+          },
+          {
+            "row_index": 22,
+            "A": "Insurance",
+            "B": "14400",
+            "C": "0.0167441860465116",
+            "D": "15120",
+            "E": "0.0163282937365011",
+            "F": "15876",
+            "G": "0.0161505595116989"
+          },
+          {
+            "row_index": 23,
+            "A": "Software & Dispatch Systems",
+            "B": "6200",
+            "C": "0.0072093023255814",
+            "D": "7800",
+            "E": "0.00842332613390929",
+            "F": "9400",
+            "G": "0.00956256358087487"
+          },
+          {
+            "row_index": 24,
+            "A": "General & Administrative",
+            "B": "22000",
+            "C": "0.0255813953488372",
+            "D": "24000",
+            "E": "0.0259179265658747",
+            "F": "26000",
+            "G": "0.0264496439471007"
+          },
+          {
+            "row_index": 25,
+            "A": "Depreciation",
+            "B": "18000",
+            "C": "0.0209302325581395",
+            "D": "18000",
+            "E": "0.0194384449244061",
+            "F": "18000",
+            "G": "0.0183112919633774"
+          },
+          {
+            "row_index": 26,
+            "A": "Total Operating Expenses",
+            "B": "311600",
+            "C": "0.362325581395349",
+            "D": "334520",
+            "E": "0.361252699784017",
+            "F": "359106",
+            "G": "0.365316378433367"
+          },
+          {
+            "row_index": 27,
+            "A": "EBITDA (before owner add-backs)",
+            "B": "145000",
+            "C": "0.168604651162791",
+            "D": "137220",
+            "E": "0.148185745140389",
+            "F": "120904",
+            "G": "0.12299491353001"
+          },
+          {
+            "row_index": 28,
+            "A": "NET INCOME",
+            "B": "127000",
+            "C": "0.147674418604651",
+            "D": "119220",
+            "E": "0.128747300215983",
+            "F": "102904",
+            "G": "0.104683621566633"
+          },
+          {
+            "row_index": 29,
+            "A": "Note: Owner salary is above market rate for a replacement manager. Commercial maintenance contract revenue is declining year-over-year. Subcontractor usage has increased materially, indicating potential capacity constraints.",
+            "B": "",
+            "C": "",
+            "D": "",
+            "E": "",
+            "F": "",
+            "G": ""
+          }
+        ],
+        "revenue": 983000.0,
+        "cogs": 520990.0,
+        "gross_profit": 462010.0,
+        "operating_expenses": 359106.0,
+        "net_income": 102904.0,
+        "owner_salary": 172000.0,
+        "depreciation_amortization": 18000.0,
+        "ebitda": 120904.0
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+      "file_name": "PeakAir_Financials.xlsx",
+      "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-2-1",
+      "page": null,
+      "snippet": "1 | PeakAir HVAC Services \u2014 Balance Sheet\n2 | As of December 31\n3 | FY 2022 | FY 2023 | FY 2024\n4 | ASSETS\n5 | Current Assets\n6 | Cash & Cash Equivalents | 52000 | 48000 | 41000\n7 | Accounts Receivable | 68000 | 82000 | 98000\n8 | Inventory \u2013 Parts & Supplies | 24000 | 26000 | 275",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 3,
+            "A": "",
+            "B": "FY 2022",
+            "C": "FY 2023",
+            "D": "FY 2024"
+          },
+          {
+            "row_index": 1,
+            "A": "PeakAir HVAC Services \u2014 Balance Sheet",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 2,
+            "A": "As of December 31",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 4,
+            "A": "ASSETS",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 5,
+            "A": "Current Assets",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 6,
+            "A": "Cash & Cash Equivalents",
+            "B": "52000",
+            "C": "48000",
+            "D": "41000"
+          },
+          {
+            "row_index": 7,
+            "A": "Accounts Receivable",
+            "B": "68000",
+            "C": "82000",
+            "D": "98000"
+          },
+          {
+            "row_index": 8,
+            "A": "Inventory \u2013 Parts & Supplies",
+            "B": "24000",
+            "C": "26000",
+            "D": "27500"
+          },
+          {
+            "row_index": 9,
+            "A": "Prepaid Expenses",
+            "B": "6000",
+            "C": "6500",
+            "D": "7000"
+          },
+          {
+            "row_index": 10,
+            "A": "Total Current Assets",
+            "B": "150000",
+            "C": "162500",
+            "D": "173500"
+          },
+          {
+            "row_index": 11,
+            "A": "Non-Current Assets",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 12,
+            "A": "Service Vehicles (5 vans)",
+            "B": "180000",
+            "C": "180000",
+            "D": "220000"
+          },
+          {
+            "row_index": 13,
+            "A": "Less: Accumulated Depreciation",
+            "B": "54000",
+            "C": "72000",
+            "D": "90000"
+          },
+          {
+            "row_index": 14,
+            "A": "Tools & Equipment",
+            "B": "38000",
+            "C": "38000",
+            "D": "44000"
+          },
+          {
+            "row_index": 15,
+            "A": "Less: Accumulated Depreciation",
+            "B": "19000",
+            "C": "26600",
+            "D": "34200"
+          },
+          {
+            "row_index": 16,
+            "A": "Total Property, Plant & Equipment",
+            "B": "145000",
+            "C": "119400",
+            "D": "139800"
+          },
+          {
+            "row_index": 17,
+            "A": "TOTAL ASSETS",
+            "B": "295000",
+            "C": "281900",
+            "D": "313300"
+          },
+          {
+            "row_index": 18,
+            "A": "LIABILITIES",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 19,
+            "A": "Current Liabilities",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 20,
+            "A": "Accounts Payable",
+            "B": "18000",
+            "C": "22000",
+            "D": "28000"
+          },
+          {
+            "row_index": 21,
+            "A": "Accrued Wages",
+            "B": "8500",
+            "C": "9200",
+            "D": "9800"
+          },
+          {
+            "row_index": 22,
+            "A": "Deferred Revenue",
+            "B": "12000",
+            "C": "10500",
+            "D": "9200"
+          },
+          {
+            "row_index": 23,
+            "A": "Current Portion \u2013 Vehicle Loan",
+            "B": "22000",
+            "C": "22000",
+            "D": "22000"
+          },
+          {
+            "row_index": 24,
+            "A": "Total Current Liabilities",
+            "B": "60500",
+            "C": "63700",
+            "D": "69000"
+          },
+          {
+            "row_index": 25,
+            "A": "Long-Term Liabilities",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 26,
+            "A": "Vehicle Loan (3 vans)",
+            "B": "88000",
+            "C": "66000",
+            "D": "98000"
+          },
+          {
+            "row_index": 27,
+            "A": "Equipment Financing",
+            "B": "14000",
+            "C": "10500",
+            "D": "7000"
+          },
+          {
+            "row_index": 28,
+            "A": "Total Long-Term Liabilities",
+            "B": "102000",
+            "C": "76500",
+            "D": "105000"
+          },
+          {
+            "row_index": 29,
+            "A": "TOTAL LIABILITIES",
+            "B": "162500",
+            "C": "140200",
+            "D": "174000"
+          },
+          {
+            "row_index": 30,
+            "A": "OWNER'S EQUITY",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 31,
+            "A": "Owner's Capital",
+            "B": "132500",
+            "C": "141700",
+            "D": "139300"
+          },
+          {
+            "row_index": 32,
+            "A": "Total Owner's Equity",
+            "B": "132500",
+            "C": "141700",
+            "D": "139300"
+          },
+          {
+            "row_index": 33,
+            "A": "TOTAL LIABILITIES & EQUITY",
+            "B": "295000",
+            "C": "281900",
+            "D": "313300"
+          }
+        ],
+        "current_assets": 173500.0,
+        "cash_and_equivalents": 41000.0,
+        "accounts_receivable": 98000.0,
+        "inventory": 27500.0,
+        "current_liabilities": 69000.0,
+        "accounts_payable": 28000.0,
+        "total_assets": 313300.0,
+        "total_liabilities": 174000.0,
+        "equity": 139300.0
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+      "file_name": "PeakAir_Financials.xlsx",
+      "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-2-2",
+      "page": null,
+      "snippet": "1 | PeakAir HVAC Services \u2014 Balance Sheet\n2 | As of December 31\n3 | FY 2022 | FY 2023 | FY 2024\n4 | ASSETS\n5 | Current Assets\n6 | Cash & Cash Equivalents | 52000 | 48000 | 41000\n7 | Accounts Receivable | 68000 | 82000 | 98000\n8 | Inventory \u2013 Parts & Supplies | 24000 | 26000 | 275",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 3,
+            "A": "",
+            "B": "FY 2022",
+            "C": "FY 2023",
+            "D": "FY 2024"
+          },
+          {
+            "row_index": 34,
+            "A": "Note: Cash balance declining despite revenue growth; accounts receivable growth is outpacing revenue growth suggesting collections issues. Deferred maintenance contract revenue is declining, consistent with P&L trend.",
+            "B": "",
+            "C": "",
+            "D": ""
+          }
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0",
+      "file_name": "PeakAir_Financials.xlsx",
+      "section_id": "ad6d85c8-33de-494a-a665-3ab3553ea7f0:sheet-3",
+      "page": null,
+      "snippet": "1 | PeakAir HVAC Services \u2014 Seller's Discretionary Earnings (SDE)\n2 | Prepared by Owner \u2014 March 2025 | Trailing 3-Year Analysis\n3 | FY 2022 | FY 2023 | FY 2024\n4 | STEP 1 \u2014 START WITH NET INCOME\n5 | Net Income (from P&L) | 127000 | 119220 | 102904\n6 | STEP 2 \u2014 ADD BACK NON-CASH &",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 3,
+            "A": "",
+            "B": "FY 2022",
+            "C": "FY 2023",
+            "D": "FY 2024"
+          },
+          {
+            "row_index": 1,
+            "A": "PeakAir HVAC Services \u2014 Seller's Discretionary Earnings (SDE)",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 2,
+            "A": "Prepared by Owner \u2014 March 2025 | Trailing 3-Year Analysis",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 4,
+            "A": "STEP 1 \u2014 START WITH NET INCOME",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 5,
+            "A": "Net Income (from P&L)",
+            "B": "127000",
+            "C": "119220",
+            "D": "102904"
+          },
+          {
+            "row_index": 6,
+            "A": "STEP 2 \u2014 ADD BACK NON-CASH & ONE-TIME ITEMS",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 7,
+            "A": "Depreciation & Amortization",
+            "B": "18000",
+            "C": "18000",
+            "D": "18000"
+          },
+          {
+            "row_index": 8,
+            "A": "Interest Expense on Vehicle Loans",
+            "B": "5280",
+            "C": "3960",
+            "D": "5880"
+          },
+          {
+            "row_index": 9,
+            "A": "One-Time Legal Fees (trademark dispute)",
+            "B": "0",
+            "C": "12000",
+            "D": "0"
+          },
+          {
+            "row_index": 10,
+            "A": "STEP 3 \u2014 ADD BACK OWNER-RELATED EXPENSES",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 11,
+            "A": "Owner Salary (above market rate)",
+            "B": "145000",
+            "C": "158000",
+            "D": "172000"
+          },
+          {
+            "row_index": 12,
+            "A": "Owner Health Insurance",
+            "B": "8400",
+            "C": "8820",
+            "D": "9261"
+          },
+          {
+            "row_index": 13,
+            "A": "Owner Vehicle (personal use)",
+            "B": "14400",
+            "C": "14400",
+            "D": "14400"
+          },
+          {
+            "row_index": 14,
+            "A": "Owner Cell Phone & Personal Expenses",
+            "B": "3600",
+            "C": "3600",
+            "D": "3600"
+          },
+          {
+            "row_index": 15,
+            "A": "Owner Retirement Contributions",
+            "B": "18000",
+            "C": "18000",
+            "D": "20000"
+          },
+          {
+            "row_index": 16,
+            "A": "TOTAL SELLER'S DISCRETIONARY EARNINGS (SDE)",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 17,
+            "A": "Total SDE",
+            "B": "339680",
+            "C": "355980",
+            "D": "346045"
+          },
+          {
+            "row_index": 18,
+            "A": "INDICATIVE VALUATION BRIDGE",
+            "B": "",
+            "C": "",
+            "D": ""
+          },
+          {
+            "row_index": 19,
+            "A": "Trailing 12-Month SDE (FY 2024)",
+            "B": "",
+            "C": "",
+            "D": "346045"
+          },
+          {
+            "row_index": 20,
+            "A": "Applied Multiple (2.5x \u2013 3.0x)",
+            "B": "",
+            "C": "",
+            "D": "2.5x \u2013 3.0x"
+          },
+          {
+            "row_index": 21,
+            "A": "Estimated Enterprise Value Range",
+            "B": "",
+            "C": "",
+            "D": "$865K \u2013 $1.04M"
+          },
+          {
+            "row_index": 22,
+            "A": "Asking Price (per listing)",
+            "B": "",
+            "C": "",
+            "D": "$1,150,000"
+          },
+          {
+            "row_index": 23,
+            "A": "\u26a0 Caution: Owner has included a personal vehicle ($14,400/yr) as a full add-back. Market-rate manager salary replacement is estimated at ~$85,000\u2013$95,000/yr vs. owner's current $172,000. Adjusted SDE after applying replacement manager salary would be approximately $236,000\u2013$246,000, implying asking price is at ~4.7x adjusted SDE.",
+            "B": "",
+            "C": "",
+            "D": ""
+          }
+        ],
+        "sde": 346045.0,
+        "interest_expense": 5880.0,
+        "owner_salary": 172000.0,
+        "depreciation_amortization": 18000.0,
+        "asking_price": 1150000.0,
+        "add_backs": [
+          {
+            "description": "Owner Health Insurance",
+            "amount": 9261.0,
+            "category": "personal_expense"
+          },
+          {
+            "description": "Owner Vehicle (personal use)",
+            "amount": 14400.0,
+            "category": "personal_expense"
+          },
+          {
+            "description": "Owner Cell Phone & Personal Expenses",
+            "amount": 3600.0,
+            "category": "personal_expense"
+          },
+          {
+            "description": "Owner Retirement Contributions",
+            "amount": 20000.0,
+            "category": "personal_expense"
+          }
+        ]
+      },
+      "confidence": 0.8
+    },
+    {
+      "document_id": "177dc530-bdd1-4482-9c28-9cefb0e34996",
+      "file_name": "PeakAir_LeaseAgreement.docx",
+      "section_id": "177dc530-bdd1-4482-9c28-9cefb0e34996:section-1",
+      "page": null,
+      "snippet": "COMMERCIAL LEASE AGREEMENT\n1482 Commerce Pkwy, Suite 4, Cedar Falls, IA 50613\nLEASE SUMMARY\n\u26a0 BUYER ALERT: Landlord and Tenant are related parties (same owner). Lease expires December 31, 2025 \u2014 approximately 12 months post-projected closing. Buyer must independently negotiate a ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Landlord",
+            "B": "Kowalski Property Holdings LLC"
+          },
+          {
+            "row_index": 2,
+            "A": "Tenant",
+            "B": "PeakAir HVAC Services (Robert Kowalski, Sole Proprietor)"
+          },
+          {
+            "row_index": 3,
+            "A": "Premises",
+            "B": "1482 Commerce Pkwy, Suite 4, Cedar Falls, IA 50613 \u2014 approx. 3,200 sq ft"
+          },
+          {
+            "row_index": 4,
+            "A": "Lease Term",
+            "B": "January 1, 2020 \u2013 December 31, 2025 (72 months)"
+          },
+          {
+            "row_index": 5,
+            "A": "Monthly Base Rent",
+            "B": "$3,000/month (below market \u2014 see Section 4)"
+          },
+          {
+            "row_index": 6,
+            "A": "Annual Rent",
+            "B": "$36,000/year"
+          },
+          {
+            "row_index": 7,
+            "A": "Security Deposit",
+            "B": "$6,000 (held by Landlord)"
+          },
+          {
+            "row_index": 8,
+            "A": "Renewal Option",
+            "B": "One 2-year option at landlord's discretion; no automatic renewal"
+          },
+          {
+            "row_index": 9,
+            "A": "Permitted Use",
+            "B": "HVAC service office, parts storage, vehicle staging"
+          },
+          {
+            "row_index": 10,
+            "A": "Assignment / Subletting",
+            "B": "Requires written landlord consent \u2014 not to be unreasonably withheld"
+          },
+          {
+            "row_index": 11,
+            "A": "Personal Guarantee",
+            "B": "Robert Kowalski personally guarantees all obligations"
+          },
+          {
+            "row_index": 12,
+            "A": "Governing Law",
+            "B": "State of Iowa"
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+      "file_name": "PeakAir_TaxReturns.docx",
+      "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-1",
+      "page": null,
+      "snippet": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Field",
+            "B": "Details"
+          },
+          {
+            "row_index": 2,
+            "A": "Taxpayer Name",
+            "B": "Robert & Linda Kowalski"
+          },
+          {
+            "row_index": 3,
+            "A": "Business Name",
+            "B": "PeakAir HVAC Services"
+          },
+          {
+            "row_index": 4,
+            "A": "EIN",
+            "B": "XX-XXXXXXX (redacted for sale)"
+          },
+          {
+            "row_index": 5,
+            "A": "Business Type",
+            "B": "Sole Proprietorship (Schedule C filer)"
+          },
+          {
+            "row_index": 6,
+            "A": "Primary NAICS",
+            "B": "238220 \u2014 Plumbing, Heating & A/C Contractors"
+          },
+          {
+            "row_index": 7,
+            "A": "Filing Status",
+            "B": "Married Filing Jointly"
+          },
+          {
+            "row_index": 8,
+            "A": "Business Address",
+            "B": "1482 Commerce Pkwy, Suite 4, Cedar Falls, IA 50613"
+          },
+          {
+            "row_index": 9,
+            "A": "Prepared By",
+            "B": "Morrison & Greer CPA Group, Cedar Falls, IA"
+          }
+        ]
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+      "file_name": "PeakAir_TaxReturns.docx",
+      "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-2",
+      "page": null,
+      "snippet": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Schedule C Summary \u2014 FY 2022"
+          },
+          {
+            "row_index": 2,
+            "A": "Business Activity",
+            "B": "HVAC Installation, Service & Repair"
+          },
+          {
+            "row_index": 3,
+            "A": "Gross Receipts / Sales",
+            "B": "$851,200"
+          },
+          {
+            "row_index": 4,
+            "A": "Cost of Goods Sold",
+            "B": "$419,800"
+          },
+          {
+            "row_index": 5,
+            "A": "Gross Profit",
+            "B": "$431,400"
+          },
+          {
+            "row_index": 6,
+            "A": null,
+            "B": null
+          },
+          {
+            "row_index": 7,
+            "A": "Advertising",
+            "B": "$17,600"
+          },
+          {
+            "row_index": 8,
+            "A": "Car & Truck Expenses",
+            "B": "$38,200"
+          },
+          {
+            "row_index": 9,
+            "A": "Depreciation (Form 4562)",
+            "B": "$18,000"
+          },
+          {
+            "row_index": 10,
+            "A": "Insurance",
+            "B": "$14,400"
+          },
+          {
+            "row_index": 11,
+            "A": "Legal & Professional",
+            "B": "$4,200"
+          },
+          {
+            "row_index": 12,
+            "A": "Meals & Entertainment (50%)",
+            "B": "$2,100"
+          },
+          {
+            "row_index": 13,
+            "A": "Office Expenses",
+            "B": "$6,100"
+          },
+          {
+            "row_index": 14,
+            "A": "Rent / Lease",
+            "B": "$36,000"
+          },
+          {
+            "row_index": 15,
+            "A": "Salaries & Wages (non-owner)",
+            "B": "$52,000"
+          },
+          {
+            "row_index": 16,
+            "A": "Utilities",
+            "B": "$3,800"
+          },
+          {
+            "row_index": 17,
+            "A": "Other Expenses",
+            "B": "$8,400"
+          },
+          {
+            "row_index": 18,
+            "A": "Total Expenses",
+            "B": "$200,800"
+          },
+          {
+            "row_index": 19,
+            "A": null,
+            "B": null
+          },
+          {
+            "row_index": 20,
+            "A": "NET PROFIT (Schedule C Line 31)",
+            "B": "$230,600"
+          },
+          {
+            "row_index": 21,
+            "A": "Owner Draw / Compensation (not on Sch C)",
+            "B": "$145,000"
+          }
+        ],
+        "cogs": 419800.0,
+        "gross_profit": 431400.0,
+        "net_income": 230600.0,
+        "owner_salary": 145000.0,
+        "depreciation_amortization": 18000.0
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+      "file_name": "PeakAir_TaxReturns.docx",
+      "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-3",
+      "page": null,
+      "snippet": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Schedule C Summary \u2014 FY 2023"
+          },
+          {
+            "row_index": 2,
+            "A": "Business Activity",
+            "B": "HVAC Installation, Service & Repair"
+          },
+          {
+            "row_index": 3,
+            "A": "Gross Receipts / Sales",
+            "B": "$922,500"
+          },
+          {
+            "row_index": 4,
+            "A": "Cost of Goods Sold",
+            "B": "$471,000"
+          },
+          {
+            "row_index": 5,
+            "A": "Gross Profit",
+            "B": "$451,500"
+          },
+          {
+            "row_index": 6,
+            "A": null,
+            "B": null
+          },
+          {
+            "row_index": 7,
+            "A": "Advertising",
+            "B": "$20,500"
+          },
+          {
+            "row_index": 8,
+            "A": "Car & Truck Expenses",
+            "B": "$39,780"
+          },
+          {
+            "row_index": 9,
+            "A": "Depreciation (Form 4562)",
+            "B": "$18,000"
+          },
+          {
+            "row_index": 10,
+            "A": "Insurance",
+            "B": "$15,120"
+          },
+          {
+            "row_index": 11,
+            "A": "Legal & Professional",
+            "B": "$17,800"
+          },
+          {
+            "row_index": 12,
+            "A": "Meals & Entertainment (50%)",
+            "B": "$3,200"
+          },
+          {
+            "row_index": 13,
+            "A": "Office Expenses",
+            "B": "$7,200"
+          },
+          {
+            "row_index": 14,
+            "A": "Rent / Lease",
+            "B": "$36,000"
+          },
+          {
+            "row_index": 15,
+            "A": "Salaries & Wages (non-owner)",
+            "B": "$54,600"
+          },
+          {
+            "row_index": 16,
+            "A": "Utilities",
+            "B": "$4,100"
+          },
+          {
+            "row_index": 17,
+            "A": "Other Expenses",
+            "B": "$9,800"
+          },
+          {
+            "row_index": 18,
+            "A": "Total Expenses",
+            "B": "$226,100"
+          },
+          {
+            "row_index": 19,
+            "A": null,
+            "B": null
+          },
+          {
+            "row_index": 20,
+            "A": "NET PROFIT (Schedule C Line 31)",
+            "B": "$225,400"
+          },
+          {
+            "row_index": 21,
+            "A": "Owner Draw / Compensation (not on Sch C)",
+            "B": "$158,000"
+          }
+        ],
+        "cogs": 471000.0,
+        "gross_profit": 451500.0,
+        "net_income": 225400.0,
+        "owner_salary": 158000.0,
+        "depreciation_amortization": 18000.0
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+      "file_name": "PeakAir_TaxReturns.docx",
+      "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-4",
+      "page": null,
+      "snippet": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": "Schedule C Summary \u2014 FY 2024"
+          },
+          {
+            "row_index": 2,
+            "A": "Business Activity",
+            "B": "HVAC Installation, Service & Repair"
+          },
+          {
+            "row_index": 3,
+            "A": "Gross Receipts / Sales",
+            "B": "$983,000"
+          },
+          {
+            "row_index": 4,
+            "A": "Cost of Goods Sold",
+            "B": "$518,500"
+          },
+          {
+            "row_index": 5,
+            "A": "Gross Profit",
+            "B": "$464,500"
+          },
+          {
+            "row_index": 6,
+            "A": null,
+            "B": null
+          },
+          {
+            "row_index": 7,
+            "A": "Advertising",
+            "B": "$24,000"
+          },
+          {
+            "row_index": 8,
+            "A": "Car & Truck Expenses",
+            "B": "$42,890"
+          },
+          {
+            "row_index": 9,
+            "A": "Depreciation (Form 4562)",
+            "B": "$18,000"
+          },
+          {
+            "row_index": 10,
+            "A": "Insurance",
+            "B": "$15,876"
+          },
+          {
+            "row_index": 11,
+            "A": "Legal & Professional",
+            "B": "$6,500"
+          },
+          {
+            "row_index": 12,
+            "A": "Meals & Entertainment (50%)",
+            "B": "$8,900"
+          },
+          {
+            "row_index": 13,
+            "A": "Office Expenses",
+            "B": "$9,000"
+          },
+          {
+            "row_index": 14,
+            "A": "Rent / Lease",
+            "B": "$36,000"
+          },
+          {
+            "row_index": 15,
+            "A": "Salaries & Wages (non-owner)",
+            "B": "$57,330"
+          },
+          {
+            "row_index": 16,
+            "A": "Utilities",
+            "B": "$4,400"
+          },
+          {
+            "row_index": 17,
+            "A": "Other Expenses",
+            "B": "$11,200"
+          },
+          {
+            "row_index": 18,
+            "A": "Total Expenses",
+            "B": "$234,096"
+          },
+          {
+            "row_index": 19,
+            "A": null,
+            "B": null
+          },
+          {
+            "row_index": 20,
+            "A": "NET PROFIT (Schedule C Line 31)",
+            "B": "$230,404"
+          },
+          {
+            "row_index": 21,
+            "A": "Owner Draw / Compensation (not on Sch C)",
+            "B": "$172,000"
+          }
+        ],
+        "cogs": 518500.0,
+        "gross_profit": 464500.0,
+        "net_income": 230404.0,
+        "owner_salary": 172000.0,
+        "depreciation_amortization": 18000.0
+      },
+      "confidence": 0.75
+    },
+    {
+      "document_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1",
+      "file_name": "PeakAir_TaxReturns.docx",
+      "section_id": "5b6e2635-efff-4e24-ab8d-39b339b3e3e1:section-5",
+      "page": null,
+      "snippet": "PeakAir HVAC Services\nFederal Income Tax Return Summaries \u2014 FY 2022, 2023 & 2024\nTAXPAYER INFORMATION\nNote: Full returns available upon executed NDA. Summaries below reflect Schedule C as filed. Owner compensation is drawn separately and not reflected in net profit line.\nFY 2022 ",
+      "extracted_fields": {
+        "rows": [
+          {
+            "row_index": 1,
+            "A": null,
+            "B": "FY 2022",
+            "C": "FY 2023",
+            "D": "FY 2024"
+          },
+          {
+            "row_index": 2,
+            "A": "Gross Receipts (Tax Return)",
+            "B": "$851,200",
+            "C": "$922,500",
+            "D": "$983,000"
+          },
+          {
+            "row_index": 3,
+            "A": "Gross Receipts (P&L)",
+            "B": "$860,000",
+            "C": "$926,000",
+            "D": "$983,000"
+          },
+          {
+            "row_index": 4,
+            "A": "Variance",
+            "B": "($8,800)",
+            "C": "($3,500)",
+            "D": "\u2014"
+          },
+          {
+            "row_index": 5,
+            "A": "Schedule C Net Profit",
+            "B": "$230,600",
+            "C": "$225,400",
+            "D": "$230,404"
+          },
+          {
+            "row_index": 6,
+            "A": "Owner Compensation (separate)",
+            "B": "$145,000",
+            "C": "$158,000",
+            "D": "$172,000"
+          }
+        ]
+      },
+      "confidence": 0.75
+    }
+  ],
+  "clarifications": []
+}
