@@ -126,7 +126,12 @@ def test_parse_documents_reuses_cached_ocr_text_by_file_hash(monkeypatch) -> Non
         assert response.status_code == 200
         section = payload["pipelineDocuments"][0]["sections"][0]
         assert section["raw_text"] == "Cached OCR Revenue 100000"
-        assert "Reused cached OCR artifact text for ingestion." in payload["pipelineDocuments"][0]["notes"]
+        doc_notes = payload["pipelineDocuments"][0]["notes"]
+        # New behaviour: structured sections are built from the OCR artifact.
+        assert any(
+            "structured section" in note or "Reused cached OCR artifact" in note
+            for note in doc_notes
+        ), f"Expected an OCR-artifact note, got: {doc_notes}"
     finally:
         shutil.rmtree(artifact_dir, ignore_errors=True)
 

@@ -61,10 +61,22 @@ def infer_section_kind(
         return DocumentType.EQUIPMENT_LIST.value
     if _has_any(text, "employee roster", "employee contracts", "employment agreement") or _has_all(text, "employee", "non-compete"):
         return DocumentType.EMPLOYEE_ROSTER.value
-    if _has_any(text, "seller's discretionary earnings", "sellers discretionary earnings", "seller discretionary earnings", "sde"):
-        return "sde_summary"
-    if _has_any(text, "profit and loss", "profit & loss", "p&l", "income statement"):
+    # Income-statement check runs BEFORE SDE: a sheet that contains both "income statement"
+    # and "sde reconciliation" (stacked sections) is a P&L, not a pure SDE summary.
+    # Deliberately exclude "p&l" abbreviation because it appears in references like
+    # "Net Income (from P&L)" inside SDE summary sheets.
+    _has_income_signals = _has_any(
+        text,
+        "profit and loss", "profit & loss statement", "income statement",
+        "total revenue", "gross profit", "cost of revenue",
+    )
+    if _has_income_signals:
         return DocumentType.PROFIT_AND_LOSS.value
+    # SDE-only: only tag sde_summary when no income-statement signals are present.
+    # "sde" alone is kept here because the income-signal guard above already handles
+    # the case where a P&L sheet has an embedded SDE section.
+    if _has_any(text, "seller's discretionary earnings", "sellers discretionary earnings", "seller discretionary earnings", "sde reconciliation", "sde"):
+        return "sde_summary"
     if _has_any(text, "schedule c", "gross receipts"):
         return DocumentType.TAX_RETURN_SCHEDULE_C.value
     if "tax return" in text:

@@ -238,6 +238,7 @@ class LoanTerms(CamelModel):
         "other",
     ] | None = None
     collateral_required: bool | None = None
+    asking_price_estimated: bool = False
 
 
 class CashFlowStatement(CamelModel):
@@ -249,6 +250,13 @@ class CashFlowStatement(CamelModel):
     free_cash_flow: float | None = None
 
 
+class DealHints(CamelModel):
+    """Optional derivations exposed so the Review page can pre-fill Deal Info."""
+    years_in_operation: int | None = None
+    detected_location: str | None = None
+    suggested_business_type: str | None = None
+
+
 class FinancialData(CamelModel):
     income_statement: IncomeStatement | None = None
     balance_sheet: BalanceSheet | None = None
@@ -256,6 +264,7 @@ class FinancialData(CamelModel):
     cash_flow: CashFlowStatement | None = None
     parsing_notes: list[str] = Field(default_factory=list)
     data_completeness: float = 0
+    deal_hints: DealHints | None = None
 
 
 class OwnerDependenceAnswers(CamelModel):

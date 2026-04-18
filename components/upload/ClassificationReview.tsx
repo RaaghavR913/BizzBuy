@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CANONICAL_DOCUMENT_TYPES } from '@/lib/constants';
 import type { ClassifiedFileResult } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,16 @@ interface ClassificationReviewProps {
 const TYPE_LABELS: Record<string, string> = Object.fromEntries(
   CANONICAL_DOCUMENT_TYPES.map((dt) => [dt.value, dt.label])
 );
+
+// Build grouped structure for the dropdown.
+const GROUPED_TYPES = CANONICAL_DOCUMENT_TYPES.reduce<
+  Record<string, typeof CANONICAL_DOCUMENT_TYPES[number][]>
+>((acc, dt) => {
+  const g = dt.group;
+  if (!acc[g]) acc[g] = [];
+  acc[g].push(dt);
+  return acc;
+}, {});
 
 function typeBadgeColor(type: string): string {
   if (type === 'unknown') return 'bg-red-500/15 text-red-400 border-red-500/30';
@@ -87,16 +97,21 @@ export function ClassificationReview({ files, overrides, onOverride }: Classific
             <div>
               <Select
                 value={overrides[file.fileId] || ''}
-                onValueChange={(v) => onOverride(file.fileId, v)}
+                onValueChange={(v) => v && onOverride(file.fileId, v)}
               >
                 <SelectTrigger className="h-8 text-xs bg-raised border-white/[0.08]">
                   <SelectValue placeholder="Override type..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {CANONICAL_DOCUMENT_TYPES.map((dt) => (
-                    <SelectItem key={dt.value} value={dt.value} className="text-xs">
-                      {dt.label}
-                    </SelectItem>
+                <SelectContent className="max-h-80">
+                  {Object.entries(GROUPED_TYPES).map(([group, items]) => (
+                    <SelectGroup key={group}>
+                      <SelectLabel className="text-xs text-t-muted px-2 py-1">{group}</SelectLabel>
+                      {items.map((dt) => (
+                        <SelectItem key={dt.value} value={dt.value} className="text-xs">
+                          {dt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>

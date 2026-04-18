@@ -122,9 +122,12 @@ def _build_sections(document: IntakeDocument) -> list[DocumentSection]:
     if document.sections:
         return [_normalize_section(document, section, index) for index, section in enumerate(document.sections)]
     if document.sheets:
-        return [_sheet_section(document, sheet, index) for index, sheet in enumerate(document.sheets)]
+        result: list[DocumentSection] = []
+        for sheet_index, sheet in enumerate(document.sheets):
+            result.extend(_sheet_sections(document, sheet, sheet_index))
+        return result
     if document.spreadsheet_rows:
-        return [_rows_section(document)]
+        return _rows_sections(document)
     if document.raw_text:
         return [_text_section(document)]
     return []
@@ -191,60 +194,93 @@ def _normalize_section(document: IntakeDocument, section: dict[str, Any], index:
     return normalized
 
 
-def _sheet_section(document: IntakeDocument, sheet: dict[str, Any], index: int) -> DocumentSection:
-    rows = sheet.get("rows") if isinstance(sheet.get("rows"), list) else []
-    rows = [row for row in rows if isinstance(row, dict)]
-    notes = [f"Normalized spreadsheet sheet '{sheet.get('name') or index + 1}' into a section."]
-    section_document_type, section_kind = infer_effective_section_identity(
-        parent_document_type=document.canonical_type,
-        explicit_section_kind=sheet.get("section_kind") or sheet.get("sectionKind"),
-        explicit_document_type=sheet.get("document_type") or sheet.get("documentType"),
-        section_name=str(sheet.get("name") or f"Sheet {index + 1}"),
-        raw_text=str(sheet.get("text") or ""),
-        rows=rows,
-    )
-    fiscal_year = sheet.get("fiscalYear") or sheet.get("fiscal_year") or infer_latest_fiscal_year(rows)
-    normalized = DocumentSection(
-        section_id=f"{document.document_id}:sheet-{index + 1}",
-        document_id=document.document_id,
-        document_type=section_document_type,
-        section_kind=section_kind,
-        timeframe=Timeframe(fiscal_year=fiscal_year),
-        extracted_data={"rows": rows},
-        raw_text=str(sheet.get("text") or ""),
-        confidence=_normalize_confidence(sheet.get("confidence"), default=0.8 if rows else 0.45),
-        section_name=str(sheet.get("name") or f"Sheet {index + 1}"),
-        source_format="spreadsheet",
-        content_type=SectionContentType.SHEET,
-        status=DocumentStatus.PARSED if rows or sheet.get("text") else DocumentStatus.PARTIAL,
-        notes=notes,
-    )
-    normalized.extracted_data = normalize_section_extracted_data(normalized)
-    return normalized
+def _sheet_sections(document: IntakeDocument, sheet: dict[str, Any], index: int) -> list[DocumentSection]:
+    """Convert a single workbook sheet into one or more DocumentSections.
+
+    Sheets that contain stacked financial statements (e.g. Income Statement
+    + SDE Reconciliation) are split into multiple sections by the unified
+    ``split_rows_into_sections`` helper.
+    """
+    from app.services.section_splitter import split_rows_into_sections
+
+    all_rows = sheet.get("rows") if isinstance(sheet.get("rows"), list) else []
+    all_rows = [row for row in all_rows if isinstance(row, dict)]
+    sheet_name = str(sheet.get("name") or f"Sheet {index + 1}")
+    raw_text = str(sheet.get("text") or "")
+    base_confidence = _normalize_confidence(sheet.get("confidence"), default=0.8 if all_rows else 0.45)
+
+    segments = split_rows_into_sections(all_rows, document.canonical_type)
+
+    sections: list[DocumentSection] = []
+    for seg_index, (seg_kind, seg_rows) in enumerate(segments):
+        notes = [f"Normalized spreadsheet sheet '{sheet_name}' into a section."]
+        section_document_type, section_kind = infer_effective_section_identity(
+            parent_document_type=document.canonical_type,
+            explicit_section_kind=seg_kind if seg_kind != document.canonical_type.value else None,
+            explicit_document_type=sheet.get("document_type") or sheet.get("documentType"),
+            section_name=sheet_name,
+            raw_text=raw_text,
+            rows=seg_rows,
+        )
+        fiscal_year = sheet.get("fiscalYear") or sheet.get("fiscal_year") or infer_latest_fiscal_year(seg_rows)
+        suffix = f"-{seg_index + 1}" if len(segments) > 1 else ""
+        normalized = DocumentSection(
+            section_id=f"{document.document_id}:sheet-{index + 1}{suffix}",
+            document_id=document.document_id,
+            document_type=section_document_type,
+            section_kind=section_kind,
+            timeframe=Timeframe(fiscal_year=fiscal_year),
+            extracted_data={"rows": seg_rows},
+            raw_text=raw_text,
+            confidence=base_confidence,
+            section_name=sheet_name,
+            source_format="spreadsheet",
+            content_type=SectionContentType.SHEET,
+            status=DocumentStatus.PARSED if seg_rows or raw_text else DocumentStatus.PARTIAL,
+            notes=notes,
+        )
+        normalized.extracted_data = normalize_section_extracted_data(normalized)
+        sections.append(normalized)
+    return sections
 
 
-def _rows_section(document: IntakeDocument) -> DocumentSection:
-    section_document_type, section_kind = infer_effective_section_identity(
-        parent_document_type=document.canonical_type,
-        rows=document.spreadsheet_rows,
-    )
-    normalized = DocumentSection(
-        section_id=f"{document.document_id}:rows-1",
-        document_id=document.document_id,
-        document_type=section_document_type,
-        section_kind=section_kind,
-        timeframe=Timeframe(fiscal_year=infer_latest_fiscal_year(document.spreadsheet_rows)),
-        extracted_data={"rows": document.spreadsheet_rows},
-        raw_text="",
-        confidence=0.8,
-        section_name="Sheet 1",
-        source_format="spreadsheet",
-        content_type=SectionContentType.TABLE,
-        status=DocumentStatus.PARSED,
-        notes=["Normalized spreadsheet rows into a single section."],
-    )
-    normalized.extracted_data = normalize_section_extracted_data(normalized)
-    return normalized
+def _rows_sections(document: IntakeDocument) -> list[DocumentSection]:
+    """Convert flat spreadsheet rows into one or more DocumentSections.
+
+    Stacked financial statements within a single CSV/spreadsheet are split
+    by the unified ``split_rows_into_sections`` helper.
+    """
+    from app.services.section_splitter import split_rows_into_sections
+
+    all_rows = document.spreadsheet_rows
+    segments = split_rows_into_sections(all_rows, document.canonical_type)
+
+    sections: list[DocumentSection] = []
+    for seg_index, (seg_kind, seg_rows) in enumerate(segments):
+        section_document_type, section_kind = infer_effective_section_identity(
+            parent_document_type=document.canonical_type,
+            explicit_section_kind=seg_kind if seg_kind != document.canonical_type.value else None,
+            rows=seg_rows,
+        )
+        suffix = f"-{seg_index + 1}" if len(segments) > 1 else ""
+        normalized = DocumentSection(
+            section_id=f"{document.document_id}:rows-1{suffix}",
+            document_id=document.document_id,
+            document_type=section_document_type,
+            section_kind=section_kind,
+            timeframe=Timeframe(fiscal_year=infer_latest_fiscal_year(seg_rows)),
+            extracted_data={"rows": seg_rows},
+            raw_text="",
+            confidence=0.8,
+            section_name="Sheet 1",
+            source_format="spreadsheet",
+            content_type=SectionContentType.TABLE,
+            status=DocumentStatus.PARSED,
+            notes=["Normalized spreadsheet rows into a single section."],
+        )
+        normalized.extracted_data = normalize_section_extracted_data(normalized)
+        sections.append(normalized)
+    return sections
 
 
 def _text_section(document: IntakeDocument) -> DocumentSection:

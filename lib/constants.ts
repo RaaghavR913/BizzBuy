@@ -57,21 +57,47 @@ export const BUSINESS_TYPES = [
 ];
 
 export const CANONICAL_DOCUMENT_TYPES = [
-  { value: 'profit_and_loss', label: 'Profit & Loss Statement' },
-  { value: 'balance_sheet', label: 'Balance Sheet' },
-  { value: 'cash_flow_statement', label: 'Cash Flow Statement' },
-  { value: 'tax_return_1120s', label: 'Tax Return 1120-S' },
-  { value: 'tax_return_1040', label: 'Tax Return 1040' },
-  { value: 'tax_return_schedule_c', label: 'Tax Return Schedule C' },
-  { value: 'ar_aging_report', label: 'A/R Aging Report' },
-  { value: 'customer_list', label: 'Customer List' },
-  { value: 'contract', label: 'Contract' },
-  { value: 'lease_agreement', label: 'Lease Agreement' },
-  { value: 'employee_roster', label: 'Employee Roster' },
-  { value: 'insurance_policy', label: 'Insurance Policy' },
-  { value: 'equipment_list', label: 'Equipment List' },
-  { value: 'other', label: 'Other' },
-  { value: 'unknown', label: 'Unknown' },
+  // Financial Statements
+  { value: 'profit_and_loss',            label: 'Profit & Loss Statement',                        group: 'Financial Statements' },
+  { value: 'balance_sheet',              label: 'Balance Sheet',                                   group: 'Financial Statements' },
+  { value: 'cash_flow_statement',        label: 'Cash Flow Statement',                             group: 'Financial Statements' },
+  { value: 'sde_worksheet',              label: 'SDE / Seller\'s Discretionary Earnings Worksheet', group: 'Financial Statements' },
+  { value: 'financial_projections',      label: 'Financial Projections',                           group: 'Financial Statements' },
+  { value: 'bank_statement',             label: 'Bank Statement',                                  group: 'Financial Statements' },
+  { value: 'aged_trial_balance',         label: 'Aged Trial Balance',                              group: 'Financial Statements' },
+  // Tax
+  { value: 'tax_return_1120s',           label: 'Tax Return 1120-S',                               group: 'Tax' },
+  { value: 'tax_return_1040',            label: 'Tax Return 1040',                                 group: 'Tax' },
+  { value: 'tax_return_schedule_c',      label: 'Tax Return Schedule C',                           group: 'Tax' },
+  { value: 'tax_return_1065',            label: 'Tax Return 1065 (Partnership)',                   group: 'Tax' },
+  { value: 'sales_tax_filing',           label: 'Sales Tax Filings',                               group: 'Tax' },
+  { value: 'payroll_tax_941',            label: 'Payroll Tax Filing (941)',                        group: 'Tax' },
+  // Receivables & Customers
+  { value: 'ar_aging_report',            label: 'A/R Aging Report',                                group: 'Receivables & Customers' },
+  { value: 'customer_list',              label: 'Customer List',                                   group: 'Receivables & Customers' },
+  { value: 'top_customer_concentration', label: 'Top Customer Concentration Report',               group: 'Receivables & Customers' },
+  // Contracts & Legal
+  { value: 'contract',                   label: 'Contract',                                        group: 'Contracts & Legal' },
+  { value: 'lease_agreement',            label: 'Lease Agreement',                                 group: 'Contracts & Legal' },
+  { value: 'letter_of_intent',           label: 'Letter of Intent (LOI)',                          group: 'Contracts & Legal' },
+  { value: 'asset_purchase_agreement',   label: 'Asset Purchase Agreement (APA)',                  group: 'Contracts & Legal' },
+  { value: 'operating_agreement',        label: 'Operating Agreement',                             group: 'Contracts & Legal' },
+  { value: 'franchise_agreement',        label: 'Franchise Agreement',                             group: 'Contracts & Legal' },
+  { value: 'employment_agreement',       label: 'Employment Agreement',                            group: 'Contracts & Legal' },
+  { value: 'non_compete_nda',            label: 'Non-Compete / NDA',                               group: 'Contracts & Legal' },
+  // Operational
+  { value: 'employee_roster',            label: 'Employee Roster',                                 group: 'Operational' },
+  { value: 'insurance_policy',           label: 'Insurance Policy',                                group: 'Operational' },
+  { value: 'equipment_list',             label: 'Equipment List',                                  group: 'Operational' },
+  { value: 'supplier_vendor_list',       label: 'Supplier / Vendor List',                          group: 'Operational' },
+  { value: 'permits_licenses',           label: 'Permits & Licenses',                              group: 'Operational' },
+  { value: 'business_overview_memo',     label: 'Business Overview / Offering Memo',               group: 'Operational' },
+  // Financing
+  { value: 'loan_term_sheet',            label: 'Loan Term Sheet / Offer Letter',                  group: 'Financing' },
+  { value: 'personal_financial_statement', label: 'Personal Financial Statement',                  group: 'Financing' },
+  // Other
+  { value: 'other',                      label: 'Other',                                           group: 'Other' },
+  { value: 'unknown',                    label: 'Unknown',                                         group: 'Other' },
 ] as const;
 
 // Legacy upload options remain in place until the pipeline-first document flow is switched over.

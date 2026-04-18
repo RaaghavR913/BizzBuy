@@ -169,6 +169,7 @@ export default function QuestionsPage() {
     setLoading,
     setError,
     setAnalysisJob,
+    setAnalysisId,
   } = useAnalysis();
   const clarificationQuestions = generateClarificationQuestions(state.pipelineDocuments, state.financialData);
   const [responses, setResponses] = useState<Record<string, ResponseValue>>(
@@ -209,6 +210,9 @@ export default function QuestionsPage() {
           pipelineDocuments: state.pipelineDocuments,
           clarifications: clarificationAnswers,
         });
+        // Polling in AnalysisContext keys off analysisId; the job response is authoritative
+        // (e.g. backend may assign a new id when none was passed).
+        setAnalysisId(job.analysisId);
         setAnalysisJob(job);
         setStep(4);
         router.push('/analyze/report');

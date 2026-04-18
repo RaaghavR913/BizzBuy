@@ -966,12 +966,21 @@ def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[Inges
             ),
         )
 
+    pre_sectioned_docs: list[dict[str, Any]] = []
     ocr_docs: list[dict[str, Any]] = []
     structured_docs: list[dict[str, Any]] = []
     unsupported: list[str] = []
 
     for doc in documents:
-        filename = doc.get("filename") or doc.get("file_name") or "unknown"
+        # If the document already carries parsed sections (produced by the
+        # /parse-documents step), reuse them directly — no re-OCR needed.
+        if isinstance(doc.get("sections"), list) and len(doc["sections"]) > 0:
+            pre_sectioned_docs.append(doc)
+            continue
+
+        filename = (
+            doc.get("filename") or doc.get("file_name") or doc.get("fileName") or "unknown"
+        )
         mime = doc.get("mime_type") or doc.get("mimeType") or ""
         route = _classify_file_route(filename, mime)
         if route == "ocr":
@@ -981,7 +990,7 @@ def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[Inges
         else:
             unsupported.append(filename)
 
-    if unsupported and not ocr_docs and not structured_docs:
+    if unsupported and not ocr_docs and not structured_docs and not pre_sectioned_docs:
         return AgentResult(
             status="error",
             error=AgentErrorPayload(
@@ -998,6 +1007,14 @@ def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[Inges
     all_document_infos: list[DocumentInfo] = []
     all_warnings: list[str] = []
     ingestion_source = "structured"
+
+    # Pre-sectioned documents (produced by /parse-documents step) — reuse as-is.
+    if pre_sectioned_docs:
+        pre_output = ingest_and_persist_document_payloads(pre_sectioned_docs)
+        all_document_infos.extend(pre_output.documents)
+        all_warnings.extend(pre_output.metadata.warnings)
+        if pre_output.metadata.ingestion_source:
+            ingestion_source = pre_output.metadata.ingestion_source
 
     for doc in ocr_docs:
         filename = doc.get("filename") or doc.get("file_name") or "unknown"

@@ -44,6 +44,7 @@ export interface LoanTerms {
   askingPrice: number;
   loanType?: 'sba_7a' | 'sba_504' | 'conventional' | 'seller_financing' | 'other';
   collateralRequired?: boolean;
+  askingPriceEstimated?: boolean;
 }
 
 export interface CashFlowStatement {
@@ -55,6 +56,12 @@ export interface CashFlowStatement {
   freeCashFlow?: number;
 }
 
+export interface DealHints {
+  yearsInOperation?: number | null;
+  detectedLocation?: string | null;
+  suggestedBusinessType?: string | null;
+}
+
 export interface FinancialData {
   incomeStatement: IncomeStatement | null;
   balanceSheet: BalanceSheet | null;
@@ -62,6 +69,7 @@ export interface FinancialData {
   cashFlow: CashFlowStatement | null;
   parsingNotes: string[];
   dataCompleteness: number;
+  dealHints?: DealHints | null;
 }
 
 export interface PipelineDocumentPayload {
@@ -107,13 +115,32 @@ export type CanonicalDocumentType =
   | 'tax_return_1120s'
   | 'tax_return_1040'
   | 'tax_return_schedule_c'
+  | 'tax_return_1065'
+  | 'sales_tax_filing'
+  | 'payroll_tax_941'
   | 'ar_aging_report'
   | 'customer_list'
+  | 'top_customer_concentration'
   | 'contract'
   | 'lease_agreement'
+  | 'letter_of_intent'
+  | 'asset_purchase_agreement'
+  | 'operating_agreement'
+  | 'franchise_agreement'
+  | 'employment_agreement'
+  | 'non_compete_nda'
   | 'employee_roster'
   | 'insurance_policy'
   | 'equipment_list'
+  | 'supplier_vendor_list'
+  | 'permits_licenses'
+  | 'business_overview_memo'
+  | 'sde_worksheet'
+  | 'financial_projections'
+  | 'bank_statement'
+  | 'aged_trial_balance'
+  | 'loan_term_sheet'
+  | 'personal_financial_statement'
   | 'other'
   | 'unknown';
 

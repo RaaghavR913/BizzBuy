@@ -83,12 +83,19 @@ export default function ReviewPage() {
       dataCompleteness: 0,
     }
   );
+  // Seed Deal Info from deal_hints (derived by backend) when not already set by the user.
+  const hints = state.financialData?.dealHints;
   const [askingPrice, setAskingPrice] = useState(
     state.dealInfo?.askingPrice ?? state.financialData?.loanTerms?.askingPrice ?? null
   );
-  const [businessType, setBusinessType] = useState(state.dealInfo?.businessType ?? '');
-  const [yearsOp, setYearsOp] = useState<number | null>(state.dealInfo?.yearsInOperation ?? null);
+  const [businessType, setBusinessType] = useState(
+    state.dealInfo?.businessType ?? hints?.suggestedBusinessType ?? ''
+  );
+  const [yearsOp, setYearsOp] = useState<number | null>(
+    state.dealInfo?.yearsInOperation ?? hints?.yearsInOperation ?? null
+  );
   const [reasonForSale, setReasonForSale] = useState(state.dealInfo?.reasonForSale ?? '');
+  const askingPriceIsEstimate = !state.dealInfo?.askingPrice && state.financialData?.loanTerms?.askingPriceEstimated === true;
 
   useEffect(() => {
     setStep(2);
@@ -338,7 +345,12 @@ export default function ReviewPage() {
                <h3 className="text-xl font-bold text-white">Deal Information</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-              <NumericInput label="Asking Price" value={askingPrice} onChange={(v) => setAskingPrice(v)} />
+              <div className="space-y-1">
+                <NumericInput label="Asking Price" value={askingPrice} onChange={(v) => setAskingPrice(v)} />
+                {askingPriceIsEstimate && (
+                  <p className="text-xs text-amber-400/80 mt-1">Estimated at 3× SDE — adjust if you have a listing price.</p>
+                )}
+              </div>
               <NumericInput label="Years in Operation" value={yearsOp} onChange={(v) => setYearsOp(v)} prefix="" />
               <div className="space-y-1.5">
                 <Label className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">Business Type</Label>

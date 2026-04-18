@@ -16,6 +16,12 @@ class ExtractedFinancialData:
     loan_terms: LoanTerms | None = None
     cash_flow: CashFlowStatement | None = None
     parsing_notes: list[str] = field(default_factory=list)
+    years_in_operation: int | None = None
+    detected_location: str | None = None
+
+
+# Regex to extract city/state combos like "Denver, CO" from raw text.
+_LOCATION_RE = re.compile(r"\b([A-Z][a-z]{2,}(?:\s[A-Z][a-z]{2,})?),\s*([A-Z]{2})\b")
 
 
 def extract_financial_data(ingestion_output: IngestionOutput) -> ExtractedFinancialData:
@@ -27,6 +33,7 @@ def extract_financial_data(ingestion_output: IngestionOutput) -> ExtractedFinanc
     balance_section = _first_section(sections, DocumentType.BALANCE_SHEET.value)
     cash_flow_section = _first_section(sections, DocumentType.CASH_FLOW_STATEMENT.value)
 
+    # --- Primary extraction ---
     if pnl_section:
         result.income_statement = _extract_income_statement(pnl_section, sde_section, result.parsing_notes)
     if balance_section:
@@ -35,6 +42,70 @@ def extract_financial_data(ingestion_output: IngestionOutput) -> ExtractedFinanc
         result.loan_terms = _extract_loan_terms(sde_section, result.parsing_notes)
     if cash_flow_section:
         result.cash_flow = _extract_cash_flow(cash_flow_section, result.parsing_notes)
+
+    # --- Backstop: recover P&L fields from a mis-tagged SDE section ---
+    # When classification placed income-statement rows into an sde_summary section
+    # (a known failure mode for sheets that embed SDE reconciliation at the bottom),
+    # treat that section as the primary P&L source so every field is still populated.
+    if result.income_statement is None and sde_section is not None:
+        sde_rows = _section_rows(sde_section)
+        sde_table = _row_table(sde_rows)
+        has_revenue = sde_table.find(["total revenue", "revenue"]) is not None
+        has_gross_profit = sde_table.find(["gross profit"]) is not None
+        has_opex = sde_table.find(["total operating expenses", "total opex", "operating expenses", "opex"]) is not None
+        if has_revenue or (has_gross_profit and has_opex):
+            result.parsing_notes.append(
+                "Recovered income statement fields from SDE-tagged section — classification will be corrected in future uploads."
+            )
+            result.income_statement = _extract_income_statement(sde_section, None, result.parsing_notes)
+
+    # --- Derive years_in_operation from detected fiscal periods ---
+    all_periods: set[str] = set()
+    for section, _kind in sections:
+        rows = _section_rows(section)
+        if rows:
+            year_cols = _year_columns(rows)
+            all_periods.update(str(y) for y in year_cols)
+    if len(all_periods) >= 1:
+        result.years_in_operation = len(all_periods)
+
+    # --- Detect location from raw section text and row data ---
+    for document in ingestion_output.documents:
+        for section in document.sections:
+            # Try raw text first (OCR/DOCX)
+            candidate_texts: list[str] = []
+            if section.raw_text:
+                candidate_texts.append(section.raw_text[:1000])
+            # Also scan column-A row labels (XLSX/CSV path produces rows, not raw text)
+            rows_for_loc = _section_rows(section)
+            for row in rows_for_loc[:10]:
+                val = str(row.get("A") or "")
+                if val:
+                    candidate_texts.append(val)
+            for text_candidate in candidate_texts:
+                match = _LOCATION_RE.search(text_candidate)
+                if match:
+                    result.detected_location = f"{match.group(1)}, {match.group(2)}"
+                    break
+            if result.detected_location:
+                break
+        if result.detected_location:
+            break
+
+    # --- Auto-estimate asking price at 3x SDE if no listing document supplied it ---
+    sde_value: float | None = None
+    if result.income_statement and result.income_statement.sde:
+        sde_value = result.income_statement.sde
+    if sde_value is not None and (result.loan_terms is None or result.loan_terms.asking_price == 0):
+        estimated_price = round(sde_value * 3.0 / 1000) * 1000  # round to nearest $1,000
+        result.loan_terms = LoanTerms(
+            loan_amount=0,
+            interest_rate=0,
+            term_months=120,
+            asking_price=estimated_price,
+            loan_type="sba_7a",
+            asking_price_estimated=True,
+        )
 
     return result
 
@@ -84,11 +155,17 @@ def _extract_income_statement(
     revenue = table.find(["total revenue", "revenue"])
     cogs = table.find(["total cost of revenue", "total cogs", "cost of goods sold"])
     gross_profit = table.find(["gross profit"])
-    operating_expenses = table.find(["total operating expenses", "operating expenses"])
-    net_income = table.find(["net income"])
-    owner_salary = table.find(["owner salary & benefits", "owner salary and benefits", "owner salary"])
+    operating_expenses = table.find(["total operating expenses", "operating expenses", "total opex", "opex"])
+    net_income = table.find(["net income", "net profit", "net income loss", "net profit loss"])
+    owner_salary = table.find(["owner salary & benefits", "owner salary and benefits", "owner salary", "owner draw salary", "owner draw"])
     depreciation = table.find(["depreciation & amortization", "depreciation and amortization", "depreciation"])
     ebitda = table.find(["ebitda"])
+    # If the document has no explicit net income line (common in SMB P&Ls that stop at EBITDA),
+    # derive it from gross profit minus operating expenses, or fall back to EBITDA itself.
+    if net_income is None and ebitda is not None:
+        net_income = ebitda
+    elif net_income is None and gross_profit is not None and operating_expenses is not None:
+        net_income = gross_profit - operating_expenses
 
     required = {
         "revenue": revenue,
@@ -107,7 +184,7 @@ def _extract_income_statement(
     if sde_section:
         sde_rows = _section_rows(sde_section)
         sde_table = _row_table(sde_rows)
-        sde = sde_table.find(["total sde", "total seller's discretionary earnings"])
+        sde = sde_table.find(["total sde", "total seller's discretionary earnings", "reported sde", "sde"])
         interest_expense = sde_table.find(["interest expense on vehicle loans", "interest expense"])
         depreciation = depreciation or sde_table.find(["depreciation & amortization", "depreciation and amortization"])
         owner_salary = owner_salary or sde_table.find(["owner salary (above market rate)", "owner salary"])
@@ -151,7 +228,7 @@ def _extract_balance_sheet(section: DocumentSection, notes: list[str]) -> Balanc
     accounts_payable = table.find(["accounts payable"])
     total_assets = table.find(["total assets"])
     total_liabilities = table.find(["total liabilities"])
-    equity = table.find(["total owner's equity", "total owners equity", "owner's equity", "owners equity"])
+    equity = table.find(["total owner's equity", "total owners equity", "owner's equity", "owners equity", "total equity", "equity", "retained earnings"])
 
     required = {
         "current assets": current_assets,
@@ -312,15 +389,37 @@ def _row_table(rows: list[dict[str, Any]]) -> RowTable:
 
 def _year_columns(rows: list[dict[str, Any]]) -> dict[int, str]:
     columns: dict[int, str] = {}
+    # Build a set of columns whose header row value is a label like "Notes" so
+    # we can skip them entirely.  A column is a "notes column" when its value
+    # in the first row that has non-empty cells is a non-numeric string that
+    # does NOT itself look like a year.
+    notes_columns: set[str] = set()
+    if rows:
+        first_row = rows[0]
+        for col, val in first_row.items():
+            if col in {"row_index", "A"}:
+                continue
+            text = str(val or "").strip()
+            if text and _parse_number(text) is None and not re.fullmatch(r"(19|20)\d{2}", text):
+                notes_columns.add(col)
+
     for row in rows:
         for column, value in row.items():
             if column in {"row_index", "A"}:
+                continue
+            if column in notes_columns:
                 continue
             text = str(value or "")
             if "%" in text:
                 continue
             match = re.search(r"\b(19\d{2}|20\d{2})\b", text)
             if not match:
+                continue
+            # Reject years that appear inside longer narrative sentences.
+            # A cell is treated as a year header only when the text outside
+            # the year match is short (e.g. "FY 2024", "2024", "Dec 2024").
+            surrounding = text[: match.start()] + text[match.end() :]
+            if len(surrounding.replace(" ", "")) > 8:
                 continue
             year = int(match.group(1))
             columns[year] = str(column)

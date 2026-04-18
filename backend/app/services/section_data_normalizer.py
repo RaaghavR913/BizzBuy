@@ -11,16 +11,16 @@ FINANCIAL_ALIASES: dict[str, list[str]] = {
     "revenue": ["total revenue", "revenue", "gross revenue"],
     "cogs": ["total cost of revenue", "total cogs", "cost of goods sold"],
     "gross_profit": ["gross profit"],
-    "operating_expenses": ["total operating expenses", "operating expenses"],
-    "net_income": ["net income", "net profit"],
-    "owner_salary": ["owner salary & benefits", "owner salary and benefits", "owner salary"],
+    "operating_expenses": ["total operating expenses", "operating expenses", "total opex", "opex"],
+    "net_income": ["net income", "net profit", "net income loss", "net profit loss"],
+    "owner_salary": ["owner salary & benefits", "owner salary and benefits", "owner salary", "owner draw salary", "owner draw"],
     "depreciation_amortization": ["depreciation & amortization", "depreciation and amortization", "depreciation"],
     "interest_expense": ["interest expense on vehicle loans", "interest expense"],
     "ebitda": ["ebitda", "ebitda before owner add backs"],
 }
 
 SDE_ALIASES: dict[str, list[str]] = {
-    "sde": ["total sde", "total seller's discretionary earnings"],
+    "sde": ["total sde", "total seller's discretionary earnings", "reported sde", "sde"],
     "interest_expense": ["interest expense on vehicle loans", "interest expense"],
     "owner_salary": ["owner salary (above market rate)", "owner salary"],
     "depreciation_amortization": ["depreciation & amortization", "depreciation and amortization"],
@@ -36,7 +36,7 @@ BALANCE_ALIASES: dict[str, list[str]] = {
     "accounts_payable": ["accounts payable"],
     "total_assets": ["total assets"],
     "total_liabilities": ["total liabilities"],
-    "equity": ["total owner's equity", "total owners equity", "owner's equity", "owners equity", "equity"],
+    "equity": ["total owner's equity", "total owners equity", "owner's equity", "owners equity", "total equity", "equity", "retained earnings"],
 }
 
 CASH_FLOW_ALIASES: dict[str, list[str]] = {

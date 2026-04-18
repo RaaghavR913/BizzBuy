@@ -1,5 +1,11 @@
+# Dev stack. If `docker compose up --build` fails with "No such container" or "No such image"
+# right after a successful pull/build, see scripts/docker-compose-up.sh (recommended) and
+# Docker Desktop → Settings → General → disable "Use containerd for pulling and storing images",
+# then Apply & Restart (see https://github.com/docker/desktop-linux/issues/309).
 services:
   backend:
+    image: docker.io/library/bizzbuy-backend:latest
+    pull_policy: never
     build:
       context: ./backend
     container_name: bizbuy-backend
@@ -18,6 +24,8 @@ services:
       start_period: 15s
 
   frontend:
+    image: docker.io/library/bizzbuy-frontend:latest
+    pull_policy: never
     build:
       context: .
     container_name: bizbuy-frontend
