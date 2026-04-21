@@ -409,6 +409,7 @@ export interface AnalysisJobProgress {
   message: string;
   progress: number;
   updatedAt?: string;
+  completedAgents?: string[];
 }
 
 export interface AnalysisJobSnapshot {

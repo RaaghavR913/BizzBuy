@@ -35,10 +35,6 @@ export interface AnalysisRunContext {
   clarifications?: ClarificationAnswer[];
 }
 
-function hasUsablePipelineDocuments(documents: PipelineDocumentPayload[]): boolean {
-  return documents.some((document) => Array.isArray(document.sections) && document.sections.length > 0);
-}
-
 const DEFAULT_BACKEND_URL = 'http://localhost:8000/api';
 
 function backendUrl(path: string): string {
@@ -95,30 +91,8 @@ export async function analyzeData(
   dealInfo: DealInfo,
   context?: AnalysisRunContext
 ): Promise<AnalyzeResponse> {
-  const pipelineDocuments = context?.pipelineDocuments ?? [];
-  const clarifications = context?.clarifications ?? [];
-
-  if (hasUsablePipelineDocuments(pipelineDocuments)) {
-    const pipelineRes = await fetch(backendUrl('/pipeline'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        documents: pipelineDocuments,
-        asking_price: dealInfo.askingPrice,
-        business_type: dealInfo.businessType,
-        location: dealInfo.location,
-        analysis_id: context?.analysisId,
-        clarifications,
-        report_depth: 'summary',
-      }),
-    });
-
-    if (pipelineRes.ok) {
-      const report = await pipelineRes.json();
-      return { success: true, report };
-    }
-  }
-
+  // This function is only called for the deterministic (no-documents) path.
+  // When documents are present the caller uses startAnalysisJob instead.
   const legacyRes = await fetch(backendUrl('/analyze'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -491,6 +491,7 @@ class AnalysisJobProgress(CamelModel):
     message: str = "Analysis queued."
     progress: float = Field(0, ge=0, le=1)
     updated_at: str | None = None
+    completed_agents: list[str] = Field(default_factory=list)
 
 
 class AnalysisJobRecord(CamelModel):

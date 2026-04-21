@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import logging
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import get_settings
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -23,6 +28,28 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
+
+
+def _mask(key: str) -> str:
+    val = os.getenv(key)
+    if not val:
+        return "NOT SET ⚠️"
+    return f"{'*' * (len(val) - 4)}{val[-4:]}" if len(val) > 4 else "****"
+
+
+@app.on_event("startup")
+async def _log_startup() -> None:
+    logging.basicConfig(level=logging.INFO)
+    logger.info("BizBuy backend starting — environment=%s", settings.environment)
+    logger.info("  OPENROUTER_API_KEY  : %s", _mask("OPENROUTER_API_KEY"))
+    logger.info("  MISTRAL_API_KEY     : %s", _mask("MISTRAL_API_KEY"))
+    logger.info(
+        "  Pipeline: timeout=%ss  retries=%d  partial_failures=%s  synthesis=%s",
+        settings.pipeline_stage_timeout_seconds,
+        settings.pipeline_retry_attempts,
+        settings.pipeline_allow_partial_failures,
+        settings.pipeline_enable_synthesis,
+    )
 
 
 @app.get("/")

@@ -5,7 +5,7 @@ import os
 import time
 from typing import Any, Optional, Type, TypeVar
 
-from openai import OpenAI
+from openai import OpenAI, APIStatusError
 from pydantic import BaseModel, ValidationError
 
 from app.agents.registry import AgentConfig
@@ -15,6 +15,29 @@ T = TypeVar('T', bound=BaseModel)
 
 TOOL_NAME = "structured_output"
 MAX_RETRIES = 2
+
+# HTTP status codes that indicate a non-transient, non-retryable error.
+# Retrying these wastes API credits and time.
+_NON_RETRYABLE_STATUS_CODES = {
+    401: "auth_error",
+    402: "billing_error",
+    403: "auth_error",
+    404: "model_not_found",
+}
+
+
+def _classify_api_error(exc: Exception) -> tuple[str, bool]:
+    """Return (error_type, should_retry) for an API exception."""
+    if isinstance(exc, APIStatusError):
+        code = exc.status_code
+        if code in _NON_RETRYABLE_STATUS_CODES:
+            return _NON_RETRYABLE_STATUS_CODES[code], False
+        if code == 429:
+            return "rate_limit", True
+        if 500 <= code < 600:
+            return "server_error", True
+        return "api_error", False
+    return "api_error", True
 
 
 def to_error_payload(error: AgentError) -> AgentErrorPayload:
@@ -184,13 +207,14 @@ def call_agent(
                 return AgentResult(status="error", error=to_error_payload(error))
 
         except Exception as e:
+            error_type, should_retry = _classify_api_error(e)
             error = AgentError(
                 config.name,
-                "api",
+                error_type,
                 f"API call failed: {str(e)}",
                 attempt,
             )
-            if attempt < MAX_RETRIES:
+            if should_retry and attempt < MAX_RETRIES:
                 continue
             return AgentResult(status="error", error=to_error_payload(error))
 

@@ -75,6 +75,20 @@ from app.agents.schemas import (
 from app.services.ingestion_service import ingest_and_persist_document_payloads
 
 
+def _not_applicable_result(agent_name: str, message: str) -> AgentResult[Any]:
+    """Return a not_applicable result without calling the LLM."""
+    return AgentResult(
+        status="not_applicable",
+        error=AgentErrorPayload(
+            agent_name=agent_name,
+            error_type="not_applicable",
+            message=message,
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            retry_count=0,
+        ),
+    )
+
+
 def _relevant_sections(ingestion_output: IngestionOutput, document_types: set[str]) -> list:
     sections = []
     for doc in ingestion_output.documents:
@@ -949,7 +963,7 @@ def _bridge_ocr_to_document_info(
     )
 
 
-def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[IngestionOutput]:
+def run_document_ingestion(documents: list[dict[str, Any]], analysis_id: str | None = None) -> AgentResult[IngestionOutput]:
     if not documents:
         return AgentResult(
             status="success",
@@ -1009,7 +1023,7 @@ def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[Inges
 
     # Pre-sectioned documents (produced by /parse-documents step) — reuse as-is.
     if pre_sectioned_docs:
-        pre_output = ingest_and_persist_document_payloads(pre_sectioned_docs)
+        pre_output = ingest_and_persist_document_payloads(pre_sectioned_docs, analysis_id=analysis_id)
         all_document_infos.extend(pre_output.documents)
         all_warnings.extend(pre_output.metadata.warnings)
         if pre_output.metadata.ingestion_source:
@@ -1047,7 +1061,7 @@ def run_document_ingestion(documents: list[dict[str, Any]]) -> AgentResult[Inges
         all_document_infos.append(_bridge_ocr_to_document_info(result, doc))
 
     if structured_docs:
-        structured_output = ingest_and_persist_document_payloads(structured_docs)
+        structured_output = ingest_and_persist_document_payloads(structured_docs, analysis_id=analysis_id)
         all_document_infos.extend(structured_output.documents)
         all_warnings.extend(structured_output.metadata.warnings)
 
@@ -1078,6 +1092,11 @@ def run_financial_analysis(ingestion_output: IngestionOutput) -> AgentResult[Any
     relevant_doc_types = {"profit_and_loss", "balance_sheet", "cash_flow_statement", "sde_summary"}
     sections = _relevant_sections(ingestion_output, relevant_doc_types)
     metrics = compute_financial_metrics(sections)
+    if metrics["data_years_available"] == 0 and not sections:
+        return _not_applicable_result(
+            config.name,
+            "No financial documents (P&L, balance sheet, or cash flow) were found; financial analysis is not applicable.",
+        )
     warning = ""
     if metrics["data_years_available"] == 0:
         warning = (
@@ -1100,6 +1119,13 @@ def run_tax_compliance(ingestion_output: IngestionOutput) -> AgentResult[Any]:
     relevant_doc_types = {"tax_return_1120s", "tax_return_1040", "tax_return_schedule_c", "profit_and_loss"}
     metrics = compute_tax_metrics(_relevant_sections(ingestion_output, relevant_doc_types))
     if not metrics["has_tax_returns"]:
+        # If there are no tax returns AND no P&L to reconcile against, the agent has nothing useful to analyze.
+        has_pl = bool(_relevant_sections(ingestion_output, {"profit_and_loss"}))
+        if not has_pl:
+            return _not_applicable_result(
+                config.name,
+                "No tax returns or financial documents were found; tax compliance analysis is not applicable.",
+            )
         user_message = (
             "## Pre-Computed Tax Metrics\n"
             + json.dumps(metrics, indent=2, default=str)
@@ -1125,14 +1151,10 @@ def run_ar_collections(ingestion_output: IngestionOutput) -> AgentResult[Any]:
     relevant_doc_types = {"ar_aging_report", "profit_and_loss"}
     metrics = compute_ar_metrics(_relevant_sections(ingestion_output, relevant_doc_types))
     if not metrics["has_ar_data"]:
-        user_message = (
-            "## Pre-Computed AR Metrics\n"
-            + json.dumps(metrics, indent=2, default=str)
-            + "\n\n## Raw Extracted Data\n(No AR aging report found in the document package)\n\n"
-            + "WARNING: No AR aging report was provided. This may mean the business has no receivables or the diligence package is incomplete."
+        return _not_applicable_result(
+            config.name,
+            "No AR aging report was uploaded; AR collections analysis is not applicable.",
         )
-        result = call_agent(config, AR_COLLECTIONS_PROMPT, user_message, ARCollectionsOutput)
-        return _normalize_ar_output(ingestion_output, result, metrics)
 
     user_message = (
         "## Pre-Computed AR Metrics\n"
@@ -1147,6 +1169,18 @@ def run_ar_collections(ingestion_output: IngestionOutput) -> AgentResult[Any]:
 def run_customer_concentration(ingestion_output: IngestionOutput) -> AgentResult[Any]:
     config = AGENT_REGISTRY["customer-concentration"]
     metrics = compute_customer_metrics(ingestion_output)
+    # Only skip when neither customer list NOR contract documents are present at all.
+    # If docs exist but structured extraction returned no rows, the LLM can still
+    # analyze the raw text (customer lists are often unstructured PDFs).
+    has_customer_docs = any(
+        doc.document_type.value in {"customer_list", "contract"}
+        for doc in ingestion_output.documents
+    )
+    if not metrics["customers"] and not has_customer_docs:
+        return _not_applicable_result(
+            config.name,
+            "No customer list or contracts were uploaded; customer concentration analysis is not applicable.",
+        )
     user_message = (
         (
             "## Data Availability\nNo customer list was found in the provided documents. Customer concentration analysis cannot be fully performed.\n\n"
@@ -1163,14 +1197,13 @@ def run_customer_concentration(ingestion_output: IngestionOutput) -> AgentResult
 def run_ops_transferability(ingestion_output: IngestionOutput) -> AgentResult[Any]:
     config = AGENT_REGISTRY["operations-transferability"]
     metrics = compute_ops_metrics(ingestion_output)
-    user_message = (
-        (
-            "## Data Availability\nNo operational documents were found in the provided package. "
-            "Assess with low confidence and note the missing roster, insurance, equipment, or license data.\n\n"
-            if not metrics["has_operational_docs"]
-            else ""
+    if not metrics["has_operational_docs"]:
+        return _not_applicable_result(
+            config.name,
+            "No operational documents (employee roster, insurance, equipment list) were uploaded; operations transferability analysis is not applicable.",
         )
-        + "## Pre-Computed Operational Metrics\n"
+    user_message = (
+        "## Pre-Computed Operational Metrics\n"
         + json.dumps(metrics, indent=2, default=str)
         + "\n\n## Raw Document Data\n"
         + (_raw_text_summary(ingestion_output, {"employee_roster", "insurance_policy", "equipment_list", "other"}) or "No operational documents found")
@@ -1182,14 +1215,13 @@ def run_ops_transferability(ingestion_output: IngestionOutput) -> AgentResult[An
 def run_lease_contract(ingestion_output: IngestionOutput) -> AgentResult[Any]:
     config = AGENT_REGISTRY["lease-contract"]
     metrics = compute_lease_metrics(ingestion_output)
-    user_message = (
-        (
-            "## Data Availability\nNo lease or contract documents were found. "
-            "Treat the missing lease package as a material diligence risk and note the very low confidence.\n\n"
-            if not metrics["has_lease"] and not metrics["has_contracts"]
-            else ""
+    if not metrics["has_lease"] and not metrics["has_contracts"]:
+        return _not_applicable_result(
+            config.name,
+            "No lease agreement or contracts were uploaded; lease & contract analysis is not applicable.",
         )
-        + "## Pre-Computed Lease & Contract Metrics\n"
+    user_message = (
+        "## Pre-Computed Lease & Contract Metrics\n"
         + json.dumps(metrics, indent=2, default=str)
         + "\n\n## Raw Document Data\n"
         + (_raw_text_summary(ingestion_output, {"lease_agreement", "contract", "other"}) or "No lease or contracts found")

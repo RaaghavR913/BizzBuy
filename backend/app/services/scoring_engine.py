@@ -269,10 +269,20 @@ def _collect_missing_inputs(ingestion_output: IngestionOutput | None, envelope_m
     return list(deduped.values())
 
 
+def _applicable_weights(agent_results: Mapping[str, AgentResult[Any]]) -> dict[str, float]:
+    """Return AGENT_WEIGHTS filtered to only agents that are applicable (not not_applicable)."""
+    return {
+        agent_key: weight
+        for agent_key, weight in AGENT_WEIGHTS.items()
+        if not (agent_results.get(agent_key) and agent_results[agent_key].status == "not_applicable")
+    }
+
+
 def _base_risk_score(agent_results: Mapping[str, AgentResult[Any]]) -> float:
+    applicable_weights = _applicable_weights(agent_results)
     successful_weights = 0.0
     weighted_sum = 0.0
-    for agent_key, weight in AGENT_WEIGHTS.items():
+    for agent_key, weight in applicable_weights.items():
         score = _agent_score(agent_results.get(agent_key))
         if score is None:
             continue
@@ -357,12 +367,14 @@ def _compute_completeness_score(
     agent_results: Mapping[str, AgentResult[Any]],
     missing_inputs: list[MissingInput],
 ) -> float:
+    applicable = _applicable_weights(agent_results)
+    total_applicable_weight = sum(applicable.values())
     success_weight = sum(
-        AGENT_WEIGHTS[agent_key]
-        for agent_key in AGENT_WEIGHTS
+        weight
+        for agent_key, weight in applicable.items()
         if agent_results.get(agent_key) and agent_results[agent_key].status == "success"
     )
-    base = success_weight / sum(AGENT_WEIGHTS.values())
+    base = (success_weight / total_applicable_weight) if total_applicable_weight > 0 else 0.0
     required_missing = sum(1 for item in missing_inputs if item.required)
     optional_missing = len(missing_inputs) - required_missing
     failed_documents = len(ingestion_output.metadata.failed_documents) if ingestion_output is not None else 0
@@ -378,9 +390,10 @@ def _compute_confidence_score(
     missing_inputs: list[MissingInput],
     conflicts: list[ScoreConflict],
 ) -> float:
+    applicable = _applicable_weights(agent_results)
     weighted_confidence = 0.0
     total_weight = 0.0
-    for agent_key, weight in AGENT_WEIGHTS.items():
+    for agent_key, weight in applicable.items():
         envelope = _agent_envelope(agent_results.get(agent_key))
         if envelope is None or envelope.confidence is None:
             continue
@@ -410,7 +423,9 @@ def _build_technical_scorecards(agent_results: Mapping[str, AgentResult[Any]]) -
     for agent_key, display_name in AGENT_DISPLAY_NAMES.items():
         result = agent_results.get(agent_key)
         envelope = _agent_envelope(result)
-        if result and result.status == "success" and result.data:
+        if result and result.status == "not_applicable":
+            scorecards.append(TechnicalScorecard(name=display_name, recommendation="not_applicable"))
+        elif result and result.status == "success" and result.data:
             score = _agent_score(result)
             findings = list(envelope.findings) if envelope else []
             metrics = dict(envelope.normalized_metrics) if envelope else {}
@@ -432,6 +447,14 @@ def _build_buyer_facing_dimensions(agent_results: Mapping[str, AgentResult[Any]]
     dimensions: list[BuyerFacingDimension] = []
     for key, (label, primary_agent, supporting_agents) in BUYER_DIMENSION_GROUPS.items():
         agents = (primary_agent, *supporting_agents)
+        # If ALL agents for a dimension are not_applicable, mark the dimension accordingly.
+        all_not_applicable = all(
+            agent_results.get(agent_key) and agent_results[agent_key].status == "not_applicable"
+            for agent_key in agents
+        )
+        if all_not_applicable:
+            dimensions.append(BuyerFacingDimension(key=key, label=label, status="not_applicable", summary="No relevant documents were uploaded for this analysis area."))
+            continue
         scores = [score for score in (_agent_score(agent_results.get(agent_key)) for agent_key in agents) if score is not None]
         summaries = [summary for summary in (_agent_summary(agent_results.get(agent_key)) for agent_key in agents) if summary]
         available_count = sum(1 for agent_key in agents if agent_results.get(agent_key) and agent_results[agent_key].status == "success")

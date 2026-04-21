@@ -48,10 +48,10 @@ class Settings(BaseModel):
         True,
     )
     pipeline_enable_synthesis: bool = _parse_bool(os.getenv("BIZBUY_PIPELINE_ENABLE_SYNTHESIS"), True)
-    pipeline_retry_attempts: int = _parse_int(os.getenv("BIZBUY_PIPELINE_RETRY_ATTEMPTS"), 1)
+    pipeline_retry_attempts: int = _parse_int(os.getenv("BIZBUY_PIPELINE_RETRY_ATTEMPTS"), 0)
     pipeline_stage_timeout_seconds: float = _parse_float(
         os.getenv("BIZBUY_PIPELINE_STAGE_TIMEOUT_SECONDS"),
-        90.0,
+        240.0,
     )
     use_mistral_batch: bool = _parse_bool(os.getenv("USE_MISTRAL_BATCH"), False)
 

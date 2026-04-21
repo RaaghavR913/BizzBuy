@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict
@@ -9,6 +10,8 @@ from app.agents.registry import AGENT_REGISTRY
 from app.agents.schemas import (
     AgentErrorPayload,
     AgentResult,
+    DocumentType,
+    IngestionOutput,
     PipelineInput,
     PipelineMetadata,
     PipelineStageMetric,
@@ -30,6 +33,8 @@ from app.core.config import get_settings
 from app.services.clarification_service import build_clarification_evidence, store_clarification_answers
 from app.services.report_assembler import assemble_summary_report
 from app.services.scoring_engine import compute_pipeline_scorecard
+
+logger = logging.getLogger(__name__)
 
 MODEL_PRICING = {
     "z-ai/glm-5.1":     {"type": "per_token", "input": 0.95, "output": 3.15},
@@ -99,13 +104,14 @@ async def _run_in_executor(func, *args):
 
 
 def _emit_progress(
-    progress_callback: Callable[[str, str, float], None] | None,
+    progress_callback: Callable[[str, str, float, list[str]], None] | None,
     stage: str,
     message: str,
     progress: float,
+    completed_agents: list[str] | None = None,
 ) -> None:
     if progress_callback is not None:
-        progress_callback(stage, message, progress)
+        progress_callback(stage, message, progress, completed_agents or [])
 
 
 def _stage_metric(
@@ -182,7 +188,7 @@ async def _execute_stage(
         timeout_seconds=timeout_seconds,
         registry_key=registry_key,
     )
-    if final_result.status != "success" and stage_key not in metadata.partial_failures:
+    if final_result.status not in {"success", "skipped", "not_applicable"} and stage_key not in metadata.partial_failures:
         metadata.partial_failures.append(stage_key)
     return final_result
 
@@ -193,10 +199,75 @@ def _refresh_metadata_totals(metadata: PipelineMetadata) -> None:
     metadata.total_latency_ms = sum(metric.latency_ms for metric in metadata.stage_metrics.values())
 
 
+def _detected_doc_types(ingestion_output: IngestionOutput) -> set[str]:
+    """Return the set of document type values present in the ingestion output."""
+    return {doc.document_type.value for doc in ingestion_output.documents}
+
+
+# Maps each specialist key to the document types that make it applicable.
+# market_macro is always applicable (uses all docs for context).
+_AGENT_REQUIRED_DOC_TYPES: dict[str, set[str]] = {
+    "financial_analysis": {
+        DocumentType.PROFIT_AND_LOSS.value,
+        DocumentType.BALANCE_SHEET.value,
+        DocumentType.CASH_FLOW_STATEMENT.value,
+        "sde_summary",
+    },
+    "tax_compliance": {
+        DocumentType.TAX_RETURN_1120S.value,
+        DocumentType.TAX_RETURN_1040.value,
+        DocumentType.TAX_RETURN_SCHEDULE_C.value,
+        # P&L is also used by tax for reconciliation — include it so the agent
+        # can flag the absence of actual tax returns.
+        DocumentType.PROFIT_AND_LOSS.value,
+    },
+    "ar_collections": {
+        DocumentType.AR_AGING_REPORT.value,
+    },
+    "customer_concentration": {
+        DocumentType.CUSTOMER_LIST.value,
+        DocumentType.CONTRACT.value,
+    },
+    "operations_transferability": {
+        DocumentType.EMPLOYEE_ROSTER.value,
+        DocumentType.INSURANCE_POLICY.value,
+        DocumentType.EQUIPMENT_LIST.value,
+    },
+    "lease_contract": {
+        DocumentType.LEASE_AGREEMENT.value,
+        DocumentType.CONTRACT.value,
+    },
+    # market_macro is intentionally absent — it always runs.
+}
+
+_NOT_APPLICABLE_MESSAGES: dict[str, str] = {
+    "financial_analysis": "No financial documents (P&L, balance sheet, cash flow) were uploaded; financial analysis is not applicable.",
+    "tax_compliance": "No tax return or financial documents were uploaded; tax compliance analysis is not applicable.",
+    "ar_collections": "No AR aging report was uploaded; AR collections analysis is not applicable.",
+    "customer_concentration": "No customer list or contracts were uploaded; customer concentration analysis is not applicable.",
+    "operations_transferability": "No operational documents (employee roster, insurance, equipment list) were uploaded; operations analysis is not applicable.",
+    "lease_contract": "No lease agreement or contracts were uploaded; lease & contract analysis is not applicable.",
+}
+
+
+def _make_not_applicable(agent_key: str) -> AgentResult[Any]:
+    return AgentResult(
+        status="not_applicable",
+        error=AgentErrorPayload(
+            agent_name=agent_key,
+            error_type="not_applicable",
+            message=_NOT_APPLICABLE_MESSAGES.get(agent_key, f"{agent_key} is not applicable to the uploaded documents."),
+            timestamp=_timestamp(),
+            retry_count=0,
+        ),
+    )
+
+
 def _specialist_specs(
-    ingestion_output: Any,
+    ingestion_output: IngestionOutput,
     pipeline_input: PipelineInput,
 ) -> list[tuple[str, str, Any, tuple[Any, ...]]]:
+    """Return all specialist specs; routing is handled in _tracked_specialist via applicable_keys."""
     return [
         ("financial_analysis", "financial-analysis", run_financial_analysis, (ingestion_output,)),
         ("tax_compliance", "tax-compliance", run_tax_compliance, (ingestion_output,)),
@@ -213,9 +284,18 @@ def _specialist_specs(
     ]
 
 
+def _applicable_specialist_keys(detected_doc_types: set[str]) -> set[str]:
+    """Return the set of specialist keys that have at least one relevant document present."""
+    applicable: set[str] = {"market_macro"}  # always applicable
+    for agent_key, required_types in _AGENT_REQUIRED_DOC_TYPES.items():
+        if required_types & detected_doc_types:
+            applicable.add(agent_key)
+    return applicable
+
+
 async def run_pipeline(
     payload: Dict[str, Any],
-    progress_callback: Callable[[str, str, float], None] | None = None,
+    progress_callback: Callable[[str, str, float, list[str]], None] | None = None,
 ) -> Dict[str, Any]:
     settings = get_settings()
     pipeline_started = time.perf_counter()
@@ -247,17 +327,24 @@ async def run_pipeline(
         analysis_id=pipeline_input.analysis_id,
     )
 
+    logger.info(
+        "Pipeline started: analysis_id=%s docs=%d",
+        pipeline_input.analysis_id,
+        len(pipeline_input.documents),
+    )
+
     _emit_progress(progress_callback, "ingestion", "Ingesting uploaded documents.", 0.12)
     state.ingestion = await _execute_stage(
         stage_key="ingestion",
         registry_key="document-ingestion",
         func=run_document_ingestion,
-        args=(pipeline_input.documents,),
+        args=(pipeline_input.documents, pipeline_input.analysis_id),
         metadata=state.metadata,
         timeout_seconds=settings.pipeline_stage_timeout_seconds,
         retry_attempts=settings.pipeline_retry_attempts,
     )
     if state.ingestion.status != "success" or not state.ingestion.data:
+        logger.warning("Pipeline aborted at ingestion: analysis_id=%s", pipeline_input.analysis_id)
         abort = _make_abort_error("Pipeline aborted: document ingestion failed.")
         state.financial_analysis = abort
         state.tax_compliance = abort
@@ -279,6 +366,7 @@ async def run_pipeline(
             analysis_id=pipeline_input.analysis_id,
             clarification_evidence=clarification_evidence,
             include_deep_review=(pipeline_input.report_depth == "deep"),
+            deterministic_fallback=None,
         ).model_dump(mode="json", by_alias=True)
 
     ingestion_output = state.ingestion.data
@@ -286,19 +374,78 @@ async def run_pipeline(
     if pipeline_input.analysis_id and pipeline_input.clarifications:
         store_clarification_answers(pipeline_input.analysis_id, pipeline_input.clarifications)
 
+    # ── Smart agent routing ──────────────────────────────────────────────────────
+    # Determine which specialists are relevant given the uploaded document types.
+    detected_doc_types = _detected_doc_types(ingestion_output)
+    applicable_keys = _applicable_specialist_keys(detected_doc_types)
+    logger.info(
+        "Detected doc types: %s | Applicable agents: %s | analysis_id=%s",
+        sorted(detected_doc_types),
+        sorted(applicable_keys),
+        pipeline_input.analysis_id,
+    )
+
+    # ── Specialist agents (parallel) ────────────────────────────────────────────
+    # Track each completion to emit per-agent progress with a shared list.
+    _completed_agents: list[str] = []
+    _total_applicable = len(applicable_keys)
+
+    async def _tracked_specialist(
+        stage_key: str,
+        registry_key: str,
+        func: Any,
+        args: tuple[Any, ...],
+    ) -> AgentResult[Any]:
+        # Skip agents not applicable to the uploaded documents.
+        if stage_key not in applicable_keys:
+            result = _make_not_applicable(stage_key)
+            state.metadata.stage_metrics[stage_key] = _stage_metric(
+                result=result,
+                attempts=0,
+                timeout_seconds=settings.pipeline_stage_timeout_seconds,
+                registry_key=registry_key,
+            )
+            logger.info(
+                "Specialist skipped (not applicable): %s analysis_id=%s",
+                stage_key,
+                pipeline_input.analysis_id,
+            )
+            return result
+
+        result = await _execute_stage(
+            stage_key=stage_key,
+            registry_key=registry_key,
+            func=func,
+            args=args,
+            metadata=state.metadata,
+            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            retry_attempts=settings.pipeline_retry_attempts,
+        )
+        _completed_agents.append(stage_key)
+        label = stage_key.replace("_", " ").title()
+        prog = 0.28 + 0.50 * len(_completed_agents) / max(_total_applicable, 1)
+        logger.info(
+            "Specialist complete: %s (%d/%d) status=%s analysis_id=%s",
+            stage_key,
+            len(_completed_agents),
+            _total_applicable,
+            result.status,
+            pipeline_input.analysis_id,
+        )
+        _emit_progress(
+            progress_callback,
+            f"specialist.{stage_key}",
+            f"{label} complete.",
+            round(prog, 2),
+            list(_completed_agents),
+        )
+        return result
+
     _emit_progress(progress_callback, "specialist_analysis", "Running specialist analysis agents.", 0.42)
     specialist_specs = _specialist_specs(ingestion_output, pipeline_input)
     specialist_results = await asyncio.gather(
         *[
-            _execute_stage(
-                stage_key=stage_key,
-                registry_key=registry_key,
-                func=func,
-                args=args,
-                metadata=state.metadata,
-                timeout_seconds=settings.pipeline_stage_timeout_seconds,
-                retry_attempts=settings.pipeline_retry_attempts,
-            )
+            _tracked_specialist(stage_key, registry_key, func, args)
             for stage_key, registry_key, func, args in specialist_specs
         ]
     )
@@ -313,9 +460,15 @@ async def run_pipeline(
         state.market_macro,
     ) = specialist_results
 
-    _emit_progress(progress_callback, "specialist_analysis_complete", "Specialist analysis completed.", 0.78)
+    _emit_progress(
+        progress_callback,
+        "specialist_analysis_complete",
+        "Specialist analysis completed.",
+        0.78,
+        list(_completed_agents),
+    )
     if state.financial_analysis.status == "success" and state.financial_analysis.data:
-        _emit_progress(progress_callback, "lending", "Computing lending affordability.", 0.86)
+        _emit_progress(progress_callback, "lending", "Computing lending affordability.", 0.86, list(_completed_agents))
         state.lending_affordability = await _execute_stage(
             stage_key="lending_affordability",
             registry_key="lending-affordability",
@@ -353,10 +506,104 @@ async def run_pipeline(
         "lending_affordability": state.lending_affordability,
     }
 
-    _emit_progress(progress_callback, "scoring", "Building the deterministic scorecard.", 0.92)
+    # ── Determine if any applicable specialist succeeded ─────────────────────────
+    applicable_successes = [
+        k for k, r in specialist_results_map.items()
+        if k in applicable_keys and r.status == "success"
+    ]
+    all_applicable_failed = len(applicable_successes) == 0
+
+    _emit_progress(progress_callback, "scoring", "Building the deterministic scorecard.", 0.92, list(_completed_agents))
     state.scorecard = compute_pipeline_scorecard(ingestion_output, specialist_results_map)
 
-    if not settings.pipeline_allow_partial_failures and state.metadata.partial_failures:
+    # ── Deterministic fallback: when every applicable LLM agent failed, extract ──
+    # financial data directly from the parsed ingestion output so the user still
+    # sees meaningful numbers (margins, SDE, DSCR, working capital, scenarios).
+    _deterministic_fallback_report = None
+    if all_applicable_failed:
+        try:
+            from app.services.financial_data_extractor import extract_financial_data
+            from app.services.analysis_service import run_analysis
+            from app.models.schemas import (
+                FinancialData,
+                QuestionnaireData,
+                DealInfo,
+                OwnerDependenceAnswers,
+                CustomerConcentrationAnswers,
+                RevenueQualityAnswers,
+                EmployeeRiskAnswers,
+                SupplierRiskAnswers,
+                FinancialRiskAnswers,
+            )
+
+            extracted = extract_financial_data(ingestion_output)
+            if extracted.income_statement is not None or extracted.balance_sheet is not None:
+                financial_data = FinancialData(
+                    income_statement=extracted.income_statement,
+                    balance_sheet=extracted.balance_sheet,
+                    loan_terms=extracted.loan_terms,
+                    cash_flow=extracted.cash_flow,
+                )
+                questionnaire = QuestionnaireData(
+                    owner_dependence=OwnerDependenceAnswers(),
+                    customer_concentration=CustomerConcentrationAnswers(),
+                    revenue_quality=RevenueQualityAnswers(),
+                    employee_risk=EmployeeRiskAnswers(),
+                    supplier_risk=SupplierRiskAnswers(),
+                    financial_risk=FinancialRiskAnswers(),
+                )
+                deal_info = DealInfo(
+                    asking_price=pipeline_input.asking_price or 0,
+                    business_type=pipeline_input.business_type or "small_business",
+                )
+                _deterministic_fallback_report = run_analysis(financial_data, questionnaire, deal_info)
+                logger.info(
+                    "Deterministic fallback activated: analysis_id=%s extracted_income=%s",
+                    pipeline_input.analysis_id,
+                    extracted.income_statement is not None,
+                )
+        except Exception as _fb_err:
+            logger.warning("Deterministic fallback failed: %s", _fb_err)
+
+    # ── Save a partial report now (before synthesis) so polling clients can ──
+    # render whatever is already available while synthesis runs.
+    if pipeline_input.analysis_id:
+        try:
+            from app.services.analysis_repository import get_analysis_artifact_repository
+            _partial = assemble_summary_report(
+                ingestion_output=ingestion_output,
+                agent_results=specialist_results_map,
+                scorecard=state.scorecard,
+                synthesis_result=None,
+                metadata=state.metadata,
+                analysis_id=pipeline_input.analysis_id,
+                clarification_evidence=clarification_evidence,
+                include_deep_review=False,
+                deterministic_fallback=_deterministic_fallback_report,
+            ).model_dump(mode="json", by_alias=True)
+            get_analysis_artifact_repository().save_analysis_report(pipeline_input.analysis_id, _partial)
+            logger.info("Partial report saved: analysis_id=%s", pipeline_input.analysis_id)
+        except Exception as _e:
+            logger.warning("Could not save partial report: %s", _e)
+
+    # ── Synthesis guard: skip synthesis when no applicable agent succeeded ───────
+    if all_applicable_failed:
+        state.synthesis_report = _make_agent_error(
+            agent_name="synthesis_report",
+            error_type="skipped",
+            message="Synthesis skipped: no applicable specialist agents completed successfully.",
+            retry_count=0,
+            status="skipped",
+        )
+        state.metadata.stage_metrics["synthesis_report"] = _stage_metric(
+            result=state.synthesis_report,
+            attempts=0,
+            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            registry_key="synthesis-report",
+        )
+        if "synthesis_report" not in state.metadata.partial_failures:
+            state.metadata.partial_failures.append("synthesis_report")
+    elif not settings.pipeline_allow_partial_failures and state.metadata.partial_failures:
         state.synthesis_report = _make_agent_error(
             agent_name="synthesis_report",
             error_type="rollout_guard",
@@ -389,7 +636,7 @@ async def run_pipeline(
         if "synthesis_report" not in state.metadata.partial_failures:
             state.metadata.partial_failures.append("synthesis_report")
     else:
-        _emit_progress(progress_callback, "synthesis", "Assembling the final report.", 0.97)
+        _emit_progress(progress_callback, "synthesis", "Assembling the final report.", 0.97, list(_completed_agents))
         state.synthesis_report = await _execute_stage(
             stage_key="synthesis_report",
             registry_key="synthesis-report",
@@ -408,9 +655,18 @@ async def run_pipeline(
     )
 
     if state.metadata.partial_failures:
-        _emit_progress(progress_callback, "completed_with_warnings", "Analysis completed with partial failures.", 1.0)
+        _emit_progress(progress_callback, "completed_with_warnings", "Analysis completed with partial failures.", 1.0, list(_completed_agents))
     else:
-        _emit_progress(progress_callback, "completed", "Analysis complete.", 1.0)
+        _emit_progress(progress_callback, "completed", "Analysis complete.", 1.0, list(_completed_agents))
+
+    total_ms = int((time.perf_counter() - pipeline_started) * 1000)
+    logger.info(
+        "Pipeline complete: analysis_id=%s elapsed_ms=%d partial_failures=%d applicable_successes=%d",
+        pipeline_input.analysis_id,
+        total_ms,
+        len(state.metadata.partial_failures),
+        len(applicable_successes),
+    )
 
     return assemble_summary_report(
         ingestion_output=ingestion_output,
@@ -421,4 +677,5 @@ async def run_pipeline(
         analysis_id=pipeline_input.analysis_id,
         clarification_evidence=clarification_evidence,
         include_deep_review=(pipeline_input.report_depth == "deep"),
+        deterministic_fallback=_deterministic_fallback_report,
     ).model_dump(mode="json", by_alias=True)

@@ -370,6 +370,7 @@ def _overview(
     synthesis_output: SynthesisReportOutput | None,
     ingestion_output: IngestionOutput | None,
     envelopes: list[AgentEnvelope],
+    agent_results: Mapping[str, AgentResult[Any]] | None = None,
 ) -> str:
     if synthesis_output and synthesis_output.executive_summary:
         return synthesis_output.executive_summary
@@ -379,10 +380,27 @@ def _overview(
     recommendation = scorecard.overall_recommendation or "analysis_pending"
     risk_score = scorecard.overall_risk_score
     completeness = scorecard.completeness_score
+
+    not_applicable_count = 0
+    if agent_results:
+        not_applicable_count = sum(
+            1 for r in agent_results.values() if r and r.status == "not_applicable"
+        )
+
+    agent_summary = ""
+    if completed:
+        agent_summary = f" {completed} specialist analyses contributed to this summary."
+        if not_applicable_count:
+            agent_summary += f" {not_applicable_count} agents were not applicable to the uploaded documents."
+    elif not_applicable_count:
+        agent_summary = f" No specialist analyses were applicable to the uploaded document set; {not_applicable_count} agents were skipped."
+    else:
+        agent_summary = " No specialist analyses completed successfully."
+
     return (
         f"Pipeline completed with recommendation '{recommendation}'"
         + (f" at risk score {risk_score}." if risk_score is not None else ".")
-        + (f" {completed} specialist analyses contributed to this summary." if completed else " No specialist analyses completed successfully.")
+        + agent_summary
         + (f" The package included {total_docs} documents." if total_docs else "")
         + (f" Completeness score is {completeness:.2f}." if completeness is not None else "")
     )
@@ -405,6 +423,7 @@ def assemble_summary_report(
     analysis_id: str | None = None,
     clarification_evidence: list[EvidenceReference] | None = None,
     include_deep_review: bool = False,
+    deterministic_fallback: Any | None = None,
 ) -> ReportOutputV2:
     synthesis_output = None
     if synthesis_result and synthesis_result.status == "success" and synthesis_result.data:
@@ -428,11 +447,22 @@ def assemble_summary_report(
         else datetime.now(timezone.utc).isoformat()
     )
 
+    # Use deterministic fallback headline/overview when all LLM agents failed
+    # but we still have parsed financial data.
+    fallback_headline = None
+    fallback_overview = None
+    if deterministic_fallback is not None and not envelopes:
+        try:
+            fallback_headline = deterministic_fallback.final_recommendation or None
+            fallback_overview = deterministic_fallback.executive_summary or None
+        except AttributeError:
+            pass
+
     payload = {
         "modeAvailable": {"summary": True, "deep": include_deep_review},
         "summary": {
-            "headline": _headline(scorecard),
-            "overview": _overview(scorecard, synthesis_output, ingestion_output, envelopes),
+            "headline": fallback_headline or _headline(scorecard),
+            "overview": fallback_overview or _overview(scorecard, synthesis_output, ingestion_output, envelopes, agent_results),
             "keyFindings": [finding.model_dump(mode="json", by_alias=True) for finding in _summary_findings(scorecard, synthesis_output)],
             "recommendedActions": _recommended_actions(scorecard, synthesis_output, missing_inputs),
         },

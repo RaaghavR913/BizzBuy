@@ -50,10 +50,12 @@ def _persist_job(
     error: str | None = None,
     started_at: str | None = None,
     completed_at: str | None = None,
+    completed_agents: list[str] | None = None,
 ) -> AnalysisJobRecord:
     existing = repository.load_analysis_job(analysis_id)
     timestamp = _now_iso()
     created_at = existing.created_at if existing else timestamp
+    prev_agents = existing.progress.completed_agents if existing else []
     job = AnalysisJobRecord(
         analysis_id=analysis_id,
         status=status,  # type: ignore[arg-type]
@@ -66,6 +68,7 @@ def _persist_job(
             message=message,
             progress=progress,
             updated_at=timestamp,
+            completed_agents=completed_agents if completed_agents is not None else prev_agents,
         ),
         error=error,
     )
@@ -73,7 +76,14 @@ def _persist_job(
     return job
 
 
-def _update_progress(repository: AnalysisArtifactRepository, analysis_id: str, stage: str, message: str, progress: float) -> None:
+def _update_progress(
+    repository: AnalysisArtifactRepository,
+    analysis_id: str,
+    stage: str,
+    message: str,
+    progress: float,
+    completed_agents: list[str] | None = None,
+) -> None:
     existing = repository.load_analysis_job(analysis_id)
     started_at = existing.started_at if existing else _now_iso()
     _persist_job(
@@ -84,6 +94,7 @@ def _update_progress(repository: AnalysisArtifactRepository, analysis_id: str, s
         stage=stage,
         message=message,
         started_at=started_at,
+        completed_agents=completed_agents,
     )
 
 
@@ -102,18 +113,36 @@ def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactR
 
     try:
         if payload.documents:
-            report = asyncio.run(
-                run_pipeline(
-                    payload.model_dump(mode="json", by_alias=True),
-                    progress_callback=lambda stage, message, progress: _update_progress(
-                        repository,
-                        analysis_id,
-                        stage,
-                        message,
-                        progress,
-                    ),
-                )
+            # Use a manually managed event loop so we can abandon timed-out agent
+            # threads without blocking. asyncio.run() calls shutdown_default_executor()
+            # which waits indefinitely for any lingering executor threads (e.g. agent
+            # HTTP requests that exceeded the stage timeout). By shutting down the
+            # executor with wait=False we let those threads finish in the background
+            # and return immediately so the job status can be flipped to "completed".
+            _pipeline_executor = ThreadPoolExecutor(
+                max_workers=20,
+                thread_name_prefix=f"agents-{analysis_id[:8]}",
             )
+            _loop = asyncio.new_event_loop()
+            _loop.set_default_executor(_pipeline_executor)
+            try:
+                report = _loop.run_until_complete(
+                    run_pipeline(
+                        payload.model_dump(mode="json", by_alias=True),
+                        progress_callback=lambda stage, message, progress, completed_agents=None: _update_progress(
+                            repository,
+                            analysis_id,
+                            stage,
+                            message,
+                            progress,
+                            completed_agents=completed_agents,
+                        ),
+                    )
+                )
+            finally:
+                # Abandon any agent threads still waiting on HTTP — do not block.
+                _pipeline_executor.shutdown(wait=False)
+                _loop.close()
         else:
             if not payload.financials or not payload.questionnaire or not payload.deal_info:
                 raise ValueError("Structured analysis requires financials, questionnaire, and deal info.")
@@ -123,6 +152,12 @@ def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactR
             report = report_model.model_dump(mode="json", by_alias=True)
 
         repository.save_analysis_report(analysis_id, report)
+        # Verify the report was actually persisted before marking the job completed.
+        if repository.load_analysis_report(analysis_id) is None:
+            raise RuntimeError(
+                f"analysis_report.json was not readable after save for {analysis_id}. "
+                "The job cannot be marked completed."
+            )
         job = _persist_job(
             repository,
             analysis_id,
@@ -203,5 +238,7 @@ def get_analysis_job(
     if job is None:
         return None
 
-    report = artifact_repository.load_analysis_report(analysis_id) if job.status == "completed" else None
+    # Serve the report whenever it exists on disk (partial or complete).
+    # The frontend renders whatever sections are populated and shows skeletons for the rest.
+    report = artifact_repository.load_analysis_report(analysis_id)
     return _build_response(job, report=report)

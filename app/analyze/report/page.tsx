@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAnalysis } from '@/context/AnalysisContext';
 import { DeepReview } from '@/components/report/DeepReview';
 import { ReportHeader } from '@/components/report/ReportHeader';
@@ -14,8 +14,9 @@ import { SellerQuestions } from '@/components/report/SellerQuestions';
 import { DiligenceChecklist } from '@/components/report/DiligenceChecklist';
 import { UpsideOpportunities } from '@/components/report/UpsideOpportunities';
 import { FinalRecommendation } from '@/components/report/FinalRecommendation';
+import { ReportSkeleton } from '@/components/report/ReportSkeleton';
 import { isReportOutputV2, normalizeReportOutput } from '@/lib/report-normalization';
-import { Loader2, AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
 
 const SUMMARY_SECTIONS = [
   { id: 'executive-summary', label: 'Executive Summary' },
@@ -29,26 +30,37 @@ const SUMMARY_SECTIONS = [
   { id: 'final-recommendation', label: 'Recommendation' },
 ];
 
-export default function ReportPage() {
+function ReportPageInner() {
   const router = useRouter();
-  const { state, setStep, reset } = useAnalysis();
+  const searchParams = useSearchParams();
+  const { state, setStep, setAnalysisId, setLoading, reset } = useAnalysis();
   const [showDeepReview, setShowDeepReview] = useState(false);
 
   useEffect(() => {
     setStep(4);
   }, [setStep]);
 
-  if (state.isLoading) {
-    const progressPercent = state.analysisJob ? Math.round(state.analysisJob.progress.progress * 100) : null;
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-accent" />
-        <p className="text-t-secondary font-medium">{state.loadingMessage || 'Generating your report...'}</p>
-        <p className="text-sm text-t-muted">
-          {progressPercent !== null ? `${progressPercent}% complete` : 'This usually takes 30-60 seconds'}
-        </p>
-      </div>
-    );
+  // Rehydrate analysisId from URL query param so polling works after refresh or link share.
+  useEffect(() => {
+    const aid = searchParams.get('aid');
+    if (aid && aid !== state.analysisId) {
+      setAnalysisId(aid);
+      setLoading(true, 'Resuming analysis…');
+    }
+  }, [searchParams, state.analysisId, setAnalysisId, setLoading]);
+
+  // Show the skeleton while a job is in flight (loading) or while we have an analysisId
+  // but no report yet (covers the case where isLoading was cleared early).
+  const jobInFlight =
+    state.isLoading ||
+    (Boolean(state.analysisId) &&
+      !state.report &&
+      (!state.analysisJob?.status ||
+        state.analysisJob.status === 'queued' ||
+        state.analysisJob.status === 'running'));
+
+  if (jobInFlight && !state.error) {
+    return <ReportSkeleton job={state.analysisJob} />;
   }
 
   if (state.error) {
@@ -175,5 +187,14 @@ export default function ReportPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap in Suspense so useSearchParams doesn't block the page boundary.
+export default function ReportPage() {
+  return (
+    <Suspense fallback={<ReportSkeleton job={null} />}>
+      <ReportPageInner />
+    </Suspense>
   );
 }

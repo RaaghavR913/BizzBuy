@@ -191,11 +191,16 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [state]);
 
   useEffect(() => {
+    // Poll whenever we have an analysisId and haven't yet received a final report.
+    // This intentionally does NOT require isLoading=true so polling resumes
+    // after a page refresh or new-tab navigation.
+    const isTerminal =
+      analysisJobStatus === 'completed' || analysisJobStatus === 'failed';
+
     const shouldPoll =
       Boolean(state.analysisId) &&
-      Boolean(state.isLoading) &&
       !state.report &&
-      (!analysisJobStatus || analysisJobStatus === 'queued' || analysisJobStatus === 'running');
+      (!analysisJobStatus || !isTerminal);
 
     if (!shouldPoll || !state.analysisId) {
       return;
@@ -203,8 +208,22 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let completedNullRetried = false;
+    const startedAt = Date.now();
+    const HARD_CAP_MS = 5 * 60 * 1000; // 5 min
 
     const poll = async () => {
+      // Hard cap: stop after 5 minutes and surface an error.
+      if (Date.now() - startedAt > HARD_CAP_MS) {
+        if (!cancelled) {
+          dispatch({
+            type: 'SET_ERROR',
+            payload: 'Analysis is taking longer than expected. Please retry or start a new analysis.',
+          });
+        }
+        return;
+      }
+
       try {
         const job = await getAnalysisJob(state.analysisId!);
         if (cancelled) {
@@ -220,15 +239,33 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
           },
         });
 
-        if (job.status === 'completed' && job.report) {
-          dispatch({ type: 'SET_REPORT', payload: job.report });
-          dispatch({ type: 'SET_STEP', payload: 4 });
+        if (job.status === 'completed') {
+          if (job.report) {
+            dispatch({ type: 'SET_REPORT', payload: job.report });
+            dispatch({ type: 'SET_STEP', payload: 4 });
+            return;
+          }
+          // Completed but no report: one retry before surfacing error.
+          if (!completedNullRetried) {
+            completedNullRetried = true;
+            timeoutId = setTimeout(poll, 1500);
+            return;
+          }
+          dispatch({
+            type: 'SET_ERROR',
+            payload: 'Report artifacts are missing — please start a new analysis.',
+          });
           return;
         }
 
         if (job.status === 'failed') {
           dispatch({ type: 'SET_ERROR', payload: job.error || 'Analysis failed. Please try again.' });
           return;
+        }
+
+        // Render partial report if the backend has already saved one mid-run.
+        if (job.report && !state.report) {
+          dispatch({ type: 'SET_REPORT', payload: job.report });
         }
 
         timeoutId = setTimeout(poll, 1500);
@@ -248,7 +285,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(timeoutId);
       }
     };
-  }, [analysisJobStatus, state.analysisId, state.isLoading, state.report]);
+  }, [analysisJobStatus, state.analysisId, state.report]);
 
   return (
     <AnalysisContext.Provider
