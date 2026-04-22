@@ -38,7 +38,7 @@ interface FileDropZoneProps {
 function getFileIcon(file: File) {
   if (file.type === 'application/pdf') return <FileText className="w-5 h-5 text-red-400" />;
   // eslint-disable-next-line jsx-a11y/alt-text
-  if (file.type.startsWith('image/')) return <Image className="w-5 h-5 text-blue-400" aria-hidden="true" />;
+  if (file.type.startsWith('image/')) return <Image className="w-5 h-5 text-accent" aria-hidden="true" />;
   if (file.type.includes('csv') || file.name.endsWith('.csv')) return <FileSpreadsheet className="w-5 h-5 text-green-400" />;
   if (file.type.includes('spreadsheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls'))
     return <FileSpreadsheet className="w-5 h-5 text-green-400" />;
@@ -57,7 +57,7 @@ function StatusIndicator({ status }: { status: ClassificationStatus }) {
       return <span className="text-xs text-t-muted">Queued</span>;
     case 'uploading':
       return (
-        <span className="flex items-center gap-1.5 text-xs text-blue-400">
+        <span className="flex items-center gap-1.5 text-xs text-accent">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
           Uploading
         </span>

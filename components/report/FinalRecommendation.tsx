@@ -83,7 +83,7 @@ export function FinalRecommendation({ report }: { report: ReportOutput }) {
         <div className="space-y-2">
           {finalRecommendation.nextSteps.map((step, i) => (
             <div key={i} className="flex items-start gap-3 text-sm text-t-secondary">
-              <div className="w-5 h-5 rounded-full bg-accent text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
                 {i + 1}
               </div>
               {step}

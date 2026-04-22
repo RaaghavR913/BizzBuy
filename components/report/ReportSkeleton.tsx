@@ -84,7 +84,7 @@ export function ReportSkeleton({ job }: ReportSkeletonProps) {
               <span className="text-sm font-medium text-white truncate">{message}</span>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
-              <span className="text-xs text-t-muted font-mono">{elapsed}</span>
+              <span className="text-xs text-t-muted font-sans">{elapsed}</span>
               <span className="text-xs font-semibold text-accent">{progressPercent}%</span>
             </div>
           </div>

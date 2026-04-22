@@ -10,6 +10,7 @@ import { useAnalysis } from '@/context/AnalysisContext';
 import { ingestDocuments, parseDocuments } from '@/lib/api-client';
 import { DEMO_FINANCIAL_DATA } from '@/lib/demo-data';
 import type { ClassifiedFileResult, FinancialData } from '@/lib/types';
+import { AnimatedButton } from '@/components/ui/animated-button';
 
 /**
  * Pair each local file row with a classification by original name and size.
@@ -181,11 +182,11 @@ function UploadContent() {
   return (
     <div className="animate-fade-in-up">
       <div className="mb-8">
-        <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1 text-xs text-accent font-medium mb-3">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 text-sm text-emerald-400 font-semibold uppercase tracking-wider mb-4">
           Step 1 of 4
         </div>
-        <h1 className="text-2xl font-sans tracking-tight font-bold text-white mb-2">Upload Your Documents</h1>
-        <p className="text-t-secondary">
+        <h1 className="text-4xl font-display font-extrabold tracking-tight text-white mb-3">Upload Your Documents</h1>
+        <p className="text-t-secondary text-lg max-w-xl">
           Upload the business&apos;s financial documents. AI will automatically detect what each
           document is — no manual labeling needed.
         </p>
@@ -237,41 +238,39 @@ function UploadContent() {
 
       <div className="mt-8 flex flex-col gap-3">
         {!isClassified ? (
-          <button
+          <AnimatedButton
             onClick={handleClassify}
             disabled={!canClassify || state.isLoading}
-            className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
-          >
-            {isClassifying ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Classifying documents...
-              </>
-            ) : (
-              <>
-                Upload & Classify
-                <ChevronRight className="w-5 h-5" />
-              </>
-            )}
-          </button>
+            variant="emerald"
+            className="w-full flex-1 justify-center"
+            text={
+              isClassifying ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Classifying documents...
+                </span>
+              ) : (
+                "Upload & Classify"
+              )
+            }
+          />
         ) : (
-          <button
+          <AnimatedButton
             onClick={handleContinue}
             disabled={state.isLoading}
-            className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-raised disabled:text-t-muted disabled:cursor-not-allowed text-white px-6 py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:shadow-accent/20"
-          >
-            {state.isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                {state.loadingMessage || 'Processing...'}
-              </>
-            ) : (
-              <>
-                Continue with these classifications
-                <ChevronRight className="w-5 h-5" />
-              </>
-            )}
-          </button>
+            variant="emerald"
+            className="w-full flex-1 justify-center"
+            text={
+              state.isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {state.loadingMessage || 'Processing...'}
+                </span>
+              ) : (
+                "Continue with these classifications"
+              )
+            }
+          />
         )}
 
         <button
@@ -286,7 +285,7 @@ function UploadContent() {
         <button
           onClick={handleDemo}
           disabled={state.isLoading || isClassifying}
-          className="w-full flex items-center justify-center gap-2 text-accent hover:text-accent-hover border border-accent/20 hover:border-accent/30 bg-accent/5 px-6 py-3 rounded-xl font-medium transition-all text-sm"
+          className="w-full flex items-center justify-center gap-2 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 px-6 py-3 rounded-xl font-medium transition-all text-sm"
         >
           <Zap className="w-4 h-4" />
           Load Demo — Sunny&apos;s HVAC Services

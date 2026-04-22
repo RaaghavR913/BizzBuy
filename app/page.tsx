@@ -7,13 +7,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TiltedCard } from '@/components/ui/tilted-card';
 import { SplitText } from '@/components/ui/split-text';
 import { BlurText } from '@/components/ui/blur-text';
+import { AnimatedButton } from '@/components/ui/animated-button';
+import '@/components/ui/ai-badge.css';
 
 export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero */}
       <section className="relative min-h-[90vh] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="hero-grid absolute inset-0" />
         <div className="absolute inset-0 bg-gradient-to-b from-accent/[0.04] via-transparent to-transparent" />
         <motion.div 
           initial={{ opacity: 0, y: 50 }}
@@ -21,13 +22,13 @@ export default function HomePage() {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-4xl mx-auto text-center relative"
         >
-          <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-4 py-1.5 text-sm text-accent mb-8">
+          <div className="ai-badge mb-8">
             <BarChart3 className="w-3.5 h-3.5" />
-            AI-Powered Acquisition Diligence
+            <span>AI-Powered Acquisition Diligence</span>
           </div>
-          <h1 className="font-sans text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1] text-white">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
             The Carfax for{' '}
-            <span className="bg-gradient-to-r from-accent via-orange-400 to-amber-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-accent via-yellow-500 to-yellow-200 bg-clip-text text-transparent">
               Buying a Business
             </span>
           </h1>
@@ -35,13 +36,7 @@ export default function HomePage() {
             <BlurText text="Upload your financials. Answer a few questions. Get a plain-language acquisition report — affordability, risk, and transferability analysis in minutes." delay={0.02} />
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/analyze/upload"
-              className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200 shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5"
-            >
-              Analyze a Business
-              <ArrowRight className="w-5 h-5" />
-            </Link>
+            <AnimatedButton href="/analyze/upload" text="Analyze a Business" />
             <Link
               href="/analyze/upload?demo=true"
               className="inline-flex items-center justify-center gap-2 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-200"
@@ -55,12 +50,6 @@ export default function HomePage() {
           </p>
         </motion.div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/20 rounded-full flex items-start justify-center p-1.5">
-            <div className="w-1.5 h-3 bg-accent/60 rounded-full" />
-          </div>
-        </div>
       </section>
 
       {/* Trust Ticker */}
@@ -89,7 +78,7 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               <SplitText text="Not every profitable business is an acquirable business." delay={0.03} />
             </h2>
             <p className="text-lg text-t-secondary max-w-2xl mx-auto">
@@ -129,7 +118,7 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="flex justify-center w-full mb-12"
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-white text-center">
+            <h2 className="text-3xl sm:text-4xl font-bold text-center">
               <SplitText text="From documents to decision in 5 steps" delay={0.04} />
             </h2>
           </motion.div>
@@ -155,7 +144,7 @@ export default function HomePage() {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                   className="flex-1 flex justify-center"
                 >
-                  <TimelineNode {...step} index={i} />
+                  <TimelineNode {...step} />
                 </motion.div>
              ))}
           </div>
@@ -261,13 +250,7 @@ export default function HomePage() {
           <p className="text-lg text-t-secondary mb-8">
             Upload your financials and get a complete acquisition risk report in under 2 minutes.
           </p>
-          <Link
-            href="/analyze/upload"
-            className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all shadow-lg shadow-accent/20 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5"
-          >
-            Start Your Analysis
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+          <AnimatedButton href="/analyze/upload" text="Start Your Analysis" />
         </motion.div>
       </section>
     </div>
@@ -396,7 +379,7 @@ function LoginCard() {
   );
 }
 
-function TimelineNode({ step, title, desc, index }: { step: string, title: string, desc: string, index: number }) {
+function TimelineNode({ step, title, desc }: { step: string, title: string, desc: string }) {
   const [isHovered, setIsHovered] = useState(false);
   
   return (

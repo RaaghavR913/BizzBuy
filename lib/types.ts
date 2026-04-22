@@ -184,7 +184,7 @@ export type CanonicalAgentName =
   | 'lending_affordability'
   | 'synthesis_report';
 
-export type AgentExecutionStatus = 'success' | 'partial' | 'failed' | 'skipped';
+
 
 export type FindingCategory =
   | 'earnings_quality'
@@ -295,18 +295,7 @@ export interface NormalizedFinding {
   missingData: boolean;
 }
 
-export interface AgentEnvelope {
-  agentName: CanonicalAgentName;
-  status: AgentExecutionStatus;
-  summary?: string;
-  confidence?: number;
-  overallScore?: number;
-  normalizedMetrics: Record<string, NormalizedMetric>;
-  findings: NormalizedFinding[];
-  missingInputs: MissingInput[];
-  evidence: EvidenceReference[];
-  rawDomainOutput?: Record<string, unknown>;
-}
+
 
 export interface BuyerFacingDimension {
   key: string;

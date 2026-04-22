@@ -14,7 +14,7 @@ import {
 } from '@/lib/clarification-service';
 import type { ClarificationQuestion } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { BlurText } from '@/components/ui/blur-text';
+import { AnimatedButton } from '@/components/ui/animated-button';
 
 type ResponseValue = string | number | boolean | null;
 
@@ -238,11 +238,11 @@ export default function QuestionsPage() {
   return (
     <div className="animate-fade-in-up">
       <div className="mb-6">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-sm font-semibold uppercase tracking-wider text-emerald-400">
           Step 3 of 4
         </div>
-        <h1 className="mb-2 text-2xl font-display font-bold text-white">Targeted Clarifications</h1>
-        <p className="max-w-2xl text-sm text-t-secondary">
+        <h1 className="mb-3 text-4xl font-display font-extrabold tracking-tight text-white">Targeted Clarifications</h1>
+        <p className="max-w-2xl text-lg text-t-secondary">
           We only ask for follow-ups where the uploaded package leaves a meaningful gap. Your answers are stored as supplemental evidence and do not outweigh the documents by default.
         </p>
       </div>
@@ -293,32 +293,22 @@ export default function QuestionsPage() {
         </div>
       ) : null}
 
-      <div className="mt-6 flex gap-3">
-        <button
+      <div className="mt-8 flex flex-col-reverse gap-4 sm:flex-row sm:justify-between">
+        <AnimatedButton
           onClick={() => router.push('/analyze/review')}
-          className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-surface px-5 py-3 text-sm font-medium text-t-secondary transition-all hover:border-white/[0.15] hover:text-white"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Review
-        </button>
+          variant="danger"
+          direction="back"
+          text="Back to Review"
+          className="!hidden sm:!flex"
+        />
 
-        <button
+        <AnimatedButton
           onClick={handleGenerate}
           disabled={state.isLoading}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 font-semibold text-white transition-all hover:bg-accent-hover disabled:cursor-not-allowed disabled:bg-raised disabled:text-t-muted"
-        >
-          {state.isLoading ? (
-            <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              {state.loadingMessage || 'Generating report...'}
-            </>
-          ) : (
-            <>
-              Generate Report
-              <ChevronRight className="h-5 w-5" />
-            </>
-          )}
-        </button>
+          variant="emerald"
+          className="w-full sm:flex-1 justify-center"
+          text="Generate Report"
+        />
       </div>
     </div>
   );

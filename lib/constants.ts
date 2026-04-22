@@ -1,60 +1,3 @@
-export const RISK_WEIGHTS = {
-  ownerDependence: 0.25,
-  customerConcentration: 0.2,
-  revenueQuality: 0.2,
-  employeeRisk: 0.15,
-  supplierRisk: 0.1,
-  financialRisk: 0.1,
-};
-
-export const RISK_THRESHOLDS = {
-  dscr: {
-    critical: 1.0,
-    warning: 1.25,
-    good: 1.5,
-    excellent: 2.0,
-  },
-  valuationMultiple: {
-    attractive: 2.0,
-    market: 3.5,
-    premium: 4.5,
-  },
-  addBacksPercent: 30,
-  topCustomerConcentration: 30,
-  top5Concentration: 70,
-  recurringRevenueMin: 20,
-};
-
-export const RISK_SCORE_COLORS = {
-  low: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300', hex: '#10b981' },
-  moderate: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-300', hex: '#f59e0b' },
-  high: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-300', hex: '#f97316' },
-  veryHigh: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', hex: '#ef4444' },
-};
-
-export const RECOMMENDATION_COLORS = {
-  proceed: { bg: 'bg-emerald-600', text: 'text-white', label: 'Proceed' },
-  proceed_with_caution: { bg: 'bg-yellow-500', text: 'text-white', label: 'Proceed with Caution' },
-  walk_away: { bg: 'bg-red-600', text: 'text-white', label: 'Walk Away' },
-};
-
-export const BUSINESS_TYPES = [
-  { value: 'home_services', label: 'Home Services (HVAC, Plumbing, Electrical)' },
-  { value: 'restaurant', label: 'Restaurant / Food & Beverage' },
-  { value: 'retail', label: 'Retail Store' },
-  { value: 'ecommerce', label: 'E-Commerce' },
-  { value: 'professional_services', label: 'Professional Services (Consulting, Accounting)' },
-  { value: 'healthcare', label: 'Healthcare / Medical Practice' },
-  { value: 'auto_services', label: 'Auto Services / Car Repair' },
-  { value: 'fitness', label: 'Fitness / Gym' },
-  { value: 'childcare', label: 'Childcare / Education' },
-  { value: 'manufacturing', label: 'Manufacturing / Production' },
-  { value: 'distribution', label: 'Distribution / Logistics' },
-  { value: 'construction', label: 'Construction / Contracting' },
-  { value: 'technology', label: 'Technology / Software / SaaS' },
-  { value: 'franchise', label: 'Franchise' },
-  { value: 'other', label: 'Other' },
-];
 
 export const CANONICAL_DOCUMENT_TYPES = [
   // Financial Statements
@@ -100,14 +43,7 @@ export const CANONICAL_DOCUMENT_TYPES = [
   { value: 'unknown',                    label: 'Unknown',                                         group: 'Other' },
 ] as const;
 
-// Legacy upload options remain in place until the pipeline-first document flow is switched over.
-export const DOCUMENT_TYPES = [
-  { value: 'income_statement', label: 'Income Statement / P&L' },
-  { value: 'balance_sheet', label: 'Balance Sheet' },
-  { value: 'cash_flow', label: 'Cash Flow Statement' },
-  { value: 'loan_terms', label: 'Loan Term Sheet / Offer Letter' },
-  { value: 'tax_return', label: 'Tax Return (Schedule C / Business)' },
-];
+
 
 export const ANALYSIS_VERSION = '1.0.0';
 

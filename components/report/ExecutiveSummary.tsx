@@ -11,7 +11,7 @@ export function ExecutiveSummary({ report }: { report: ReportOutput }) {
     <section id="executive-summary" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-4">
       <h2 className="text-xl font-display font-bold text-white">1. Executive Summary</h2>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col items-center gap-1 bg-raised rounded-xl p-4 min-w-[120px]">
           <ScoreBadge score={executiveSummary.riskScore} label="" size="lg" type="risk" />
           <span className="text-xs text-t-muted font-medium">Acquisition Risk</span>

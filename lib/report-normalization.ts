@@ -280,7 +280,7 @@ function buildUpsideOpportunities(report: ReportOutputV2): ReportOutput['upsideO
     opportunities.push({
       opportunity: `Preserve strength in ${scorecard.name}`,
       estimatedImpact: `Technical score: ${(scorecard.score ?? 0).toFixed(1)}/10`,
-      difficulty: 'easy',
+      difficulty: 'moderate',
       detail: scorecard.recommendation
         ? `Current recommendation: ${scorecard.recommendation.replace(/_/g, ' ')}.`
         : 'This specialist area scored well in the pipeline output.',
@@ -349,7 +349,6 @@ function buildDebtService(report: ReportOutputV2): ReportOutput['debtServiceAnal
   const annualDebtService = dscr > 0 ? adjustedSde / dscr : 0;
   const monthlyDebtService = annualDebtService / 12;
   const bankability = findDimension(report.scorecard.buyerFacingDimensions, 'bankability');
-  const bankabilityScore = clamp(Math.round((bankability?.score ?? 0) * 10), 0, 100);
   const askingPrice = metricNumber(metrics.asking_price) ?? 0;
   const totalCashNeeded = metricNumber(metrics.total_cash_needed) ?? askingPrice;
 

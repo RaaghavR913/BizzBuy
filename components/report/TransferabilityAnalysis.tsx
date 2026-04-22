@@ -17,7 +17,7 @@ export function TransferabilityAnalysis({ report }: { report: ReportOutput }) {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-display font-bold text-white">5. Transferability Analysis</h2>
         <div className="flex items-center gap-2">
-          <span className={cn('text-2xl font-black font-mono', scoreColor)}>
+          <span className={cn('text-2xl font-black font-sans', scoreColor)}>
             {transferabilityAnalysis.score}/100
           </span>
           <span className="text-sm text-t-muted">— {executiveSummary.transferabilityLabel}</span>

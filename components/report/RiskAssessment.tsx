@@ -69,7 +69,7 @@ export function RiskAssessment({ report }: { report: ReportOutput }) {
         <div className="flex items-center gap-2">
           <span className="text-sm text-t-muted">Overall Score:</span>
           <span className={cn(
-            'text-lg font-black font-mono',
+            'text-lg font-black font-sans',
             riskAssessment.overallScore <= 35 ? 'text-emerald-400' :
             riskAssessment.overallScore <= 65 ? 'text-yellow-400' :
             riskAssessment.overallScore <= 80 ? 'text-orange-400' : 'text-red-400'
@@ -93,7 +93,7 @@ export function RiskAssessment({ report }: { report: ReportOutput }) {
               fillOpacity={0.15}
             />
             <Tooltip
-              formatter={(value) => [`${value}/10`, 'Risk Score']}
+              formatter={(value) => [`${Number(value).toFixed(1)}/10`, 'Risk Score']}
               contentStyle={{ backgroundColor: 'hsl(228 22% 10%)', border: '1px solid hsl(0 0% 100% / 0.08)', borderRadius: '8px', color: 'hsl(228 40% 96%)' }}
             />
           </RadarChart>

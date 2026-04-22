@@ -1,7 +1,5 @@
 import type {
   AnalysisJobSnapshot,
-  AgentId,
-  AgentOutput,
   AnyReportOutput,
   ClarificationAnswer,
   DealInfo,
@@ -10,12 +8,9 @@ import type {
   PipelineDocumentPayload,
   QuestionnaireData,
   ReportOutput,
-  SharedContext,
 } from './types';
 
-export type { AgentId, AgentOutput, FinancialData, QuestionnaireData, DealInfo, ReportOutput, SharedContext };
-
-export interface ParseDocumentsResponse {
+interface ParseDocumentsResponse {
   success: boolean;
   extractedData: FinancialData;
   analysisId?: string;
@@ -23,13 +18,13 @@ export interface ParseDocumentsResponse {
   error?: string;
 }
 
-export interface AnalyzeResponse {
+interface AnalyzeResponse {
   success: boolean;
   report: AnyReportOutput;
   error?: string;
 }
 
-export interface AnalysisRunContext {
+interface AnalysisRunContext {
   analysisId?: string | null;
   pipelineDocuments?: PipelineDocumentPayload[];
   clarifications?: ClarificationAnswer[];
@@ -89,7 +84,7 @@ export async function analyzeData(
   financials: FinancialData,
   questionnaire: QuestionnaireData,
   dealInfo: DealInfo,
-  context?: AnalysisRunContext
+  _context?: AnalysisRunContext
 ): Promise<AnalyzeResponse> {
   // This function is only called for the deterministic (no-documents) path.
   // When documents are present the caller uses startAnalysisJob instead.

@@ -3,6 +3,7 @@
 import type { ReportOutput } from '@/lib/types';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { AnimatedCheckbox } from '@/components/report/AnimatedCheckbox';
 
 const PRIORITY_CONFIG = {
   critical: { label: 'Critical', bg: 'bg-red-500/5', border: 'border-red-500/20', text: 'text-red-400', badge: 'bg-red-500/10 text-red-400 border-red-500/20' },
@@ -38,7 +39,7 @@ export function DiligenceChecklist({ report }: { report: ReportOutput }) {
     <section id="diligence-checklist" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-5">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-xl font-display font-bold text-white">7. Due Diligence Checklist</h2>
-        <span className="text-sm text-t-muted font-mono">{done}/{total} completed</span>
+        <span className="text-sm text-t-muted font-sans">{done}/{total} completed</span>
       </div>
       <div className="h-1.5 bg-raised rounded-full overflow-hidden">
         <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${(done / total) * 100}%` }} />
@@ -69,11 +70,8 @@ export function DiligenceChecklist({ report }: { report: ReportOutput }) {
                       isChecked ? 'opacity-50' : ''
                     )}
                   >
-                    <div className={cn(
-                      'w-4 h-4 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-all',
-                      isChecked ? 'bg-accent border-accent' : 'border-t-muted bg-transparent'
-                    )}>
-                      {isChecked && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                    <div className="flex-shrink-0 mt-0.5 pointer-events-none">
+                      <AnimatedCheckbox checked={isChecked} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn('text-sm font-medium', isChecked ? 'line-through text-t-muted' : 'text-t-secondary')}>{item.item}</p>

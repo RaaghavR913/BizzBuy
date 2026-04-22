@@ -23,25 +23,25 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300',
+                  'w-14 h-14 rounded-full flex items-center justify-center text-base font-bold transition-all duration-300',
                   step.number < currentStep
-                    ? 'bg-accent/20 text-accent'
+                    ? 'bg-emerald-500/20 text-emerald-400'
                     : step.number === currentStep
-                    ? 'bg-accent text-white ring-4 ring-accent/20 shadow-lg shadow-accent/20'
+                    ? 'bg-emerald-500 text-white ring-4 ring-emerald-500/20 shadow-lg shadow-emerald-500/20'
                     : 'bg-raised text-t-muted border border-white/[0.08]'
                 )}
               >
                 {step.number < currentStep ? (
-                  <Check className="w-4 h-4" />
+                  <Check className="w-5 h-5" />
                 ) : (
                   step.number
                 )}
               </div>
               <span
                 className={cn(
-                  'text-xs mt-2 font-medium transition-colors',
+                  'text-sm mt-2.5 font-semibold transition-colors',
                   step.number === currentStep
-                    ? 'text-accent'
+                    ? 'text-emerald-400'
                     : step.number < currentStep
                     ? 'text-t-secondary'
                     : 'text-t-muted'
@@ -51,13 +51,13 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
               </span>
             </div>
             {index < STEPS.length - 1 && (
-              <div className="relative h-0.5 w-16 sm:w-24 mx-3 mb-5 rounded-full overflow-hidden bg-raised">
+              <div className="relative h-0.5 w-20 sm:w-32 mx-4 mb-6 rounded-full overflow-hidden bg-raised">
                 <div
                   className={cn(
                     'absolute inset-y-0 left-0 rounded-full transition-all duration-500 ease-out',
                     step.number < currentStep
-                      ? 'w-full bg-accent'
-                      : 'w-0 bg-accent'
+                      ? 'w-full bg-emerald-500'
+                      : 'w-0 bg-emerald-500'
                   )}
                 />
               </div>

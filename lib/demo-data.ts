@@ -1,4 +1,4 @@
-import type { FinancialData, QuestionnaireData, DealInfo } from './types';
+import type { FinancialData } from './types';
 
 export const DEMO_FINANCIAL_DATA: FinancialData = {
   incomeStatement: {
@@ -49,48 +49,3 @@ export const DEMO_FINANCIAL_DATA: FinancialData = {
   dataCompleteness: 0.85,
 };
 
-export const DEMO_QUESTIONNAIRE: QuestionnaireData = {
-  ownerDependence: {
-    ownerSalesPercentage: 70,
-    ownerInvolvement: 'full_time',
-    ownerHoldsRelationships: true,
-    survives90DayAbsence: 'unlikely',
-  },
-  customerConcentration: {
-    topCustomerRevenuePercent: 22,
-    top5CustomersRevenuePercent: 58,
-    contractType: 'mixed',
-    averageCustomerTenure: '1_to_3_years',
-  },
-  revenueQuality: {
-    recurringRevenuePercent: 35,
-    projectBasedPercent: 65,
-    revenueTrend: 'growing',
-    knownUpcomingLosses: false,
-  },
-  employeeRisk: {
-    totalEmployees: 8,
-    missionCriticalEmployees: 2,
-    hasSOPs: false,
-    hasManagementLayer: false,
-  },
-  supplierRisk: {
-    singleSupplierOver30Pct: false,
-    supplierAgreementsDocumented: true,
-    exclusiveVendorRelationships: false,
-  },
-  financialRisk: {
-    hasAddBacks: true,
-    addBacksExceed30Pct: false,
-    pendingLiabilities: false,
-  },
-};
-
-export const DEMO_DEAL_INFO: DealInfo = {
-  askingPrice: 750000,
-  businessType: 'home_services',
-  yearsInOperation: 12,
-  reasonForSale: 'retirement',
-  location: 'Phoenix, AZ',
-  industry: 'HVAC Services',
-};

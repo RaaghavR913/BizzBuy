@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SpotlightCard } from '@/components/ui/spotlight-card';
 import { ShinyText } from '@/components/ui/shiny-text';
+import { AnimatedButton } from '@/components/ui/animated-button';
 import type { FinancialData, IncomeStatement, BalanceSheet, LoanTerms, AddBack } from '@/lib/types';
 import { formatCurrency } from '@/lib/calculations';
 
@@ -26,32 +27,113 @@ function NumericInput({
   hint?: string;
   prefix?: string;
 }) {
-  const [raw, setRaw] = useState(value?.toString() ?? '');
+  const formatValue = (v: number | null | undefined) => {
+    if (v == null || isNaN(v)) return '';
+    return v.toLocaleString('en-US');
+  };
+
+  const [raw, setRaw] = useState(formatValue(value));
 
   useEffect(() => {
-    setRaw(value?.toString() ?? '');
+    const currentNum = parseFloat(raw.replace(/,/g, ''));
+    if (value !== currentNum && !(value == null && raw === '')) {
+      setRaw(formatValue(value));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const stringVal = e.target.value;
+    const cleanStr = stringVal.replace(/[^0-9.-]/g, '');
+    
+    if (cleanStr === '' || cleanStr === '-' || cleanStr === '.' || cleanStr === '-.') {
+      setRaw(stringVal);
+      onChange(null);
+      return;
+    }
+    
+    const num = parseFloat(cleanStr);
+    const parts = cleanStr.split('.');
+    
+    if (parts[0]) {
+       parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
+    }
+    const displayVal = parts.length > 1 ? parts.join('.') : parts[0];
+    
+    setRaw(displayVal);
+    onChange(num);
+  };
 
   return (
     <div className="space-y-1.5">
       <Label className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">{label}</Label>
       <div className="relative group">
         {prefix && (
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-blue-400 transition-colors z-10">{prefix}</span>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium group-focus-within:text-accent transition-colors z-10">{prefix}</span>
         )}
         <Input
-          type="number"
+          type="text"
+          inputMode="decimal"
           value={raw}
-          onChange={(e) => {
-            setRaw(e.target.value);
-            const num = parseFloat(e.target.value);
-            onChange(isNaN(num) ? null : num);
-          }}
-          className={`h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white placeholder:text-slate-500 focus:bg-white/[0.06] focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 shadow-inner rounded-xl transition-all duration-200 ${prefix ? 'pl-8' : 'pl-4'}`}
-          placeholder="0.00"
+          onChange={handleChange}
+          className={`h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white placeholder:text-slate-500 focus:bg-white/[0.06] focus:ring-2 focus:ring-accent/40 focus:border-accent/50 shadow-inner rounded-xl transition-all duration-200 ${prefix ? 'pl-8' : 'pl-4'}`}
+          placeholder="0"
         />
       </div>
       {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+function AddBackAmountInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const formatValue = (v: number) => {
+    if (isNaN(v) || v === 0) return '';
+    return v.toLocaleString('en-US');
+  };
+
+  const [raw, setRaw] = useState(formatValue(value));
+
+  useEffect(() => {
+    const currentNum = parseFloat(raw.replace(/,/g, ''));
+    if (value !== currentNum && !(value === 0 && raw === '')) {
+      setRaw(formatValue(value));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const stringVal = e.target.value;
+    const cleanStr = stringVal.replace(/[^0-9.-]/g, '');
+    
+    if (cleanStr === '' || cleanStr === '-' || cleanStr === '.' || cleanStr === '-.') {
+      setRaw(stringVal);
+      onChange(0);
+      return;
+    }
+    
+    const num = parseFloat(cleanStr);
+    const parts = cleanStr.split('.');
+    
+    if (parts[0]) {
+       parts[0] = parseInt(parts[0], 10).toLocaleString('en-US');
+    }
+    const displayVal = parts.length > 1 ? parts.join('.') : parts[0];
+    
+    setRaw(displayVal);
+    onChange(num);
+  };
+
+  return (
+    <div className="relative w-full sm:w-40">
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
+      <Input
+        type="text"
+        inputMode="decimal"
+        value={raw}
+        onChange={handleChange}
+        className="pl-8 h-11 w-full bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-lg transition-all"
+        placeholder="Amount"
+      />
     </div>
   );
 }
@@ -171,11 +253,11 @@ export default function ReviewPage() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto w-full pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="max-w-6xl mx-auto w-full pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Header Section */}
       <div className="mb-10 text-center space-y-4">
-        <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 rounded-full px-4 py-1.5 text-xs text-blue-400 font-semibold uppercase tracking-wider backdrop-blur-sm">
+        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-4 py-1.5 text-sm text-emerald-400 font-semibold uppercase tracking-wider backdrop-blur-sm">
           <Calculator className="w-4 h-4" />
           Step 2 of 4
         </div>
@@ -201,15 +283,15 @@ export default function ReviewPage() {
       {/* Main Tabs UI */}
       <Tabs defaultValue="income" className="flex flex-col space-y-8 w-full">
         <TabsList className="flex flex-row flex-wrap w-full bg-white/[0.03] p-1.5 rounded-2xl border border-white/10 shadow-inner overflow-hidden">
-          <TabsTrigger value="income" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Income</TabsTrigger>
-          <TabsTrigger value="balance" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Balance Sheet</TabsTrigger>
-          <TabsTrigger value="loan" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Loan Terms</TabsTrigger>
-          <TabsTrigger value="deal" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Deal Info</TabsTrigger>
+          <TabsTrigger value="income" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-accent data-[state=active]:to-yellow-600 data-[state=active]:text-black data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Income</TabsTrigger>
+          <TabsTrigger value="balance" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-accent data-[state=active]:to-yellow-600 data-[state=active]:text-black data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Balance Sheet</TabsTrigger>
+          <TabsTrigger value="loan" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-accent data-[state=active]:to-yellow-600 data-[state=active]:text-black data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Loan Terms</TabsTrigger>
+          <TabsTrigger value="deal" className="flex-1 rounded-xl text-slate-400 data-[state=active]:bg-gradient-to-br data-[state=active]:from-accent data-[state=active]:to-yellow-600 data-[state=active]:text-black data-[state=active]:shadow-lg py-3 text-sm font-bold transition-all">Deal Info</TabsTrigger>
         </TabsList>
 
         <SpotlightCard className="p-8">
           {/* Subtle accent glow */}
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-accent/10 rounded-full blur-3xl pointer-events-none"></div>
 
           {/* Income Statement */}
           <TabsContent value="income" className="space-y-8 m-0 w-full animate-in fade-in zoom-in-95 duration-300">
@@ -232,14 +314,14 @@ export default function ReviewPage() {
             <div className="pt-6 border-t border-white/10 space-y-4">
               <div className="flex items-center justify-between">
                 <h4 className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">Add-Backs</h4>
-                <button onClick={addAddBack} className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors font-semibold px-3 py-1.5 hover:bg-blue-500/10 rounded-lg">
+                <button onClick={addAddBack} className="text-sm text-accent hover:text-yellow-400 flex items-center gap-1.5 transition-colors font-semibold px-3 py-1.5 hover:bg-accent/10 rounded-lg">
                   <Plus className="w-4 h-4" /> Add Add-back
                 </button>
               </div>
               
               {(!data.incomeStatement?.addBacks || data.incomeStatement.addBacks.length === 0) && (
                 <div className="text-center py-6 bg-white/[0.02] border border-dashed border-white/10 rounded-xl text-slate-500 text-sm">
-                  No add-backs specified. Click "Add Add-back" to include one.
+                  No add-backs specified. Click &quot;Add Add-back&quot; to include one.
                 </div>
               )}
 
@@ -252,16 +334,10 @@ export default function ReviewPage() {
                       onChange={(e) => updateAddBack(i, { description: e.target.value })}
                       className="flex-1 h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white placeholder:text-slate-500 focus:bg-white/[0.06] rounded-lg transition-all"
                     />
-                    <div className="relative w-full sm:w-40">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
-                      <Input
-                        type="number"
-                        value={ab.amount}
-                        onChange={(e) => updateAddBack(i, { amount: parseFloat(e.target.value) || 0 })}
-                        className="pl-8 h-11 w-full bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-lg transition-all"
-                        placeholder="Amount"
-                      />
-                    </div>
+                    <AddBackAmountInput 
+                      value={ab.amount}
+                      onChange={(val) => updateAddBack(i, { amount: val })}
+                    />
                     <button onClick={() => removeAddBack(i)} className="p-3 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all" title="Remove">
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -271,12 +347,12 @@ export default function ReviewPage() {
             </div>
 
             {data.incomeStatement?.revenue && data.incomeStatement.revenue > 0 && (
-              <div className="bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/30 rounded-xl p-5 flex items-start gap-4">
-                <div className="bg-blue-500/20 p-2.5 rounded-lg text-blue-400">
+              <div className="bg-gradient-to-r from-yellow-900/40 to-yellow-800/40 border border-accent/30 rounded-xl p-5 flex items-start gap-4">
+                <div className="bg-accent/20 p-2.5 rounded-lg text-accent">
                   <Calculator className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-sm text-slate-300 font-medium mb-1">Estimated SDE (Seller\'s Discretionary Earnings)</div>
+                  <div className="text-sm text-slate-300 font-medium mb-1">Estimated SDE (Seller&apos;s Discretionary Earnings)</div>
                   <div className="text-2xl font-bold text-white tracking-tight">
                     {formatCurrency(
                       (data.incomeStatement.netIncome ?? 0) +
@@ -355,7 +431,7 @@ export default function ReviewPage() {
               <div className="space-y-1.5">
                 <Label className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">Business Type</Label>
                 <Select value={businessType} onValueChange={(v) => setBusinessType(v ?? '')}>
-                  <SelectTrigger className="h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-xl focus:ring-2 focus:ring-blue-500/40">
+                  <SelectTrigger className="h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-xl focus:ring-2 focus:ring-accent/40">
                     <SelectValue placeholder="Select industry..." />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-white/10 text-white rounded-xl backdrop-blur-xl">
@@ -368,7 +444,7 @@ export default function ReviewPage() {
               <div className="space-y-1.5">
                 <Label className="text-[13px] font-semibold text-slate-200 tracking-wide uppercase">Reason for Sale</Label>
                 <Select value={reasonForSale} onValueChange={(v) => setReasonForSale(v ?? '')}>
-                  <SelectTrigger className="h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-xl focus:ring-2 focus:ring-blue-500/40">
+                  <SelectTrigger className="h-11 bg-white/[0.04] border-white/10 hover:border-white/20 text-white rounded-xl focus:ring-2 focus:ring-accent/40">
                     <SelectValue placeholder="Select reason..." />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-white/10 text-white rounded-xl backdrop-blur-xl">
@@ -384,21 +460,20 @@ export default function ReviewPage() {
       </Tabs>
 
       <div className="mt-10 flex flex-col sm:flex-row gap-4 items-center w-full">
-        <button
+        <AnimatedButton
           onClick={() => router.push('/analyze/upload')}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] text-slate-300 hover:text-white px-6 py-4 rounded-2xl font-medium transition-all text-sm shadow-sm"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Back
-        </button>
-        <button
+          variant="danger"
+          direction="back"
+          text="Back"
+          className="w-full sm:w-auto"
+        />
+        <AnimatedButton
           onClick={handleContinue}
           disabled={!hasIncomeData}
-          className="w-full sm:flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-blue-900/20 hover:shadow-blue-900/40 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
-        >
-          Continue to Risk Assessment
-          <ChevronRight className="w-6 h-6" />
-        </button>
+          variant="emerald"
+          text="Continue to Risk Assessment"
+          className="w-full sm:flex-1 justify-center"
+        />
       </div>
       {!hasIncomeData && (
         <p className="text-center text-sm font-medium text-slate-400 mt-6 animate-pulse">

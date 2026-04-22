@@ -2,6 +2,7 @@
 
 import React, { useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import Image from 'next/image';
 
 interface TiltedCardProps {
   children: React.ReactNode;
@@ -60,10 +61,11 @@ export function TiltedCard({ children, className = '', imageSrc, rotationIntensi
         style={{ transform: 'translateZ(20px)' }}
       />
       {imageSrc && (
-        <img
+        <Image
           src={imageSrc}
           alt="Card background"
-          className="absolute inset-0 w-full h-full object-cover rounded-2xl opacity-40 mix-blend-overlay pointer-events-none"
+          fill
+          className="object-cover rounded-2xl opacity-40 mix-blend-overlay pointer-events-none"
         />
       )}
       <div 

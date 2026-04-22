@@ -1,0 +1,97 @@
+.checkbox-container {
+  display: flex;
+  gap: 20px;
+  padding: 10px;
+  background: transparent;
+  border-radius: 12px;
+}
+
+.ios-checkbox {
+  --checkbox-size: 22px;
+  --checkbox-color: #D4AF37;
+  --checkbox-bg: rgba(212, 175, 55, 0.2);
+  --checkbox-border: rgba(212, 175, 55, 0.4);
+
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-checkbox input {
+  display: none;
+}
+
+.checkbox-wrapper {
+  position: relative;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  border-radius: 7px;
+  transition: transform 0.2s ease;
+}
+
+.checkbox-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 7px;
+  border: 2px solid var(--checkbox-border);
+  background: rgba(255, 255, 255, 0.05); /* Slight glassy bg for dark mode */
+  transition: all 0.2s ease;
+}
+
+.checkbox-icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 75%;
+  height: 75%;
+  color: #000; /* Black check mark for the Gold fill */
+  transform: scale(0);
+  transition: all 0.2s ease;
+}
+
+.check-path {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  transition: stroke-dashoffset 0.3s ease 0.1s;
+}
+
+/* Checked State */
+.ios-checkbox input:checked + .checkbox-wrapper .checkbox-bg {
+  background: var(--checkbox-color);
+  border-color: var(--checkbox-color);
+}
+
+.ios-checkbox input:checked + .checkbox-wrapper .checkbox-icon {
+  transform: scale(1);
+}
+
+.ios-checkbox input:checked + .checkbox-wrapper .check-path {
+  stroke-dashoffset: 0;
+}
+
+/* Hover Effects */
+.ios-checkbox:hover .checkbox-wrapper {
+  transform: scale(1.08);
+}
+
+/* Active Animation */
+.ios-checkbox:active .checkbox-wrapper {
+  transform: scale(0.92);
+}
+
+/* Animation */
+@keyframes bounceCheckbox {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.ios-checkbox input:checked + .checkbox-wrapper {
+  animation: bounceCheckbox 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
