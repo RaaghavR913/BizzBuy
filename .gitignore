@@ -41,8 +41,8 @@ sample company*/
 
 # docker
 uploads/
-backend/.artifacts/
-backend/backend/.artifacts/
+backend/.artifacts/*
+backend/backend/.artifacts/*
 
 # vercel
 .vercel
