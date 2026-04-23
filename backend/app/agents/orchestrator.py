@@ -583,6 +583,9 @@ async def run_pipeline(
             ).model_dump(mode="json", by_alias=True)
             get_analysis_artifact_repository().save_analysis_report(pipeline_input.analysis_id, _partial)
             logger.info("Partial report saved: analysis_id=%s", pipeline_input.analysis_id)
+            from app.services.analysis_jobs import broadcast_job_snapshot
+
+            broadcast_job_snapshot(pipeline_input.analysis_id)
         except Exception as _e:
             logger.warning("Could not save partial report: %s", _e)
 

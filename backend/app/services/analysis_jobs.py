@@ -73,6 +73,7 @@ def _persist_job(
         error=error,
     )
     repository.save_analysis_job(job)
+    broadcast_job_snapshot(analysis_id, repository)
     return job
 
 
@@ -220,6 +221,7 @@ def start_analysis_job(
         ),
     )
     artifact_repository.save_analysis_job(queued_job)
+    broadcast_job_snapshot(analysis_id, artifact_repository)
 
     job_payload = payload.model_copy(update={"analysis_id": analysis_id})
     future = _EXECUTOR.submit(_run_analysis_job, job_payload, artifact_repository)
@@ -242,3 +244,16 @@ def get_analysis_job(
     # The frontend renders whatever sections are populated and shows skeletons for the rest.
     report = artifact_repository.load_analysis_report(analysis_id)
     return _build_response(job, report=report)
+
+
+def broadcast_job_snapshot(
+    analysis_id: str, repository: AnalysisArtifactRepository | None = None
+) -> None:
+    """Push the current job + report to any SSE subscribers (e.g. after disk writes)."""
+    artifact_repository = repository or get_analysis_artifact_repository()
+    snap = get_analysis_job(analysis_id, artifact_repository)
+    if snap is None:
+        return
+    from app.services.sse_registry import publish_json_from_thread
+
+    publish_json_from_thread(analysis_id, snap.model_dump(mode="json", by_alias=True))

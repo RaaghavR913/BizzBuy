@@ -38,6 +38,15 @@ def _mask(key: str) -> str:
 
 
 @app.on_event("startup")
+async def _set_sse_loop() -> None:
+    import asyncio
+
+    from app.services.sse_registry import set_event_loop
+
+    set_event_loop(asyncio.get_running_loop())
+
+
+@app.on_event("startup")
 async def _log_startup() -> None:
     logging.basicConfig(level=logging.INFO)
     logger.info("BizBuy backend starting — environment=%s", settings.environment)

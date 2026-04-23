@@ -128,6 +128,11 @@ export async function startAnalysisJob(
   return res.json();
 }
 
+/** Full URL for SSE; use with `EventSource` (same origin/CORS as other API calls). */
+export function getAnalysisJobEventsUrl(analysisId: string): string {
+  return backendUrl(`/analyses/${analysisId}/events`);
+}
+
 export async function getAnalysisJob(analysisId: string): Promise<AnalysisJobSnapshot> {
   const res = await fetch(backendUrl(`/analyses/${analysisId}`), {
     method: 'GET',

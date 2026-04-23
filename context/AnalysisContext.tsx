@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
-import { getAnalysisJob } from '@/lib/api-client';
+import { getAnalysisJob, getAnalysisJobEventsUrl } from '@/lib/api-client';
 import type {
   AnalysisJobSnapshot,
   AnalysisState,
@@ -191,101 +191,172 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
   }, [state]);
 
   useEffect(() => {
-    // Poll whenever we have an analysisId and haven't yet received a final report.
-    // This intentionally does NOT require isLoading=true so polling resumes
-    // after a page refresh or new-tab navigation.
+    // Subscribe to job updates via Server-Sent Events. Falls back to HTTP polling if the
+    // stream errors (proxies, network blips). Partial reports while running are included
+    // in the same payload shape as GET /analyses/:id.
     const isTerminal =
       analysisJobStatus === 'completed' || analysisJobStatus === 'failed';
 
-    const shouldPoll =
-      Boolean(state.analysisId) &&
-      !state.report &&
-      (!analysisJobStatus || !isTerminal);
+    const shouldSubscribe =
+      Boolean(state.analysisId) && (!analysisJobStatus || !isTerminal);
 
-    if (!shouldPoll || !state.analysisId) {
+    if (!shouldSubscribe || !state.analysisId) {
       return;
     }
 
+    const analysisId = state.analysisId;
     let cancelled = false;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let completedNullRetried = false;
+    let eventSource: EventSource | null = null;
+    let streamFinished = false;
     const startedAt = Date.now();
-    const HARD_CAP_MS = 5 * 60 * 1000; // 5 min
+    const HARD_CAP_MS = 20 * 60 * 1000; // 20 min
 
-    const poll = async () => {
-      // Hard cap: stop after 5 minutes and surface an error.
-      if (Date.now() - startedAt > HARD_CAP_MS) {
-        if (!cancelled) {
-          dispatch({
-            type: 'SET_ERROR',
-            payload: 'Analysis is taking longer than expected. Please retry or start a new analysis.',
-          });
-        }
-        return;
-      }
-
-      try {
-        const job = await getAnalysisJob(state.analysisId!);
-        if (cancelled) {
-          return;
-        }
-
-        dispatch({ type: 'SET_ANALYSIS_JOB', payload: job });
-        dispatch({
-          type: 'SET_LOADING',
-          payload: {
-            isLoading: job.status === 'queued' || job.status === 'running',
-            message: job.progress.message,
-          },
-        });
-
-        if (job.status === 'completed') {
-          if (job.report) {
-            dispatch({ type: 'SET_REPORT', payload: job.report });
-            dispatch({ type: 'SET_STEP', payload: 4 });
-            return;
-          }
-          // Completed but no report: one retry before surfacing error.
-          if (!completedNullRetried) {
-            completedNullRetried = true;
-            timeoutId = setTimeout(poll, 1500);
-            return;
-          }
-          dispatch({
-            type: 'SET_ERROR',
-            payload: 'Report artifacts are missing — please start a new analysis.',
-          });
-          return;
-        }
-
-        if (job.status === 'failed') {
-          dispatch({ type: 'SET_ERROR', payload: job.error || 'Analysis failed. Please try again.' });
-          return;
-        }
-
-        // Render partial report if the backend has already saved one mid-run.
-        if (job.report && !state.report) {
-          dispatch({ type: 'SET_REPORT', payload: job.report });
-        }
-
-        timeoutId = setTimeout(poll, 1500);
-      } catch {
-        if (cancelled) {
-          return;
-        }
-        timeoutId = setTimeout(poll, 2500);
+    const closeEventSource = () => {
+      if (eventSource) {
+        eventSource.close();
+        eventSource = null;
       }
     };
 
-    poll();
+    type ApplyResult = 'stop' | 'continue' | 'need_null_report_retry';
+
+    const applyJobSnapshot = (job: AnalysisJobSnapshot): ApplyResult => {
+      dispatch({ type: 'SET_ANALYSIS_JOB', payload: job });
+      dispatch({
+        type: 'SET_LOADING',
+        payload: {
+          isLoading: job.status === 'queued' || job.status === 'running',
+          message: job.progress.message,
+        },
+      });
+
+      if (job.status === 'completed') {
+        if (job.report) {
+          dispatch({ type: 'SET_REPORT', payload: job.report });
+          dispatch({ type: 'SET_STEP', payload: 4 });
+          return 'stop';
+        }
+        if (!completedNullRetried) {
+          completedNullRetried = true;
+          return 'need_null_report_retry';
+        }
+        dispatch({
+          type: 'SET_ERROR',
+          payload: 'Report artifacts are missing — please start a new analysis.',
+        });
+        return 'stop';
+      }
+
+      if (job.status === 'failed') {
+        dispatch({
+          type: 'SET_ERROR',
+          payload: job.error || 'Analysis failed. Please try again.',
+        });
+        return 'stop';
+      }
+
+      if (job.report) {
+        dispatch({ type: 'SET_REPORT', payload: job.report });
+      }
+      return 'continue';
+    };
+
+    const handleApplyResult = (r: ApplyResult) => {
+      if (r === 'stop') {
+        streamFinished = true;
+        closeEventSource();
+        return;
+      }
+      if (r === 'need_null_report_retry') {
+        timeoutId = window.setTimeout(async () => {
+          if (cancelled) return;
+          try {
+            const job = await getAnalysisJob(analysisId);
+            if (cancelled) return;
+            const r2 = applyJobSnapshot(job);
+            handleApplyResult(r2);
+          } catch {
+            if (!cancelled) {
+              dispatch({
+                type: 'SET_ERROR',
+                payload: 'Failed to load analysis report. Please try again.',
+              });
+            }
+          }
+        }, 1500);
+      }
+    };
+
+    const hardCapTimer = window.setTimeout(() => {
+      if (cancelled) return;
+      streamFinished = true;
+      closeEventSource();
+      dispatch({
+        type: 'SET_ERROR',
+        payload: 'Analysis is taking longer than expected. Please retry or start a new analysis.',
+      });
+    }, HARD_CAP_MS);
+
+    // Fallback when EventSource is unavailable or errors (CORS, proxy, etc.)
+    const pollFallback = async () => {
+      if (cancelled || streamFinished || Date.now() - startedAt > HARD_CAP_MS) {
+        return;
+      }
+      try {
+        const job = await getAnalysisJob(analysisId);
+        if (cancelled) return;
+        const r = applyJobSnapshot(job);
+        if (r === 'stop') {
+          return;
+        }
+        if (r === 'need_null_report_retry') {
+          handleApplyResult(r);
+          return;
+        }
+        timeoutId = window.setTimeout(pollFallback, 1500);
+      } catch {
+        if (cancelled) return;
+        timeoutId = window.setTimeout(pollFallback, 2500);
+      }
+    };
+
+    if (typeof window.EventSource === 'undefined') {
+      pollFallback();
+    } else {
+      try {
+        eventSource = new EventSource(getAnalysisJobEventsUrl(analysisId));
+        eventSource.onmessage = (ev) => {
+          if (cancelled) return;
+          let job: AnalysisJobSnapshot;
+          try {
+            job = JSON.parse(ev.data) as AnalysisJobSnapshot;
+          } catch {
+            return;
+          }
+          const r = applyJobSnapshot(job);
+          handleApplyResult(r);
+        };
+        eventSource.onerror = () => {
+          if (cancelled || streamFinished) return;
+          closeEventSource();
+          pollFallback();
+        };
+      } catch {
+        pollFallback();
+      }
+    }
 
     return () => {
       cancelled = true;
+      clearTimeout(hardCapTimer);
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
+      closeEventSource();
     };
-  }, [analysisJobStatus, state.analysisId, state.report]);
+  }, [analysisJobStatus, state.analysisId]);
 
   return (
     <AnalysisContext.Provider
