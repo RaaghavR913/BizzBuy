@@ -51,11 +51,18 @@ def _persist_job(
     started_at: str | None = None,
     completed_at: str | None = None,
     completed_agents: list[str] | None = None,
+    running_agents: list[str] | None = None,
+    queued_agents: list[str] | None = None,
+    agent_statuses: dict[str, str] | None = None,
+    fallback_mode_active: bool | None = None,
 ) -> AnalysisJobRecord:
     existing = repository.load_analysis_job(analysis_id)
     timestamp = _now_iso()
     created_at = existing.created_at if existing else timestamp
     prev_agents = existing.progress.completed_agents if existing else []
+    prev_running = existing.progress.running_agents if existing else []
+    prev_queued = existing.progress.queued_agents if existing else []
+    prev_statuses = existing.progress.agent_statuses if existing else {}
     job = AnalysisJobRecord(
         analysis_id=analysis_id,
         status=status,  # type: ignore[arg-type]
@@ -69,6 +76,12 @@ def _persist_job(
             progress=progress,
             updated_at=timestamp,
             completed_agents=completed_agents if completed_agents is not None else prev_agents,
+            running_agents=running_agents if running_agents is not None else prev_running,
+            queued_agents=queued_agents if queued_agents is not None else prev_queued,
+            agent_statuses=agent_statuses if agent_statuses is not None else prev_statuses,
+            fallback_mode_active=bool(
+                fallback_mode_active if fallback_mode_active is not None else (existing.progress.fallback_mode_active if existing else False)
+            ),
         ),
         error=error,
     )
@@ -84,6 +97,10 @@ def _update_progress(
     message: str,
     progress: float,
     completed_agents: list[str] | None = None,
+    running_agents: list[str] | None = None,
+    queued_agents: list[str] | None = None,
+    agent_statuses: dict[str, str] | None = None,
+    fallback_mode_active: bool | None = None,
 ) -> None:
     existing = repository.load_analysis_job(analysis_id)
     started_at = existing.started_at if existing else _now_iso()
@@ -96,6 +113,10 @@ def _update_progress(
         message=message,
         started_at=started_at,
         completed_agents=completed_agents,
+        running_agents=running_agents,
+        queued_agents=queued_agents,
+        agent_statuses=agent_statuses,
+        fallback_mode_active=fallback_mode_active,
     )
 
 
@@ -130,13 +151,17 @@ def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactR
                 report = _loop.run_until_complete(
                     run_pipeline(
                         payload.model_dump(mode="json", by_alias=True),
-                        progress_callback=lambda stage, message, progress, completed_agents=None: _update_progress(
+                        progress_callback=lambda stage, message, progress, completed_agents=None, **extra: _update_progress(
                             repository,
                             analysis_id,
                             stage,
                             message,
                             progress,
                             completed_agents=completed_agents,
+                            running_agents=extra.get("running_agents"),
+                            queued_agents=extra.get("queued_agents"),
+                            agent_statuses=extra.get("agent_statuses"),
+                            fallback_mode_active=extra.get("fallback_mode_active"),
                         ),
                     )
                 )

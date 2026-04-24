@@ -33,6 +33,7 @@ class AgentConfig:
         phase: PipelinePhase,
         depends_on: List[str],
         max_tokens: Optional[int] = None,
+        timeout_seconds: Optional[float] = None,
     ):
         self.name = name
         self.prompt_key = prompt_key
@@ -41,6 +42,7 @@ class AgentConfig:
         self.phase = phase
         self.depends_on = depends_on
         self.max_tokens = max_tokens or 4096
+        self.timeout_seconds = timeout_seconds
 
 
 AGENT_REGISTRY: Dict[str, AgentConfig] = {
@@ -52,6 +54,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.INGESTION,
         depends_on=[],
         max_tokens=8192,
+        timeout_seconds=240.0,
     ),
     'financial-analysis': AgentConfig(
         name='financial-analysis',
@@ -61,6 +64,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.PARALLEL_ANALYSIS,
         depends_on=['document-ingestion'],
         max_tokens=8192,
+        timeout_seconds=150.0,
     ),
     'tax-compliance': AgentConfig(
         name='tax-compliance',
@@ -70,6 +74,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.PARALLEL_ANALYSIS,
         depends_on=['document-ingestion'],
         max_tokens=4096,
+        timeout_seconds=120.0,
     ),
     'ar-collections': AgentConfig(
         name='ar-collections',
@@ -79,6 +84,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.PARALLEL_ANALYSIS,
         depends_on=['document-ingestion'],
         max_tokens=4096,
+        timeout_seconds=75.0,
     ),
     'customer-concentration': AgentConfig(
         name='customer-concentration',
@@ -88,6 +94,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.PARALLEL_ANALYSIS,
         depends_on=['document-ingestion'],
         max_tokens=4096,
+        timeout_seconds=45.0,
     ),
     'operations-transferability': AgentConfig(
         name='operations-transferability',
@@ -97,6 +104,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.PARALLEL_ANALYSIS,
         depends_on=['document-ingestion'],
         max_tokens=4096,
+        timeout_seconds=45.0,
     ),
     'lease-contract': AgentConfig(
         name='lease-contract',
@@ -106,6 +114,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.PARALLEL_ANALYSIS,
         depends_on=['document-ingestion'],
         max_tokens=4096,
+        timeout_seconds=60.0,
     ),
     'market-macro': AgentConfig(
         name='market-macro',
@@ -115,6 +124,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.PARALLEL_ANALYSIS,
         depends_on=['document-ingestion'],
         max_tokens=4096,
+        timeout_seconds=75.0,
     ),
     'lending-affordability': AgentConfig(
         name='lending-affordability',
@@ -124,6 +134,7 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
         phase=PipelinePhase.LENDING,
         depends_on=['financial-analysis'],
         max_tokens=4096,
+        timeout_seconds=45.0,
     ),
     'synthesis-report': AgentConfig(
         name='synthesis-report',
@@ -143,5 +154,6 @@ AGENT_REGISTRY: Dict[str, AgentConfig] = {
             'lending-affordability',
         ],
         max_tokens=8192,
+        timeout_seconds=90.0,
     ),
 }

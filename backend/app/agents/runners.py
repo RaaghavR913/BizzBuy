@@ -9,6 +9,18 @@ from typing import Any, Dict, Iterable
 from uuid import uuid4
 
 from app.agents.openrouter_client import call_agent
+from app.agents.context_builders import (
+    build_ar_user_message,
+    build_customer_user_message,
+    build_financial_user_message,
+    build_lease_user_message,
+    build_market_user_message,
+    build_ops_user_message,
+    build_synthesis_user_message,
+    build_tax_user_message,
+    compact_json,
+    describe_user_message,
+)
 from app.agents.evidence_utils import build_evidence_fields
 from app.agents.mistral_ocr_client import (
     IngestionResult,
@@ -16,7 +28,6 @@ from app.agents.mistral_ocr_client import (
     ocr_document,
 )
 from app.agents.deterministic import (
-    AGENT_DISPLAY_NAMES,
     SBA_DEFAULTS,
     compute_ar_metrics,
     compute_customer_metrics,
@@ -42,11 +53,16 @@ from app.agents.prompts import (
 from app.agents.registry import AGENT_REGISTRY
 from app.agents.schemas import (
     ARCollectionsOutput,
+    AgentSource,
     AgentEnvelope,
     AgentErrorPayload,
     AgentExecutionStatus,
     AgentName,
     AgentResult,
+    AnnualExpense,
+    AnnualRevenue,
+    BalanceSheet,
+    CashFlow,
     CustomerConcentrationOutput,
     DeterministicTag,
     DocumentInfo,
@@ -54,23 +70,34 @@ from app.agents.schemas import (
     DocumentStatus,
     DocumentType,
     EvidenceReference,
+    ExpenseAnalysis,
     FinancialAnalysisOutput,
+    FinancialRisk,
     FindingCategory,
+    GreenFlag,
     IngestionMetadata,
     IngestionOutput,
     LeaseContractOutput,
     LendingAffordabilityOutput,
     MarketMacroOutput,
     MissingInput,
+    NextStep,
     NormalizedFinding,
     NormalizedMetric,
     OpsTransferabilityOutput,
+    Profitability,
+    RedFlag,
+    RevenueAnalysis,
+    SectionSummaries,
+    SectionSummary,
+    SdeAddBack,
     DeterministicScorecard,
     SectionContentType,
     Severity,
     SynthesisReportOutput,
     TaxComplianceOutput,
     Timeframe,
+    Trend,
 )
 from app.services.ingestion_service import ingest_and_persist_document_payloads
 
@@ -245,6 +272,26 @@ def _copy_result(result: AgentResult[Any], data: Any) -> AgentResult[Any]:
         token_usage=result.token_usage,
         latency_ms=result.latency_ms,
         cost_usd=result.cost_usd,
+        diagnostics=dict(result.diagnostics),
+    )
+
+
+def _call_llm_agent(
+    config,
+    system_prompt: str,
+    user_message: str,
+    schema_class,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
+) -> AgentResult[Any]:
+    if diagnostic_context is None:
+        return call_agent(config, system_prompt, user_message, schema_class)
+    return call_agent(
+        config,
+        system_prompt,
+        user_message,
+        schema_class,
+        diagnostic_context=diagnostic_context,
     )
 
 
@@ -864,6 +911,292 @@ def _normalize_lending_output(
     )
 
 
+def build_financial_fallback_result(
+    ingestion_output: IngestionOutput,
+    *,
+    reason: str,
+) -> AgentResult[Any]:
+    relevant_doc_types = {"profit_and_loss", "balance_sheet", "cash_flow_statement", "sde_summary"}
+    sections = _relevant_sections(ingestion_output, relevant_doc_types)
+    metrics = compute_financial_metrics(sections)
+    most_recent_year = metrics.get("most_recent_year") or {}
+    sde_metrics = metrics.get("sde") or {}
+    balance_sheet_metrics = metrics.get("balance_sheet") or {}
+    cash_flow_metrics = metrics.get("cash_flow") or {}
+
+    financial_risks: list[FinancialRisk] = [
+        FinancialRisk(
+            id="financial-timeout-fallback",
+            category="earnings_quality",
+            severity=Severity.HIGH,
+            title="Financial narrative timed out",
+            description="The LLM financial narrative did not finish inside the stage budget, so this section fell back to deterministic extracted metrics.",
+            evidence=reason,
+            recommendation="Treat this as a low-confidence placeholder and validate the underlying statements directly.",
+        )
+    ]
+    if metrics.get("cash_flow_vs_net_income_divergence") is not None and metrics["cash_flow_vs_net_income_divergence"] > 0.25:
+        financial_risks.append(
+            FinancialRisk(
+                id="financial-cashflow-divergence",
+                category="cash_flow",
+                severity=Severity.MEDIUM,
+                title="Cash flow diverges from net income",
+                description="Operating cash flow and reported net income differ materially in the extracted statements.",
+                evidence="Deterministic comparison of cash flow and net income exceeded 25%.",
+                financial_impact=None,
+                recommendation="Reconcile cash conversion before relying on reported earnings quality.",
+            )
+        )
+    if metrics.get("working_capital") is not None and metrics["working_capital"] < 0:
+        financial_risks.append(
+            FinancialRisk(
+                id="financial-negative-working-capital",
+                category="working_capital",
+                severity=Severity.HIGH,
+                title="Negative working capital detected",
+                description="Current liabilities exceed current assets in the extracted balance sheet.",
+                evidence="Deterministic working capital calculation returned a negative value.",
+                financial_impact=abs(float(metrics["working_capital"])),
+                recommendation="Confirm liquidity needs and normalize near-term working capital requirements.",
+            )
+        )
+
+    fallback_score = 6
+    if metrics.get("data_years_available", 0) <= 1:
+        fallback_score -= 1
+    if metrics.get("cash_flow_vs_net_income_divergence") is not None and metrics["cash_flow_vs_net_income_divergence"] > 0.25:
+        fallback_score -= 1
+    if metrics.get("working_capital") is not None and metrics["working_capital"] < 0:
+        fallback_score -= 2
+    if not sde_metrics.get("sde"):
+        fallback_score -= 2
+    fallback_score = max(2, min(8, fallback_score))
+
+    summary = (
+        "Financial analysis fell back to deterministic extracted metrics because the narrative stage exceeded its runtime budget. "
+        "Use the reported revenue, EBITDA, SDE, and balance-sheet figures as low-confidence placeholders until the source statements are validated."
+    )
+    confidence = 0.32 if metrics.get("data_years_available", 0) else 0.18
+
+    synthetic_output = FinancialAnalysisOutput(
+        revenue_analysis=RevenueAnalysis(
+            annual_figures=[
+                AnnualRevenue(
+                    year=item.get("year") or 0,
+                    revenue=float(item.get("revenue") or 0.0),
+                    cogs=float(item.get("cogs") or 0.0),
+                    gross_profit=float(item.get("gross_profit") or 0.0),
+                )
+                for item in metrics.get("annual_financials", [])
+            ],
+            growth_rate=float((metrics.get("revenue_growth_rates") or [{}])[-1].get("rate") or 0.0),
+            trend=(
+                Trend.INCREASING
+                if ((metrics.get("revenue_growth_rates") or [{}])[-1].get("rate") or 0.0) > 0.03
+                else Trend.DECLINING
+                if ((metrics.get("revenue_growth_rates") or [{}])[-1].get("rate") or 0.0) < -0.03
+                else Trend.STABLE
+            ),
+            seasonality_notes="Deterministic fallback summary only; detailed seasonality analysis was not completed.",
+        ),
+        expense_analysis=ExpenseAnalysis(
+            annual_figures=[
+                AnnualExpense(
+                    year=item.get("year") or 0,
+                    total_expenses=float(item.get("operating_expenses") or 0.0),
+                    breakdown={},
+                )
+                for item in metrics.get("annual_financials", [])
+            ],
+            largest_categories=[],
+        ),
+        profitability=Profitability(
+            gross_margin=float(metrics.get("gross_margin") or 0.0),
+            net_margin=float(metrics.get("net_margin") or 0.0),
+            ebitda=float(most_recent_year.get("ebitda") or 0.0),
+            adjusted_ebitda=float(most_recent_year.get("ebitda") or 0.0),
+            sde=float(sde_metrics.get("sde") or 0.0),
+            sde_add_backs=[
+                SdeAddBack(description=label.replace("_", " ").title(), amount=float(value or 0.0), justification="Deterministic fallback add-back.")
+                for label, value in (
+                    ("owner_salary", sde_metrics.get("owner_salary")),
+                    ("owner_benefits", sde_metrics.get("owner_benefits")),
+                    ("depreciation", sde_metrics.get("depreciation")),
+                    ("interest_expense", sde_metrics.get("interest_expense")),
+                    ("one_time_expenses", sde_metrics.get("one_time_expenses")),
+                )
+                if value not in (None, 0, 0.0)
+            ],
+        ),
+        cash_flow=CashFlow(
+            operating_cash_flow=float(cash_flow_metrics.get("operating_cash_flow") or 0.0),
+            free_cash_flow=float(cash_flow_metrics.get("free_cash_flow") or 0.0),
+            cash_flow_vs_net_income=bool((metrics.get("cash_flow_vs_net_income_divergence") or 0.0) > 0.2),
+        ),
+        balance_sheet=BalanceSheet(
+            total_assets=float(balance_sheet_metrics.get("total_assets") or 0.0),
+            total_liabilities=float(balance_sheet_metrics.get("total_liabilities") or 0.0),
+            equity=float(balance_sheet_metrics.get("equity") or 0.0),
+            current_ratio=float(metrics.get("current_ratio") or 0.0),
+            debt_to_equity=float(metrics.get("debt_to_equity") or 0.0),
+            working_capital=float(metrics.get("working_capital") or 0.0),
+        ),
+        risks=financial_risks,
+        overall_score=fallback_score,
+        confidence=confidence,
+        summary=summary,
+    )
+
+    user_message = build_financial_user_message(ingestion_output, metrics)
+    diagnostics = describe_user_message(user_message)
+    diagnostics["response_chars"] = len(compact_json(synthetic_output.model_dump(mode="json")))
+    diagnostics["fallback_used"] = True
+
+    normalized = _normalize_financial_output(
+        ingestion_output,
+        AgentResult(status="success", data=synthetic_output, diagnostics=diagnostics),
+        metrics,
+    )
+    if normalized.status == "success" and isinstance(normalized.data, AgentEnvelope):
+        normalized = normalized.model_copy(
+            update={
+                "data": normalized.data.model_copy(
+                    update={
+                        "status": AgentExecutionStatus.PARTIAL,
+                        "summary": summary,
+                        "confidence": confidence,
+                    }
+                ),
+                "diagnostics": diagnostics,
+            }
+        )
+    return normalized
+
+
+def build_synthesis_fallback_result(
+    scorecard: DeterministicScorecard,
+    agent_results: Dict[str, Any],
+    *,
+    reason: str,
+) -> AgentResult[SynthesisReportOutput]:
+    metrics = compute_synthesis_metrics(agent_results)
+    section_key_map = {
+        "financial": "financial_analysis",
+        "tax": "tax_compliance",
+        "ar": "ar_collections",
+        "customer": "customer_concentration",
+        "operations": "operations_transferability",
+        "lease": "lease_contract",
+        "market": "market_macro",
+        "lending": "lending_affordability",
+    }
+
+    section_payload = metrics.get("section_summaries", {})
+    section_summaries = SectionSummaries(
+        **{
+            field_name: SectionSummary(
+                score=int((section_payload.get(agent_key) or {}).get("score") or 1),
+                summary=(section_payload.get(agent_key) or {}).get("summary") or "Analysis unavailable.",
+                top_risks=list((section_payload.get(agent_key) or {}).get("top_risks") or ["Analysis did not complete."])[:3],
+            )
+            for field_name, agent_key in section_key_map.items()
+        }
+    )
+
+    red_flags = [
+        RedFlag(
+            id=str(item.get("id") or f"fallback-red-{idx}"),
+            severity=Severity(item.get("severity") or Severity.MEDIUM.value),
+            source=AgentSource(item.get("source") or AgentSource.FINANCIAL.value),
+            title=str(item.get("title") or "Diligence risk"),
+            description=str(item.get("description") or "Elevated diligence risk was identified by deterministic scoring."),
+            financial_impact=item.get("financial_impact"),
+        )
+        for idx, item in enumerate(metrics.get("red_flags", [])[:6], start=1)
+    ]
+    green_flags = [
+        GreenFlag(
+            id=str(item.get("id") or f"fallback-green-{idx}"),
+            source=AgentSource(item.get("source") or AgentSource.FINANCIAL.value),
+            title=str(item.get("title") or "Positive signal"),
+            description=str(item.get("description") or "Deterministic scoring identified a relatively favorable signal."),
+        )
+        for idx, item in enumerate(metrics.get("green_flags", [])[:4], start=1)
+    ]
+
+    missing_descriptions: list[str] = []
+    for result in agent_results.values():
+        if result and result.status == "success" and isinstance(result.data, AgentEnvelope):
+            for missing_input in result.data.missing_inputs:
+                if missing_input.description not in missing_descriptions:
+                    missing_descriptions.append(missing_input.description)
+
+    next_steps: list[NextStep] = []
+    for index, finding in enumerate(scorecard.deal_breakers[:3], start=1):
+        next_steps.append(
+            NextStep(
+                priority=index,
+                action=f"Resolve critical issue: {finding.title}",
+                reason=finding.description,
+            )
+        )
+    for index, description in enumerate(missing_descriptions[:2], start=len(next_steps) + 1):
+        next_steps.append(
+            NextStep(
+                priority=min(index, 5),
+                action=f"Obtain missing diligence item: {description}",
+                reason="This input lowered completeness and should be resolved before relying on the final narrative.",
+            )
+        )
+    if not next_steps:
+        next_steps.append(
+            NextStep(
+                priority=1,
+                action="Review the deterministic scorecard directly.",
+                reason="Narrative synthesis timed out, so the coded scorecard is the authoritative output for this run.",
+            )
+        )
+
+    recommendation = scorecard.overall_recommendation or "conditional_buy"
+    recommendation_guidance = {
+        "strong_buy": "Normal diligence can continue, but keep price discipline anchored to the coded scorecard.",
+        "buy": "Proceed with confirmatory diligence while preserving standard protections.",
+        "conditional_buy": "Tie progress to resolving the top red flags and missing diligence items before close.",
+        "caution": "Pause commitments until the top red flags are resolved or repriced.",
+        "do_not_buy": "Current deterministic evidence does not support moving forward without a material change in price or structure.",
+    }
+    executive_summary = (
+        "Narrative synthesis fell back to a deterministic summary because the synthesis stage exceeded its runtime budget. "
+        f"The authoritative scorecard recommendation is '{recommendation}'"
+        + (
+            f" at risk score {scorecard.overall_risk_score}. "
+            if scorecard.overall_risk_score is not None
+            else ". "
+        )
+        + f"{len(metrics.get('successful_agents', []))} specialist analyses completed successfully."
+    )
+    fallback_output = SynthesisReportOutput(
+        executive_summary=executive_summary,
+        red_flags=red_flags,
+        green_flags=green_flags,
+        section_summaries=section_summaries,
+        next_steps=next_steps[:5],
+        deal_terms_suggestion=recommendation_guidance.get(recommendation, recommendation_guidance["conditional_buy"]),
+    )
+
+    user_message = build_synthesis_user_message(scorecard, agent_results, metrics)
+    diagnostics = describe_user_message(user_message)
+    diagnostics["response_chars"] = len(compact_json(fallback_output.model_dump(mode="json")))
+    diagnostics["fallback_used"] = True
+
+    return AgentResult(
+        status="success",
+        data=fallback_output,
+        diagnostics=diagnostics,
+    )
+
+
 _OCR_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".tiff"}
 _STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls", ".docx"}
 
@@ -1087,7 +1420,11 @@ def run_document_ingestion(documents: list[dict[str, Any]], analysis_id: str | N
     return AgentResult(status="success", data=output, cost_usd=total_cost_usd)
 
 
-def run_financial_analysis(ingestion_output: IngestionOutput) -> AgentResult[Any]:
+def run_financial_analysis(
+    ingestion_output: IngestionOutput,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
+) -> AgentResult[Any]:
     config = AGENT_REGISTRY["financial-analysis"]
     relevant_doc_types = {"profit_and_loss", "balance_sheet", "cash_flow_statement", "sde_summary"}
     sections = _relevant_sections(ingestion_output, relevant_doc_types)
@@ -1103,18 +1440,22 @@ def run_financial_analysis(ingestion_output: IngestionOutput) -> AgentResult[Any
             "\n\nWARNING: No profit and loss, balance sheet, or cash flow documents were found. "
             "All financial fields should reflect the missing data and confidence should be low."
         )
-    user_message = (
-        "## Pre-Computed Financial Metrics\n"
-        + json.dumps(metrics, indent=2, default=str)
-        + "\n\n## Raw Extracted Financial Data\n"
-        + (_raw_data_summary(ingestion_output, relevant_doc_types) or "(No financial documents found)")
-        + warning
+    user_message = build_financial_user_message(ingestion_output, metrics, warning=warning or None)
+    result = _call_llm_agent(
+        config,
+        FINANCIAL_ANALYSIS_PROMPT,
+        user_message,
+        FinancialAnalysisOutput,
+        diagnostic_context=diagnostic_context,
     )
-    result = call_agent(config, FINANCIAL_ANALYSIS_PROMPT, user_message, FinancialAnalysisOutput)
     return _normalize_financial_output(ingestion_output, result, metrics)
 
 
-def run_tax_compliance(ingestion_output: IngestionOutput) -> AgentResult[Any]:
+def run_tax_compliance(
+    ingestion_output: IngestionOutput,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
+) -> AgentResult[Any]:
     config = AGENT_REGISTRY["tax-compliance"]
     relevant_doc_types = {"tax_return_1120s", "tax_return_1040", "tax_return_schedule_c", "profit_and_loss"}
     metrics = compute_tax_metrics(_relevant_sections(ingestion_output, relevant_doc_types))
@@ -1127,26 +1468,33 @@ def run_tax_compliance(ingestion_output: IngestionOutput) -> AgentResult[Any]:
                 "No tax returns or financial documents were found; tax compliance analysis is not applicable.",
             )
         user_message = (
-            "## Pre-Computed Tax Metrics\n"
-            + json.dumps(metrics, indent=2, default=str)
-            + "\n\n## Raw Extracted Data\n(No tax returns found in the document package)\n\n"
-            + "WARNING: No tax return documents were found. Confidence should be low, unreported income risk should be high, "
-            + "and the summary should state that tax returns must be obtained before close."
+            build_tax_user_message(ingestion_output, metrics, missing_tax_returns=True)
         )
-        result = call_agent(config, TAX_COMPLIANCE_PROMPT, user_message, TaxComplianceOutput)
+        result = _call_llm_agent(
+            config,
+            TAX_COMPLIANCE_PROMPT,
+            user_message,
+            TaxComplianceOutput,
+            diagnostic_context=diagnostic_context,
+        )
         return _normalize_tax_output(ingestion_output, result, metrics)
 
-    user_message = (
-        "## Pre-Computed Tax Metrics\n"
-        + json.dumps(metrics, indent=2, default=str)
-        + "\n\n## Raw Extracted Data\n"
-        + _raw_data_summary(ingestion_output, relevant_doc_types)
+    user_message = build_tax_user_message(ingestion_output, metrics)
+    result = _call_llm_agent(
+        config,
+        TAX_COMPLIANCE_PROMPT,
+        user_message,
+        TaxComplianceOutput,
+        diagnostic_context=diagnostic_context,
     )
-    result = call_agent(config, TAX_COMPLIANCE_PROMPT, user_message, TaxComplianceOutput)
     return _normalize_tax_output(ingestion_output, result, metrics)
 
 
-def run_ar_collections(ingestion_output: IngestionOutput) -> AgentResult[Any]:
+def run_ar_collections(
+    ingestion_output: IngestionOutput,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
+) -> AgentResult[Any]:
     config = AGENT_REGISTRY["ar-collections"]
     relevant_doc_types = {"ar_aging_report", "profit_and_loss"}
     metrics = compute_ar_metrics(_relevant_sections(ingestion_output, relevant_doc_types))
@@ -1156,17 +1504,22 @@ def run_ar_collections(ingestion_output: IngestionOutput) -> AgentResult[Any]:
             "No AR aging report was uploaded; AR collections analysis is not applicable.",
         )
 
-    user_message = (
-        "## Pre-Computed AR Metrics\n"
-        + json.dumps(metrics, indent=2, default=str)
-        + "\n\n## Raw Extracted AR Data\n"
-        + (_raw_data_summary(ingestion_output, {"ar_aging_report"}) or "(No AR aging report found)")
+    user_message = build_ar_user_message(ingestion_output, metrics)
+    result = _call_llm_agent(
+        config,
+        AR_COLLECTIONS_PROMPT,
+        user_message,
+        ARCollectionsOutput,
+        diagnostic_context=diagnostic_context,
     )
-    result = call_agent(config, AR_COLLECTIONS_PROMPT, user_message, ARCollectionsOutput)
     return _normalize_ar_output(ingestion_output, result, metrics)
 
 
-def run_customer_concentration(ingestion_output: IngestionOutput) -> AgentResult[Any]:
+def run_customer_concentration(
+    ingestion_output: IngestionOutput,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
+) -> AgentResult[Any]:
     config = AGENT_REGISTRY["customer-concentration"]
     metrics = compute_customer_metrics(ingestion_output)
     # Only skip when neither customer list NOR contract documents are present at all.
@@ -1181,20 +1534,22 @@ def run_customer_concentration(ingestion_output: IngestionOutput) -> AgentResult
             config.name,
             "No customer list or contracts were uploaded; customer concentration analysis is not applicable.",
         )
-    user_message = (
-        (
-            "## Data Availability\nNo customer list was found in the provided documents. Customer concentration analysis cannot be fully performed.\n\n"
-            if not metrics["customers"]
-            else "## Pre-Computed Concentration Metrics\n" + json.dumps(metrics, indent=2, default=str) + "\n\n"
-        )
-        + "## Raw Document Data\n"
-        + (_raw_text_summary(ingestion_output, {"customer_list", "contract"}) or "No customer list found")
+    user_message = build_customer_user_message(ingestion_output, metrics)
+    result = _call_llm_agent(
+        config,
+        CUSTOMER_CONCENTRATION_PROMPT,
+        user_message,
+        CustomerConcentrationOutput,
+        diagnostic_context=diagnostic_context,
     )
-    result = call_agent(config, CUSTOMER_CONCENTRATION_PROMPT, user_message, CustomerConcentrationOutput)
     return _normalize_customer_output(ingestion_output, result, metrics)
 
 
-def run_ops_transferability(ingestion_output: IngestionOutput) -> AgentResult[Any]:
+def run_ops_transferability(
+    ingestion_output: IngestionOutput,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
+) -> AgentResult[Any]:
     config = AGENT_REGISTRY["operations-transferability"]
     metrics = compute_ops_metrics(ingestion_output)
     if not metrics["has_operational_docs"]:
@@ -1202,17 +1557,22 @@ def run_ops_transferability(ingestion_output: IngestionOutput) -> AgentResult[An
             config.name,
             "No operational documents (employee roster, insurance, equipment list) were uploaded; operations transferability analysis is not applicable.",
         )
-    user_message = (
-        "## Pre-Computed Operational Metrics\n"
-        + json.dumps(metrics, indent=2, default=str)
-        + "\n\n## Raw Document Data\n"
-        + (_raw_text_summary(ingestion_output, {"employee_roster", "insurance_policy", "equipment_list", "other"}) or "No operational documents found")
+    user_message = build_ops_user_message(ingestion_output, metrics)
+    result = _call_llm_agent(
+        config,
+        OPERATIONS_TRANSFERABILITY_PROMPT,
+        user_message,
+        OpsTransferabilityOutput,
+        diagnostic_context=diagnostic_context,
     )
-    result = call_agent(config, OPERATIONS_TRANSFERABILITY_PROMPT, user_message, OpsTransferabilityOutput)
     return _normalize_ops_output(ingestion_output, result, metrics)
 
 
-def run_lease_contract(ingestion_output: IngestionOutput) -> AgentResult[Any]:
+def run_lease_contract(
+    ingestion_output: IngestionOutput,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
+) -> AgentResult[Any]:
     config = AGENT_REGISTRY["lease-contract"]
     metrics = compute_lease_metrics(ingestion_output)
     if not metrics["has_lease"] and not metrics["has_contracts"]:
@@ -1220,13 +1580,14 @@ def run_lease_contract(ingestion_output: IngestionOutput) -> AgentResult[Any]:
             config.name,
             "No lease agreement or contracts were uploaded; lease & contract analysis is not applicable.",
         )
-    user_message = (
-        "## Pre-Computed Lease & Contract Metrics\n"
-        + json.dumps(metrics, indent=2, default=str)
-        + "\n\n## Raw Document Data\n"
-        + (_raw_text_summary(ingestion_output, {"lease_agreement", "contract", "other"}) or "No lease or contracts found")
+    user_message = build_lease_user_message(ingestion_output, metrics)
+    result = _call_llm_agent(
+        config,
+        LEASE_CONTRACT_PROMPT,
+        user_message,
+        LeaseContractOutput,
+        diagnostic_context=diagnostic_context,
     )
-    result = call_agent(config, LEASE_CONTRACT_PROMPT, user_message, LeaseContractOutput)
     return _normalize_lease_output(ingestion_output, result, metrics)
 
 
@@ -1234,26 +1595,27 @@ def run_market_macro(
     ingestion_output: IngestionOutput,
     business_type: str | None = None,
     location: str | None = None,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
 ) -> AgentResult[Any]:
     config = AGENT_REGISTRY["market-macro"]
     inferred = infer_business_context(ingestion_output)
     effective_business_type = business_type or inferred["business_type"] or "Unknown (infer from documents)"
     effective_location = location or inferred["location"] or "Unknown (infer from documents)"
-    indicators = []
-    if inferred["revenue_range"]:
-        indicators.append(f"Annual revenue: ~{inferred['revenue_range']}")
-    if inferred["employee_count"]:
-        indicators.append(f"Employees: {inferred['employee_count']}")
-    user_message = (
-        "Please assess current market conditions, industry trends, and macroeconomic factors relevant to acquiring this business.\n\n"
-        f"## Business Profile\n- Business Type / Industry: {effective_business_type}\n- Location: {effective_location}\n"
-        + (f"\n## Financial Indicators\n- " + "\n- ".join(indicators) if indicators else "")
-        + "\n\n## Uploaded Documents\n"
-        + "\n".join(f"- {doc.file_name} ({doc.document_type.value})" for doc in ingestion_output.documents)
-        + "\n\n## Context From Documents\n"
-        + (_raw_text_summary(ingestion_output, {doc.document_type.value for doc in ingestion_output.documents})[:12000] or "No document text available")
+    user_message = build_market_user_message(
+        ingestion_output,
+        business_type=effective_business_type,
+        location=effective_location,
+        revenue_range=inferred["revenue_range"],
+        employee_count=inferred["employee_count"],
     )
-    result = call_agent(config, MARKET_MACRO_PROMPT, user_message, MarketMacroOutput)
+    result = _call_llm_agent(
+        config,
+        MARKET_MACRO_PROMPT,
+        user_message,
+        MarketMacroOutput,
+        diagnostic_context=diagnostic_context,
+    )
     return _normalize_market_output(
         ingestion_output,
         result,
@@ -1266,6 +1628,8 @@ def run_lending_affordability(
     ingestion_output: IngestionOutput,
     financial_analysis_output: FinancialAnalysisOutput | AgentEnvelope | Any,
     asking_price: float | None = None,
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
 ) -> AgentResult[Any]:
     config = AGENT_REGISTRY["lending-affordability"]
     normalized_financial_output = _unwrap_financial_output(financial_analysis_output)
@@ -1318,54 +1682,30 @@ def run_lending_affordability(
         )
         + "\n\nUse the pre-computed figures above. If no asking price was provided, treat the 3.0x SDE case as the base case and use the other scenarios as bounds."
     )
-    result = call_agent(config, LENDING_AFFORDABILITY_PROMPT, user_message, LendingAffordabilityOutput)
+    result = _call_llm_agent(
+        config,
+        LENDING_AFFORDABILITY_PROMPT,
+        user_message,
+        LendingAffordabilityOutput,
+        diagnostic_context=diagnostic_context,
+    )
     return _normalize_lending_output(ingestion_output, result, asking_price_provided=asking_price is not None and asking_price > 0)
 
 
 def run_synthesis_report(
     scorecard: DeterministicScorecard,
     agent_results: Dict[str, Any],
+    *,
+    diagnostic_context: dict[str, Any] | None = None,
 ) -> AgentResult[SynthesisReportOutput]:
     config = AGENT_REGISTRY["synthesis-report"]
     metrics = compute_synthesis_metrics(agent_results)
 
-    user_message = (
-        "## Deterministic Scorecard (Authoritative)\n"
-        + json.dumps(
-            {
-                "overall_risk_score": getattr(scorecard, "overall_risk_score", None),
-                "overall_recommendation": getattr(scorecard, "overall_recommendation", None),
-                "completeness_score": getattr(scorecard, "completeness_score", None),
-                "confidence_score": getattr(scorecard, "confidence_score", None),
-                "buyer_facing_dimensions": getattr(scorecard, "buyer_facing_dimensions", []),
-                "deal_breakers": getattr(scorecard, "deal_breakers", []),
-                "conflicts": getattr(scorecard, "conflicts", []),
-                "validated_metrics": getattr(scorecard, "validated_metrics", {}),
-                "technical_scorecards": [
-                    {
-                        "name": technical_scorecard.name,
-                        "score": technical_scorecard.score,
-                        "findings": technical_scorecard.findings[:3],
-                    }
-                    for technical_scorecard in getattr(scorecard, "technical_scorecards", [])
-                ],
-            },
-            indent=2,
-            default=str,
-        )
-        + "\n\n## Supporting Specialist Narrative Context\n"
-        + json.dumps(
-            {
-                "available_analyses": metrics["successful_agents"],
-                "failed_analyses": metrics["failed_agents"],
-                "red_flags": metrics["red_flags"],
-                "green_flags": metrics["green_flags"],
-                "section_summaries": {
-                    AGENT_DISPLAY_NAMES[key]: value for key, value in metrics["section_summaries"].items()
-                },
-            },
-            indent=2,
-            default=str,
-        )
+    user_message = build_synthesis_user_message(scorecard, agent_results, metrics)
+    return _call_llm_agent(
+        config,
+        SYNTHESIS_REPORT_PROMPT,
+        user_message,
+        SynthesisReportOutput,
+        diagnostic_context=diagnostic_context,
     )
-    return call_agent(config, SYNTHESIS_REPORT_PROMPT, user_message, SynthesisReportOutput)

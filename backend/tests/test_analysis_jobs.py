@@ -33,8 +33,23 @@ def test_analysis_job_persists_progress_and_completed_report(monkeypatch) -> Non
 
     async def fake_run_pipeline(payload, progress_callback=None):
         if progress_callback:
-            progress_callback("ingestion", "Ingesting uploaded documents.", 0.2)
-            progress_callback("synthesis", "Assembling the final report.", 0.9)
+            progress_callback(
+                "ingestion",
+                "Ingesting uploaded documents.",
+                0.2,
+                running_agents=["ingestion"],
+                agent_statuses={"ingestion": "running"},
+            )
+            progress_callback(
+                "synthesis_started",
+                "Assembling the final report.",
+                0.9,
+                completed_agents=["financial_analysis"],
+                running_agents=["synthesis_report"],
+                queued_agents=[],
+                agent_statuses={"financial_analysis": "success", "synthesis_report": "running"},
+                fallback_mode_active=False,
+            )
         await asyncio.sleep(0.05)
         return {
             "modeAvailable": {"summary": True, "deep": False},
@@ -87,8 +102,26 @@ def test_analysis_job_status_is_reloadable_while_running(monkeypatch) -> None:
 
     async def fake_run_pipeline(payload, progress_callback=None):
         if progress_callback:
-            progress_callback("ingestion", "Ingesting uploaded documents.", 0.2)
-            progress_callback("specialist_analysis", "Running specialist analysis agents.", 0.45)
+            progress_callback(
+                "ingestion",
+                "Ingesting uploaded documents.",
+                0.2,
+                running_agents=["ingestion"],
+                agent_statuses={"ingestion": "running"},
+            )
+            progress_callback(
+                "specialists_started",
+                "Running specialist analysis agents in parallel.",
+                0.45,
+                completed_agents=[],
+                running_agents=["financial_analysis", "tax_compliance"],
+                queued_agents=["market_macro"],
+                agent_statuses={
+                    "financial_analysis": "running",
+                    "tax_compliance": "running",
+                    "market_macro": "queued",
+                },
+            )
         while not release_job.is_set():
             await asyncio.sleep(0.02)
         if progress_callback:
@@ -119,7 +152,7 @@ def test_analysis_job_status_is_reloadable_while_running(monkeypatch) -> None:
 
         running = _wait_for_status(repository, "analysis-job-2", "running")
 
-        assert running.progress.stage in {"ingestion", "specialist_analysis"}
+        assert running.progress.stage in {"ingestion", "specialists_started"}
         assert running.progress.progress >= 0.2
 
         reloaded_repository = FileSystemAnalysisArtifactRepository(artifact_root)
@@ -129,8 +162,9 @@ def test_analysis_job_status_is_reloadable_while_running(monkeypatch) -> None:
         assert reloaded.status == "running"
         assert reloaded.progress.message in {
             "Ingesting uploaded documents.",
-            "Running specialist analysis agents.",
+            "Running specialist analysis agents in parallel.",
         }
+        assert reloaded.progress.running_agents in (["ingestion"], ["financial_analysis", "tax_compliance"])
         assert reloaded.report is None
 
         release_job.set()
@@ -149,8 +183,24 @@ def test_analysis_job_persists_partial_report_without_marking_job_failed(monkeyp
 
     async def fake_run_pipeline(payload, progress_callback=None):
         if progress_callback:
-            progress_callback("specialist_analysis", "Running specialist analysis agents.", 0.45)
-            progress_callback("completed_with_warnings", "Analysis completed with partial failures.", 1.0)
+            progress_callback(
+                "specialists_started",
+                "Running specialist analysis agents in parallel.",
+                0.45,
+                running_agents=["financial_analysis"],
+                queued_agents=["tax_compliance"],
+                agent_statuses={"financial_analysis": "running", "tax_compliance": "queued"},
+            )
+            progress_callback(
+                "completed_with_warnings",
+                "Analysis completed with partial failures.",
+                1.0,
+                completed_agents=["financial_analysis"],
+                running_agents=[],
+                queued_agents=[],
+                agent_statuses={"financial_analysis": "success", "tax_compliance": "timeout"},
+                fallback_mode_active=True,
+            )
         await asyncio.sleep(0.05)
         return {
             "modeAvailable": {"summary": True, "deep": False},
@@ -190,5 +240,6 @@ def test_analysis_job_persists_partial_report_without_marking_job_failed(monkeyp
         assert status.report is not None
         assert status.report["metadata"]["pipelineStatus"] == "partial"
         assert status.report["metadata"]["auditMetadata"]["partialFailures"] == ["tax_compliance"]
+        assert completed.progress.fallback_mode_active is True
     finally:
         shutil.rmtree(artifact_root, ignore_errors=True)

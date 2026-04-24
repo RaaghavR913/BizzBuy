@@ -5,9 +5,17 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
+_DEFAULT_PROMPT_DEBUG_STAGES = "financial_analysis,tax_compliance,synthesis_report"
+
 
 def _parse_origins(value: str) -> list[str]:
     return [origin.strip() for origin in value.split(",") if origin.strip()]
+
+
+def _parse_csv(value: str | None) -> list[str]:
+    if value is None:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
 
 
 def _parse_bool(value: str | None, default: bool) -> bool:
@@ -52,6 +60,17 @@ class Settings(BaseModel):
     pipeline_stage_timeout_seconds: float = _parse_float(
         os.getenv("BIZBUY_PIPELINE_STAGE_TIMEOUT_SECONDS"),
         240.0,
+    )
+    pipeline_prompt_debug_artifacts_enabled: bool = _parse_bool(
+        os.getenv("BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED"),
+        True,
+    )
+    pipeline_prompt_debug_include_bodies: bool = _parse_bool(
+        os.getenv("BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES"),
+        True,
+    )
+    pipeline_prompt_debug_stages: list[str] = _parse_csv(
+        os.getenv("BIZBUY_PIPELINE_PROMPT_DEBUG_STAGES", _DEFAULT_PROMPT_DEBUG_STAGES)
     )
     use_mistral_batch: bool = _parse_bool(os.getenv("USE_MISTRAL_BATCH"), False)
 

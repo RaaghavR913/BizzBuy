@@ -22,6 +22,9 @@ class AnalysisArtifactRepository(Protocol):
     def get_analysis_report_ref(self, analysis_id: str) -> ArtifactReference:
         ...
 
+    def get_prompt_debug_artifact_ref(self, analysis_id: str) -> ArtifactReference:
+        ...
+
     def save_ingestion_artifacts(self, artifacts: StoredIngestionArtifacts) -> ArtifactReference:
         ...
 
@@ -38,6 +41,12 @@ class AnalysisArtifactRepository(Protocol):
         ...
 
     def load_analysis_report(self, analysis_id: str) -> dict[str, object] | None:
+        ...
+
+    def save_prompt_debug_artifact(self, analysis_id: str, payload: dict[str, object]) -> ArtifactReference:
+        ...
+
+    def load_prompt_debug_artifact(self, analysis_id: str) -> dict[str, object] | None:
         ...
 
 
@@ -70,6 +79,15 @@ class FileSystemAnalysisArtifactRepository:
         path = self.root_dir / analysis_id / "analysis_report.json"
         return ArtifactReference(
             artifact_key="analysis_report",
+            storage_kind=ArtifactStorageKind.FILESYSTEM,
+            path=str(path),
+            content_type="application/json",
+        )
+
+    def get_prompt_debug_artifact_ref(self, analysis_id: str) -> ArtifactReference:
+        path = self.root_dir / analysis_id / "prompt_debug.json"
+        return ArtifactReference(
+            artifact_key="prompt_debug",
             storage_kind=ArtifactStorageKind.FILESYSTEM,
             path=str(path),
             content_type="application/json",
@@ -136,6 +154,28 @@ class FileSystemAnalysisArtifactRepository:
         if isinstance(loaded, dict):
             return loaded
         raise ValueError("Stored analysis report must be a JSON object")
+
+    def save_prompt_debug_artifact(self, analysis_id: str, payload: dict[str, object]) -> ArtifactReference:
+        ref = self.get_prompt_debug_artifact_ref(analysis_id)
+        target_path = Path(ref.path)
+        with self._fs_lock:
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            target_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        return ref
+
+    def load_prompt_debug_artifact(self, analysis_id: str) -> dict[str, object] | None:
+        ref = self.get_prompt_debug_artifact_ref(analysis_id)
+        target_path = Path(ref.path)
+        with self._fs_lock:
+            if not target_path.exists():
+                return None
+            raw = target_path.read_text(encoding="utf-8").strip()
+        if not raw:
+            return None
+        loaded = json.loads(raw)
+        if isinstance(loaded, dict):
+            return loaded
+        raise ValueError("Stored prompt debug artifact must be a JSON object")
 
 
 def build_stored_ingestion_artifacts(

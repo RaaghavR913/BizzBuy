@@ -915,6 +915,7 @@ class AgentResult(BaseModel, Generic[T]):
     token_usage: TokenUsage = Field(default_factory=TokenUsage)
     latency_ms: Optional[int] = None
     cost_usd: float = 0.0
+    diagnostics: Dict[str, Any] = Field(default_factory=dict)
 
 
 class PipelineStageMetric(BaseModel):
@@ -927,6 +928,27 @@ class PipelineStageMetric(BaseModel):
     retries_applied: int = 0
     error_type: Optional[str] = None
     error_message: Optional[str] = None
+    queued_at: Optional[str] = None
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    timed_out: bool = False
+    fallback_used: bool = False
+    fallback_reason: Optional[str] = None
+    prompt_chars: Optional[int] = None
+    response_chars: Optional[int] = None
+    evidence_count: Optional[int] = None
+    model: Optional[str] = None
+    schema_chars: Optional[int] = None
+    token_usage_known: bool = True
+    token_usage_unknown_due_to_timeout: bool = False
+    provider_response_received: bool = False
+    provider_usage_received: bool = False
+    request_started_at: Optional[str] = None
+    request_finished_at: Optional[str] = None
+    tool_call_found: bool = False
+    validation_passed: bool = False
+    prompt_sections: Dict[str, int] = Field(default_factory=dict)
+    context_truncation: Dict[str, Any] = Field(default_factory=dict)
 
 
 class PipelineMetadata(BaseModel):
@@ -935,9 +957,12 @@ class PipelineMetadata(BaseModel):
     total_tokens: int = 0
     estimated_cost: float = 0.0
     total_latency_ms: int = 0
+    summed_stage_latency_ms: int = 0
     partial_failures: List[str] = Field(default_factory=list)
     stage_metrics: Dict[str, PipelineStageMetric] = Field(default_factory=dict)
     rollout_flags: Dict[str, Any] = Field(default_factory=dict)
+    critical_path: Dict[str, Any] = Field(default_factory=dict)
+    debug_artifacts: Dict[str, ArtifactReference] = Field(default_factory=dict)
 
 
 class BuyerFacingDimension(ContractModel):

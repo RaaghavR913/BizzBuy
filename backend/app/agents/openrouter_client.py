@@ -3,11 +3,19 @@ from __future__ import annotations
 import json
 import os
 import time
-from typing import Any, Optional, Type, TypeVar
+from datetime import datetime, timezone
+from typing import Any, MutableMapping, Optional, Type, TypeVar
 
-from openai import OpenAI, APIStatusError
+try:
+    from openai import OpenAI, APIStatusError
+except ModuleNotFoundError:  # pragma: no cover - exercised in test environments without the SDK installed
+    OpenAI = None
+
+    class APIStatusError(Exception):
+        status_code: int | None = None
 from pydantic import BaseModel, ValidationError
 
+from app.agents.context_builders import describe_user_message
 from app.agents.registry import AgentConfig
 from app.agents.schemas import AgentErrorPayload, AgentResult, TokenUsage
 
@@ -60,6 +68,8 @@ class AgentError(Exception):
 
 
 def get_client() -> OpenAI:
+    if OpenAI is None:
+        raise ValueError("openai package is not installed")
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         raise ValueError("OPENROUTER_API_KEY environment variable not set")
@@ -71,6 +81,74 @@ def get_client() -> OpenAI:
             "X-Title": "BizBuy Diligence Pipeline",
         },
     )
+
+
+def _utc_timestamp() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _usage_received(usage: Any) -> bool:
+    return bool(
+        usage
+        and any(
+            getattr(usage, field, None) is not None
+            for field in ("prompt_tokens", "completion_tokens", "total_tokens")
+        )
+    )
+
+
+def _base_diagnostics(
+    *,
+    config: AgentConfig,
+    system_prompt: str,
+    user_message: str,
+    schema_chars: int,
+    capture_prompt_bodies: bool,
+) -> dict[str, Any]:
+    prompt_diagnostics = describe_user_message(user_message)
+    prompt_diagnostics["system_prompt_chars"] = len(system_prompt)
+    prompt_diagnostics["schema_chars"] = schema_chars
+    prompt_diagnostics["prompt_chars"] = (
+        prompt_diagnostics.get("prompt_chars", 0)
+        + len(system_prompt)
+        + schema_chars
+    )
+    prompt_diagnostics["model"] = config.model
+    prompt_diagnostics["provider_response_received"] = False
+    prompt_diagnostics["usage_received"] = False
+    prompt_diagnostics["tool_call_found"] = False
+    prompt_diagnostics["validation_passed"] = False
+    prompt_diagnostics["token_usage_known"] = False
+    prompt_diagnostics["token_usage_unknown_due_to_timeout"] = False
+    prompt_diagnostics["request_started_at"] = None
+    prompt_diagnostics["request_finished_at"] = None
+    prompt_diagnostics["attempt_count"] = 0
+    if capture_prompt_bodies:
+        prompt_diagnostics["system_prompt"] = system_prompt
+        prompt_diagnostics["user_message"] = user_message
+    return prompt_diagnostics
+
+
+def _write_diagnostics(
+    base: MutableMapping[str, Any],
+    target: MutableMapping[str, Any] | None,
+    updates: dict[str, Any],
+) -> None:
+    base.update(updates)
+    if target is not None:
+        target.update(updates)
+
+
+def _merged_diagnostics(
+    base: dict[str, Any],
+    diagnostic_context: MutableMapping[str, Any] | None,
+    **updates: Any,
+) -> dict[str, Any]:
+    merged = dict(base)
+    if diagnostic_context:
+        merged.update(diagnostic_context)
+    merged.update(updates)
+    return merged
 
 
 def create_retry_prompt(last_output: str, validation_errors: str) -> str:
@@ -90,12 +168,24 @@ def call_agent(
     system_prompt: str,
     user_message: str,
     schema_class: Type[T],
-    temperature: float = 0.0
+    temperature: float = 0.0,
+    *,
+    diagnostic_context: MutableMapping[str, Any] | None = None,
 ) -> AgentResult[T]:
     client = get_client()
     start_time = time.time()
 
     schema = schema_class.model_json_schema()
+    schema_chars = len(json.dumps(schema, separators=(",", ":"), default=str))
+    capture_prompt_bodies = bool(diagnostic_context and diagnostic_context.get("capture_prompt_bodies"))
+    prompt_diagnostics = _base_diagnostics(
+        config=config,
+        system_prompt=system_prompt,
+        user_message=user_message,
+        schema_chars=schema_chars,
+        capture_prompt_bodies=capture_prompt_bodies,
+    )
+    _write_diagnostics(prompt_diagnostics, diagnostic_context, prompt_diagnostics)
     structured_output_tool = {
         "type": "function",
         "function": {
@@ -113,6 +203,16 @@ def call_agent(
 
     for attempt in range(MAX_RETRIES + 1):
         try:
+            request_started_at = _utc_timestamp()
+            _write_diagnostics(
+                prompt_diagnostics,
+                diagnostic_context,
+                {
+                    "attempt_count": attempt + 1,
+                    "request_started_at": request_started_at,
+                    "request_finished_at": None,
+                },
+            )
             response = client.chat.completions.create(
                 model=config.model,
                 max_tokens=config.max_tokens,
@@ -125,7 +225,19 @@ def call_agent(
                 tool_choice={"type": "function", "function": {"name": TOOL_NAME}},
             )
 
+            request_finished_at = _utc_timestamp()
             usage = response.usage
+            usage_received = _usage_received(usage)
+            _write_diagnostics(
+                prompt_diagnostics,
+                diagnostic_context,
+                {
+                    "request_finished_at": request_finished_at,
+                    "provider_response_received": True,
+                    "usage_received": usage_received,
+                    "token_usage_known": usage_received,
+                },
+            )
             if usage:
                 total_input_tokens += usage.prompt_tokens or 0
                 total_output_tokens += usage.completion_tokens or 0
@@ -133,6 +245,14 @@ def call_agent(
             choice = response.choices[0] if response.choices else None
             tool_calls = (choice.message.tool_calls or []) if choice else []
             tool_call = next((tc for tc in tool_calls if tc.function.name == TOOL_NAME), None)
+            tool_call_found = tool_call is not None
+            _write_diagnostics(
+                prompt_diagnostics,
+                diagnostic_context,
+                {
+                    "tool_call_found": tool_call_found,
+                },
+            )
 
             if not tool_call:
                 # Some models may return the JSON in message.content instead of tool_calls.
@@ -160,7 +280,15 @@ def call_agent(
                             "No function call found in response",
                         )
                         continue
-                    return AgentResult(status="error", error=to_error_payload(error))
+                    return AgentResult(
+                        status="error",
+                        error=to_error_payload(error),
+                        diagnostics=_merged_diagnostics(
+                            prompt_diagnostics,
+                            diagnostic_context,
+                            response_chars=len(last_output or raw_content or ""),
+                        ),
+                    )
             else:
                 try:
                     tool_input = json.loads(tool_call.function.arguments)
@@ -177,7 +305,15 @@ def call_agent(
                             str(parse_err),
                         )
                         continue
-                    return AgentResult(status="error", error=to_error_payload(error))
+                    return AgentResult(
+                        status="error",
+                        error=to_error_payload(error),
+                        diagnostics=_merged_diagnostics(
+                            prompt_diagnostics,
+                            diagnostic_context,
+                            response_chars=len(tool_call.function.arguments or ""),
+                        ),
+                    )
 
                 last_output = json.dumps(tool_input, indent=2)
 
@@ -185,11 +321,23 @@ def call_agent(
             try:
                 validated_data = schema_class(**tool_input)
                 latency_ms = int((time.time() - start_time) * 1000)
+                _write_diagnostics(
+                    prompt_diagnostics,
+                    diagnostic_context,
+                    {
+                        "validation_passed": True,
+                    },
+                )
                 return AgentResult(
                     status="success",
                     data=validated_data,
                     token_usage=TokenUsage(input=total_input_tokens, output=total_output_tokens),
                     latency_ms=latency_ms,
+                    diagnostics=_merged_diagnostics(
+                        prompt_diagnostics,
+                        diagnostic_context,
+                        response_chars=len(last_output or ""),
+                    ),
                 )
             except ValidationError as e:
                 last_validation_errors = str(e)
@@ -204,9 +352,25 @@ def call_agent(
                     f"Schema validation failed: {last_validation_errors}",
                     attempt,
                 )
-                return AgentResult(status="error", error=to_error_payload(error))
+                return AgentResult(
+                    status="error",
+                    error=to_error_payload(error),
+                    diagnostics=_merged_diagnostics(
+                        prompt_diagnostics,
+                        diagnostic_context,
+                        response_chars=len(last_output or ""),
+                    ),
+                )
 
         except Exception as e:
+            _write_diagnostics(
+                prompt_diagnostics,
+                diagnostic_context,
+                {
+                    "attempt_count": attempt + 1,
+                    "request_finished_at": _utc_timestamp(),
+                },
+            )
             error_type, should_retry = _classify_api_error(e)
             error = AgentError(
                 config.name,
@@ -216,7 +380,23 @@ def call_agent(
             )
             if should_retry and attempt < MAX_RETRIES:
                 continue
-            return AgentResult(status="error", error=to_error_payload(error))
+            return AgentResult(
+                status="error",
+                error=to_error_payload(error),
+                diagnostics=_merged_diagnostics(
+                    prompt_diagnostics,
+                    diagnostic_context,
+                    response_chars=len(last_output or ""),
+                ),
+            )
 
     error = AgentError(config.name, "unknown", "Max retries exceeded", MAX_RETRIES)
-    return AgentResult(status="error", error=to_error_payload(error))
+    return AgentResult(
+        status="error",
+        error=to_error_payload(error),
+        diagnostics=_merged_diagnostics(
+            prompt_diagnostics,
+            diagnostic_context,
+            response_chars=len(last_output or ""),
+        ),
+    )

@@ -504,6 +504,12 @@ def assemble_summary_report(
                         key: metric.model_dump(mode="json", by_alias=True)
                         for key, metric in metadata.stage_metrics.items()
                     },
+                    "summedStageLatencyMs": metadata.summed_stage_latency_ms,
+                    "criticalPath": dict(metadata.critical_path),
+                    "debugArtifacts": {
+                        key: ref.model_dump(mode="json", by_alias=True)
+                        for key, ref in metadata.debug_artifacts.items()
+                    },
                     "rolloutFlags": dict(metadata.rollout_flags),
                 }
                 if metadata

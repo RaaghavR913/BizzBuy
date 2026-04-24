@@ -79,6 +79,7 @@ from app.agents.schemas import (
     SectionSummaries,
     SectionSummary,
     NextStep,
+    NormalizedMetric,
 )
 
 
@@ -137,6 +138,20 @@ def test_relevant_sections_uses_section_identity_not_parent_document_type() -> N
     assert [section.section_kind for section in balance_sections] == ["balance_sheet"]
     assert [section.section_kind for section in tax_support_sections] == ["profit_and_loss"]
     assert [section.section_kind for section in financial_sections] == ["profit_and_loss", "balance_sheet", "sde_summary"]
+
+
+def test_copy_result_preserves_diagnostics() -> None:
+    original = AgentResult(
+        status="success",
+        data={"raw": True},
+        diagnostics={"prompt_chars": 321, "prompt_sections": {"metrics": 12}},
+    )
+
+    copied = runners._copy_result(original, {"normalized": True})
+
+    assert copied.data == {"normalized": True}
+    assert copied.diagnostics == {"prompt_chars": 321, "prompt_sections": {"metrics": 12}}
+    assert copied.diagnostics is not original.diagnostics
 
 
 def _financial_output() -> FinancialAnalysisOutput:
@@ -265,6 +280,50 @@ def test_financial_runner_emits_normalized_envelope(monkeypatch) -> None:
     assert result.data.findings[0].metric_impact["financial_impact_usd"] == 25000
     assert result.data.evidence[0].document_id == "pl-2024"
     assert isinstance(result.data.raw_domain_output, FinancialAnalysisOutput)
+
+
+def test_financial_runner_compacts_row_dump_in_prompt(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+    ingestion = _ingestion_output(
+        [
+            DocumentInfo(
+                document_id="pl-2024",
+                file_name="pnl-2024.xlsx",
+                mime_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                document_type=DocumentType.PROFIT_AND_LOSS,
+                sections=[
+                    _section(
+                        "pl-2024",
+                        DocumentType.PROFIT_AND_LOSS,
+                        2024,
+                        {
+                            "revenue": 1200,
+                            "net_income": 100,
+                            "rows": [
+                                {"label": f"ROW-{idx}", "amount": idx}
+                                for idx in range(40)
+                            ],
+                        },
+                        "Revenue 1200 Net income 100",
+                    )
+                ],
+            )
+        ]
+    )
+
+    def fake_call_agent(_config, _prompt, user_message, _schema):
+        captured["user_message"] = user_message
+        return AgentResult(status="success", data=_financial_output())
+
+    monkeypatch.setattr(runners, "call_agent", fake_call_agent)
+
+    result = runners.run_financial_analysis(ingestion)
+
+    assert result.status == "success"
+    assert "evidence_pack" in captured["user_message"]
+    assert '"rows"' not in captured["user_message"]
+    assert "ROW-39" not in captured["user_message"]
+    assert "Revenue 1200 Net income 100" in captured["user_message"]
 
 
 def test_tax_runner_marks_missing_tax_returns(monkeypatch) -> None:
@@ -679,6 +738,62 @@ def test_market_runner_declares_missing_context_when_inputs_are_thin(monkeypatch
     assert any(finding.missing_data for finding in result.data.findings)
 
 
+def test_market_runner_caps_document_context_in_prompt(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+    long_text = ("Service area includes Phoenix and Tucson. " * 120) + "TAIL_MARKER_SHOULD_NOT_APPEAR"
+    ingestion = _ingestion_output(
+        [
+            DocumentInfo(
+                document_id="ops-1",
+                file_name="operations-notes.pdf",
+                mime_type="application/pdf",
+                document_type=DocumentType.OTHER,
+                sections=[
+                    _section(
+                        "ops-1",
+                        DocumentType.OTHER,
+                        2024,
+                        {"notes": "Service area expansion"},
+                        long_text,
+                    )
+                ],
+            )
+        ]
+    )
+
+    market_output = MarketMacroOutput(
+        industry_overview=IndustryOverview(
+            name="Home Services",
+            trend=MarketTrend.STABLE,
+            key_drivers=["Replacement demand"],
+        ),
+        local_market=LocalMarket(
+            area="Phoenix, AZ",
+            competitor_density=Density.MEDIUM,
+            demand_outlook="Stable",
+        ),
+        macro_factors=[MacroFactor(factor="Rates", impact=Impact.NEGATIVE, description="Financing remains expensive.")],
+        threats=[],
+        opportunities=[],
+        overall_score=6,
+        confidence=0.52,
+        summary="Market context is usable.",
+    )
+
+    def fake_call_agent(_config, _prompt, user_message, _schema):
+        captured["user_message"] = user_message
+        return AgentResult(status="success", data=market_output)
+
+    monkeypatch.setattr(runners, "call_agent", fake_call_agent)
+
+    result = runners.run_market_macro(ingestion)
+
+    assert result.status == "success"
+    assert "context_snippets" in captured["user_message"]
+    assert "TAIL_MARKER_SHOULD_NOT_APPEAR" not in captured["user_message"]
+    assert len(captured["user_message"]) < 5000
+
+
 def test_synthesis_runner_uses_deterministic_scorecard_as_authoritative_context(monkeypatch) -> None:
     captured: dict[str, str] = {}
     scorecard = DeterministicScorecard(
@@ -743,7 +858,68 @@ def test_synthesis_runner_uses_deterministic_scorecard_as_authoritative_context(
     result = runners.run_synthesis_report(scorecard, agent_results)
 
     assert result.status == "success"
-    assert "Deterministic Scorecard (Authoritative)" in captured["user_message"]
-    assert '"overall_risk_score": 63' in captured["user_message"]
-    assert '"overall_recommendation": "conditional_buy"' in captured["user_message"]
+    assert "## Synthesis Context" in captured["user_message"]
+    assert '"overall_risk_score":63' in captured["user_message"]
+    assert '"overall_recommendation":"conditional_buy"' in captured["user_message"]
     assert "suggested_recommendation_band" not in captured["user_message"]
+
+
+def test_synthesis_runner_compacts_specialist_context(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+    scorecard = DeterministicScorecard(
+        overall_risk_score=58,
+        overall_recommendation="buy",
+        completeness_score=0.9,
+        confidence_score=0.81,
+        validated_metrics={
+            f"metric_{idx:02d}": NormalizedMetric(value=idx)
+            for idx in range(15)
+        },
+    )
+    agent_results = {
+        "financial_analysis": AgentResult(
+            status="success",
+            data=AgentEnvelope(
+                agent_name="financial_analysis",
+                status="success",
+                summary="Core profitability is solid, but add-backs need support.",
+                confidence=0.84,
+                overall_score=7,
+                raw_domain_output={"huge_blob": "RAW_DOMAIN_TEXT_SHOULD_NOT_APPEAR"},
+            ),
+        )
+    }
+
+    def fake_call_agent(_config, _prompt, user_message, _schema):
+        captured["user_message"] = user_message
+        return AgentResult(
+            status="success",
+            data=runners.SynthesisReportOutput(
+                executive_summary="Healthy base case with one diligence holdback.",
+                red_flags=[],
+                green_flags=[],
+                section_summaries=SectionSummaries(
+                    financial=SectionSummary(score=7, summary="Financials are workable.", top_risks=["Validate add-backs"]),
+                    tax=SectionSummary(score=1, summary="Analysis unavailable.", top_risks=["Analysis did not complete."]),
+                    ar=SectionSummary(score=1, summary="Analysis unavailable.", top_risks=["Analysis did not complete."]),
+                    customer=SectionSummary(score=1, summary="Analysis unavailable.", top_risks=["Analysis did not complete."]),
+                    operations=SectionSummary(score=1, summary="Analysis unavailable.", top_risks=["Analysis did not complete."]),
+                    lease=SectionSummary(score=1, summary="Analysis unavailable.", top_risks=["Analysis did not complete."]),
+                    market=SectionSummary(score=1, summary="Analysis unavailable.", top_risks=["Analysis did not complete."]),
+                    lending=SectionSummary(score=1, summary="Analysis unavailable.", top_risks=["Analysis did not complete."]),
+                ),
+                next_steps=[NextStep(priority=1, action="Validate add-backs", reason="Primary diligence item")],
+                deal_terms_suggestion="Tie any premium to verified earnings support.",
+            ),
+        )
+
+    monkeypatch.setattr(runners, "call_agent", fake_call_agent)
+
+    result = runners.run_synthesis_report(scorecard, agent_results)
+
+    assert result.status == "success"
+    assert '"metric_00"' in captured["user_message"]
+    assert '"metric_13"' not in captured["user_message"]
+    assert "RAW_DOMAIN_TEXT_SHOULD_NOT_APPEAR" not in captured["user_message"]
+    assert "specialist_briefs" in captured["user_message"]
+    assert "section_summaries" not in captured["user_message"]

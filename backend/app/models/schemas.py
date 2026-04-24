@@ -492,6 +492,10 @@ class AnalysisJobProgress(CamelModel):
     progress: float = Field(0, ge=0, le=1)
     updated_at: str | None = None
     completed_agents: list[str] = Field(default_factory=list)
+    running_agents: list[str] = Field(default_factory=list)
+    queued_agents: list[str] = Field(default_factory=list)
+    agent_statuses: dict[str, str] = Field(default_factory=dict)
+    fallback_mode_active: bool = False
 
 
 class AnalysisJobRecord(CamelModel):

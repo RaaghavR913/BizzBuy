@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import logging
 import time
 from datetime import datetime, timezone
+from functools import partial
 from typing import Any, Callable, Dict
 
 from app.agents.registry import AGENT_REGISTRY
@@ -30,6 +32,7 @@ from app.agents.runners import (
     run_synthesis_report,
 )
 from app.core.config import get_settings
+from app.services.analysis_repository import get_analysis_artifact_repository
 from app.services.clarification_service import build_clarification_evidence, store_clarification_answers
 from app.services.report_assembler import assemble_summary_report
 from app.services.scoring_engine import compute_pipeline_scorecard
@@ -40,6 +43,8 @@ MODEL_PRICING = {
     "z-ai/glm-5.1":     {"type": "per_token", "input": 0.95, "output": 3.15},
     "mistral-ocr-2512": {"type": "per_page",  "rate": 0.002},
 }
+
+_DEFAULT_PROMPT_DEBUG_STAGES = {"financial_analysis", "tax_compliance", "synthesis_report"}
 
 
 def _timestamp() -> str:
@@ -103,15 +108,35 @@ async def _run_in_executor(func, *args):
     return await loop.run_in_executor(None, func, *args)
 
 
+def _resolve_stage_timeout(registry_key: str, default_timeout_seconds: float) -> float:
+    config = AGENT_REGISTRY.get(registry_key)
+    if config and config.timeout_seconds is not None:
+        return float(config.timeout_seconds)
+    return float(default_timeout_seconds)
+
+
 def _emit_progress(
-    progress_callback: Callable[[str, str, float, list[str]], None] | None,
+    progress_callback: Callable[..., None] | None,
     stage: str,
     message: str,
     progress: float,
     completed_agents: list[str] | None = None,
+    running_agents: list[str] | None = None,
+    queued_agents: list[str] | None = None,
+    agent_statuses: dict[str, str] | None = None,
+    fallback_mode_active: bool | None = None,
 ) -> None:
     if progress_callback is not None:
-        progress_callback(stage, message, progress, completed_agents or [])
+        progress_callback(
+            stage,
+            message,
+            progress,
+            completed_agents or [],
+            running_agents=running_agents or [],
+            queued_agents=queued_agents or [],
+            agent_statuses=agent_statuses or {},
+            fallback_mode_active=bool(fallback_mode_active),
+        )
 
 
 def _stage_metric(
@@ -120,6 +145,12 @@ def _stage_metric(
     attempts: int,
     timeout_seconds: float,
     registry_key: str,
+    queued_at: str | None = None,
+    started_at: str | None = None,
+    completed_at: str | None = None,
+    timed_out: bool = False,
+    fallback_used: bool = False,
+    fallback_reason: str | None = None,
 ) -> PipelineStageMetric:
     return PipelineStageMetric(
         attempts=attempts,
@@ -131,7 +162,71 @@ def _stage_metric(
         timeout_seconds=timeout_seconds,
         error_type=result.error.error_type if result.error else None,
         error_message=result.error.message if result.error else None,
+        queued_at=queued_at,
+        started_at=started_at,
+        completed_at=completed_at,
+        timed_out=timed_out,
+        fallback_used=fallback_used or bool(result.diagnostics.get("fallback_used")),
+        fallback_reason=fallback_reason,
+        prompt_chars=result.diagnostics.get("prompt_chars"),
+        response_chars=result.diagnostics.get("response_chars"),
+        evidence_count=result.diagnostics.get("evidence_count"),
+        model=result.diagnostics.get("model"),
+        schema_chars=result.diagnostics.get("schema_chars"),
+        token_usage_known=bool(result.diagnostics.get("token_usage_known", True)),
+        token_usage_unknown_due_to_timeout=bool(result.diagnostics.get("token_usage_unknown_due_to_timeout", False)),
+        provider_response_received=bool(result.diagnostics.get("provider_response_received", False)),
+        provider_usage_received=bool(result.diagnostics.get("usage_received", False)),
+        request_started_at=result.diagnostics.get("request_started_at"),
+        request_finished_at=result.diagnostics.get("request_finished_at"),
+        tool_call_found=bool(result.diagnostics.get("tool_call_found", False)),
+        validation_passed=bool(result.diagnostics.get("validation_passed", False)),
+        prompt_sections=dict(result.diagnostics.get("prompt_sections", {})),
+        context_truncation=dict(result.diagnostics.get("context_truncation", {})),
     )
+
+
+def _selected_prompt_debug_stages(settings: Any) -> set[str]:
+    configured = {
+        str(stage).strip()
+        for stage in getattr(settings, "pipeline_prompt_debug_stages", []) or []
+        if str(stage).strip()
+    }
+    return configured or set(_DEFAULT_PROMPT_DEBUG_STAGES)
+
+
+def _supports_diagnostic_context(func: Any) -> bool:
+    try:
+        return "diagnostic_context" in inspect.signature(func).parameters
+    except (TypeError, ValueError):
+        return False
+
+
+def _finalize_result_diagnostics(
+    result: AgentResult[Any],
+    diagnostic_context: dict[str, Any],
+    *,
+    timed_out: bool,
+    fallback_used: bool,
+) -> AgentResult[Any]:
+    context_diagnostics = {
+        key: value
+        for key, value in diagnostic_context.items()
+        if key != "capture_prompt_bodies"
+    }
+    diagnostics = dict(context_diagnostics)
+    diagnostics.update(result.diagnostics)
+    provider_usage_received = bool(diagnostics.get("usage_received", False))
+    token_usage_known = bool(diagnostics.get("token_usage_known", False)) or provider_usage_received or bool(
+        result.token_usage.input or result.token_usage.output
+    )
+    diagnostics["provider_response_received"] = bool(diagnostics.get("provider_response_received", False))
+    diagnostics["usage_received"] = provider_usage_received
+    diagnostics["token_usage_known"] = token_usage_known
+    diagnostics["token_usage_unknown_due_to_timeout"] = bool(timed_out and not token_usage_known)
+    diagnostics["timed_out"] = bool(timed_out)
+    diagnostics["fallback_used"] = bool(fallback_used or diagnostics.get("fallback_used"))
+    return result.model_copy(update={"diagnostics": diagnostics})
 
 
 async def _execute_stage(
@@ -143,23 +238,63 @@ async def _execute_stage(
     metadata: PipelineMetadata,
     timeout_seconds: float,
     retry_attempts: int,
+    queued_at: str | None = None,
+    timeout_fallback: Callable[[], AgentResult[Any]] | None = None,
+    capture_prompt_bodies: bool = False,
 ) -> AgentResult[Any]:
     attempts = 0
     last_result: AgentResult[Any] | None = None
+    first_started_at: str | None = None
+    completed_at: str | None = None
+    timed_out = False
+    fallback_used = False
+    fallback_reason: str | None = None
+    diagnostic_context: dict[str, Any] = {"capture_prompt_bodies": capture_prompt_bodies}
 
     while attempts <= retry_attempts:
         attempts += 1
         attempt_started = time.perf_counter()
+        attempt_started_at = _timestamp()
+        if first_started_at is None:
+            first_started_at = attempt_started_at
         try:
-            result = await asyncio.wait_for(_run_in_executor(func, *args), timeout=timeout_seconds)
-        except asyncio.TimeoutError:
-            result = _make_agent_error(
-                agent_name=stage_key,
-                error_type="timeout",
-                message=f"{stage_key} timed out after {timeout_seconds:.1f}s.",
-                retry_count=attempts - 1,
-                latency_ms=int((time.perf_counter() - attempt_started) * 1000),
+            stage_callable = (
+                partial(func, *args, diagnostic_context=diagnostic_context)
+                if _supports_diagnostic_context(func)
+                else partial(func, *args)
             )
+            setattr(stage_callable, "__name__", getattr(func, "__name__", "stage_callable"))
+            result = await asyncio.wait_for(_run_in_executor(stage_callable), timeout=timeout_seconds)
+        except asyncio.TimeoutError:
+            timed_out = True
+            latency_ms = int((time.perf_counter() - attempt_started) * 1000)
+            if timeout_fallback is not None:
+                try:
+                    result = timeout_fallback()
+                    if result is None:
+                        raise RuntimeError("timeout fallback returned no result")
+                    fallback_used = True
+                    fallback_reason = f"{stage_key} timed out after {timeout_seconds:.1f}s and used a deterministic fallback."
+                    if result.latency_ms is None:
+                        result = result.model_copy(update={"latency_ms": latency_ms})
+                except Exception as fallback_exc:
+                    result = _make_agent_error(
+                        agent_name=stage_key,
+                        error_type="timeout",
+                        message=(
+                            f"{stage_key} timed out after {timeout_seconds:.1f}s, and fallback generation failed: {fallback_exc}"
+                        ),
+                        retry_count=attempts - 1,
+                        latency_ms=latency_ms,
+                    )
+            else:
+                result = _make_agent_error(
+                    agent_name=stage_key,
+                    error_type="timeout",
+                    message=f"{stage_key} timed out after {timeout_seconds:.1f}s.",
+                    retry_count=attempts - 1,
+                    latency_ms=latency_ms,
+                )
         except Exception as exc:
             result = _make_agent_error(
                 agent_name=stage_key,
@@ -172,8 +307,14 @@ async def _execute_stage(
         if result.latency_ms is None:
             result = result.model_copy(update={"latency_ms": int((time.perf_counter() - attempt_started) * 1000)})
 
+        result = _finalize_result_diagnostics(
+            result,
+            diagnostic_context,
+            timed_out=timed_out,
+            fallback_used=fallback_used,
+        )
         last_result = result
-        if result.status == "success":
+        if result.status == "success" or fallback_used:
             break
 
     final_result = last_result or _make_agent_error(
@@ -182,13 +323,24 @@ async def _execute_stage(
         message=f"{stage_key} did not return a result.",
         retry_count=max(0, attempts - 1),
     )
+    completed_at = _timestamp()
     metadata.stage_metrics[stage_key] = _stage_metric(
         result=final_result,
         attempts=attempts,
         timeout_seconds=timeout_seconds,
         registry_key=registry_key,
+        queued_at=queued_at,
+        started_at=first_started_at,
+        completed_at=completed_at,
+        timed_out=timed_out,
+        fallback_used=fallback_used,
+        fallback_reason=fallback_reason,
     )
-    if final_result.status not in {"success", "skipped", "not_applicable"} and stage_key not in metadata.partial_failures:
+    if (
+        final_result.status not in {"success", "skipped", "not_applicable"}
+        or timed_out
+        or fallback_used
+    ) and stage_key not in metadata.partial_failures:
         metadata.partial_failures.append(stage_key)
     return final_result
 
@@ -196,7 +348,107 @@ async def _execute_stage(
 def _refresh_metadata_totals(metadata: PipelineMetadata) -> None:
     metadata.total_tokens = sum(metric.total_tokens for metric in metadata.stage_metrics.values())
     metadata.estimated_cost = round(sum(metric.estimated_cost for metric in metadata.stage_metrics.values()), 6)
-    metadata.total_latency_ms = sum(metric.latency_ms for metric in metadata.stage_metrics.values())
+    metadata.summed_stage_latency_ms = sum(metric.latency_ms for metric in metadata.stage_metrics.values())
+
+
+def _critical_path_report(metadata: PipelineMetadata) -> dict[str, Any]:
+    specialist_keys = {
+        "financial_analysis",
+        "tax_compliance",
+        "ar_collections",
+        "customer_concentration",
+        "operations_transferability",
+        "lease_contract",
+        "market_macro",
+    }
+    specialist_metrics = [
+        (stage_key, metric)
+        for stage_key, metric in metadata.stage_metrics.items()
+        if stage_key in specialist_keys and metric.status not in {"not_applicable", "skipped"}
+    ]
+    slowest_specialist = None
+    if specialist_metrics:
+        slowest_specialist = max(specialist_metrics, key=lambda item: item[1].latency_ms)
+
+    report: dict[str, Any] = {
+        "wall_clock_ms": metadata.total_latency_ms,
+        "summed_stage_latency_ms": metadata.summed_stage_latency_ms,
+        "parallelism_ratio": round(
+            metadata.summed_stage_latency_ms / metadata.total_latency_ms,
+            2,
+        )
+        if metadata.total_latency_ms
+        else None,
+    }
+    if slowest_specialist is not None:
+        report["slowest_specialist_stage"] = slowest_specialist[0]
+        report["slowest_specialist_latency_ms"] = slowest_specialist[1].latency_ms
+    if "synthesis_report" in metadata.stage_metrics:
+        report["synthesis_latency_ms"] = metadata.stage_metrics["synthesis_report"].latency_ms
+    return report
+
+
+def _serialize_prompt_debug_artifact(
+    analysis_id: str,
+    metadata: PipelineMetadata,
+    stage_results: dict[str, AgentResult[Any]],
+    *,
+    selected_stages: set[str],
+    include_prompt_bodies: bool,
+) -> dict[str, object]:
+    stages: dict[str, object] = {}
+    for stage_key in selected_stages:
+        metric = metadata.stage_metrics.get(stage_key)
+        result = stage_results.get(stage_key)
+        diagnostics = result.diagnostics if result else {}
+        if metric is None and not diagnostics:
+            continue
+
+        stage_payload: dict[str, object] = {
+            "status": metric.status if metric else (result.status if result else "unknown"),
+            "timedOut": metric.timed_out if metric else bool(diagnostics.get("timed_out", False)),
+            "fallbackUsed": metric.fallback_used if metric else bool(diagnostics.get("fallback_used", False)),
+            "model": (metric.model if metric else None) or diagnostics.get("model"),
+            "promptChars": (metric.prompt_chars if metric else None) or diagnostics.get("prompt_chars"),
+            "systemPromptChars": diagnostics.get("system_prompt_chars"),
+            "userMessageChars": diagnostics.get("user_message_chars"),
+            "schemaChars": (metric.schema_chars if metric else None) or diagnostics.get("schema_chars"),
+            "responseChars": (metric.response_chars if metric else None) or diagnostics.get("response_chars"),
+            "evidenceCount": (metric.evidence_count if metric else None) or diagnostics.get("evidence_count"),
+            "promptSections": dict((metric.prompt_sections if metric else {}) or diagnostics.get("prompt_sections", {})),
+            "contextTruncation": dict((metric.context_truncation if metric else {}) or diagnostics.get("context_truncation", {})),
+            "attemptCount": diagnostics.get("attempt_count"),
+            "requestStartedAt": (metric.request_started_at if metric else None) or diagnostics.get("request_started_at"),
+            "requestFinishedAt": (metric.request_finished_at if metric else None) or diagnostics.get("request_finished_at"),
+            "providerResponseReceived": (
+                metric.provider_response_received if metric else bool(diagnostics.get("provider_response_received", False))
+            ),
+            "usageReceived": (
+                metric.provider_usage_received if metric else bool(diagnostics.get("usage_received", False))
+            ),
+            "toolCallFound": metric.tool_call_found if metric else bool(diagnostics.get("tool_call_found", False)),
+            "validationPassed": metric.validation_passed if metric else bool(diagnostics.get("validation_passed", False)),
+            "tokenUsageKnown": (
+                metric.token_usage_known if metric else bool(diagnostics.get("token_usage_known", False))
+            ),
+            "tokenUsageUnknownDueToTimeout": (
+                metric.token_usage_unknown_due_to_timeout
+                if metric
+                else bool(diagnostics.get("token_usage_unknown_due_to_timeout", False))
+            ),
+        }
+        if include_prompt_bodies:
+            if diagnostics.get("system_prompt") is not None:
+                stage_payload["systemPrompt"] = diagnostics.get("system_prompt")
+            if diagnostics.get("user_message") is not None:
+                stage_payload["userMessage"] = diagnostics.get("user_message")
+        stages[stage_key] = stage_payload
+
+    return {
+        "analysisId": analysis_id,
+        "generatedAt": metadata.completed_at or _timestamp(),
+        "stages": stages,
+    }
 
 
 def _detected_doc_types(ingestion_output: IngestionOutput) -> set[str]:
@@ -295,7 +547,7 @@ def _applicable_specialist_keys(detected_doc_types: set[str]) -> set[str]:
 
 async def run_pipeline(
     payload: Dict[str, Any],
-    progress_callback: Callable[[str, str, float, list[str]], None] | None = None,
+    progress_callback: Callable[..., None] | None = None,
 ) -> Dict[str, Any]:
     settings = get_settings()
     pipeline_started = time.perf_counter()
@@ -319,9 +571,17 @@ async def run_pipeline(
                 "enable_synthesis": settings.pipeline_enable_synthesis,
                 "retry_attempts": settings.pipeline_retry_attempts,
                 "stage_timeout_seconds": settings.pipeline_stage_timeout_seconds,
+                "prompt_debug_artifacts_enabled": settings.pipeline_prompt_debug_artifacts_enabled,
+                "prompt_debug_include_bodies": getattr(settings, "pipeline_prompt_debug_include_bodies", False),
+                "prompt_debug_stages": sorted(_selected_prompt_debug_stages(settings)),
             },
         ),
     )
+    prompt_debug_stages = _selected_prompt_debug_stages(settings)
+    running_agents: set[str] = set()
+    completed_agents: list[str] = []
+    fallback_mode_active = False
+    agent_statuses: dict[str, str] = {"ingestion": "queued"}
     clarification_evidence = build_clarification_evidence(
         pipeline_input.clarifications,
         analysis_id=pipeline_input.analysis_id,
@@ -333,16 +593,29 @@ async def run_pipeline(
         len(pipeline_input.documents),
     )
 
-    _emit_progress(progress_callback, "ingestion", "Ingesting uploaded documents.", 0.12)
+    _emit_progress(
+        progress_callback,
+        "ingestion",
+        "Ingesting uploaded documents.",
+        0.12,
+        completed_agents=list(completed_agents),
+        running_agents=["ingestion"],
+        agent_statuses={"ingestion": "running"},
+        fallback_mode_active=fallback_mode_active,
+    )
+    agent_statuses["ingestion"] = "running"
     state.ingestion = await _execute_stage(
         stage_key="ingestion",
         registry_key="document-ingestion",
         func=run_document_ingestion,
         args=(pipeline_input.documents, pipeline_input.analysis_id),
         metadata=state.metadata,
-        timeout_seconds=settings.pipeline_stage_timeout_seconds,
+        timeout_seconds=_resolve_stage_timeout("document-ingestion", settings.pipeline_stage_timeout_seconds),
         retry_attempts=settings.pipeline_retry_attempts,
+        queued_at=state.metadata.started_at,
+        capture_prompt_bodies=False,
     )
+    agent_statuses["ingestion"] = state.ingestion.status
     if state.ingestion.status != "success" or not state.ingestion.data:
         logger.warning("Pipeline aborted at ingestion: analysis_id=%s", pipeline_input.analysis_id)
         abort = _make_abort_error("Pipeline aborted: document ingestion failed.")
@@ -357,6 +630,8 @@ async def run_pipeline(
         state.synthesis_report = abort
         state.metadata.completed_at = _timestamp()
         _refresh_metadata_totals(state.metadata)
+        state.metadata.total_latency_ms = int((time.perf_counter() - pipeline_started) * 1000)
+        state.metadata.critical_path = _critical_path_report(state.metadata)
         return assemble_summary_report(
             ingestion_output=None,
             agent_results={},
@@ -370,7 +645,16 @@ async def run_pipeline(
         ).model_dump(mode="json", by_alias=True)
 
     ingestion_output = state.ingestion.data
-    _emit_progress(progress_callback, "ingestion_complete", "Document ingestion complete.", 0.28)
+    _emit_progress(
+        progress_callback,
+        "ingestion_complete",
+        "Document ingestion complete.",
+        0.28,
+        completed_agents=list(completed_agents),
+        running_agents=list(running_agents),
+        agent_statuses=dict(agent_statuses),
+        fallback_mode_active=fallback_mode_active,
+    )
     if pipeline_input.analysis_id and pipeline_input.clarifications:
         store_clarification_answers(pipeline_input.analysis_id, pipeline_input.clarifications)
 
@@ -387,8 +671,10 @@ async def run_pipeline(
 
     # ── Specialist agents (parallel) ────────────────────────────────────────────
     # Track each completion to emit per-agent progress with a shared list.
-    _completed_agents: list[str] = []
     _total_applicable = len(applicable_keys)
+    specialist_specs = _specialist_specs(ingestion_output, pipeline_input)
+    for stage_key, *_ in specialist_specs:
+        agent_statuses[stage_key] = "queued" if stage_key in applicable_keys else "not_applicable"
 
     async def _tracked_specialist(
         stage_key: str,
@@ -396,15 +682,19 @@ async def run_pipeline(
         func: Any,
         args: tuple[Any, ...],
     ) -> AgentResult[Any]:
+        nonlocal fallback_mode_active
         # Skip agents not applicable to the uploaded documents.
         if stage_key not in applicable_keys:
             result = _make_not_applicable(stage_key)
             state.metadata.stage_metrics[stage_key] = _stage_metric(
                 result=result,
                 attempts=0,
-                timeout_seconds=settings.pipeline_stage_timeout_seconds,
+                timeout_seconds=_resolve_stage_timeout(registry_key, settings.pipeline_stage_timeout_seconds),
                 registry_key=registry_key,
+                queued_at=_timestamp(),
+                completed_at=_timestamp(),
             )
+            agent_statuses[stage_key] = "not_applicable"
             logger.info(
                 "Specialist skipped (not applicable): %s analysis_id=%s",
                 stage_key,
@@ -412,37 +702,62 @@ async def run_pipeline(
             )
             return result
 
+        queued_at = _timestamp()
+        running_agents.add(stage_key)
+        agent_statuses[stage_key] = "running"
+        _emit_progress(
+            progress_callback,
+            "specialists_started",
+            "Running specialist analysis agents in parallel.",
+            0.42,
+            list(completed_agents),
+            running_agents=sorted(running_agents),
+            queued_agents=sorted(agent for agent in applicable_keys if agent not in running_agents and agent not in completed_agents),
+            agent_statuses=dict(agent_statuses),
+            fallback_mode_active=fallback_mode_active,
+        )
         result = await _execute_stage(
             stage_key=stage_key,
             registry_key=registry_key,
             func=func,
             args=args,
             metadata=state.metadata,
-            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            timeout_seconds=_resolve_stage_timeout(registry_key, settings.pipeline_stage_timeout_seconds),
             retry_attempts=settings.pipeline_retry_attempts,
+            queued_at=queued_at,
+            capture_prompt_bodies=bool(
+                getattr(settings, "pipeline_prompt_debug_include_bodies", False)
+                and stage_key in prompt_debug_stages
+            ),
         )
-        _completed_agents.append(stage_key)
+        running_agents.discard(stage_key)
+        completed_agents.append(stage_key)
+        agent_statuses[stage_key] = result.status
+        if state.metadata.stage_metrics.get(stage_key) and state.metadata.stage_metrics[stage_key].fallback_used:
+            fallback_mode_active = True
         label = stage_key.replace("_", " ").title()
-        prog = 0.28 + 0.50 * len(_completed_agents) / max(_total_applicable, 1)
+        prog = 0.28 + 0.50 * len(completed_agents) / max(_total_applicable, 1)
         logger.info(
             "Specialist complete: %s (%d/%d) status=%s analysis_id=%s",
             stage_key,
-            len(_completed_agents),
+            len(completed_agents),
             _total_applicable,
             result.status,
             pipeline_input.analysis_id,
         )
         _emit_progress(
             progress_callback,
-            f"specialist.{stage_key}",
+            "n_of_m_specialists_completed",
             f"{label} complete.",
             round(prog, 2),
-            list(_completed_agents),
+            list(completed_agents),
+            running_agents=sorted(running_agents),
+            queued_agents=sorted(agent for agent in applicable_keys if agent not in running_agents and agent not in completed_agents),
+            agent_statuses=dict(agent_statuses),
+            fallback_mode_active=fallback_mode_active,
         )
         return result
 
-    _emit_progress(progress_callback, "specialist_analysis", "Running specialist analysis agents.", 0.42)
-    specialist_specs = _specialist_specs(ingestion_output, pipeline_input)
     specialist_results = await asyncio.gather(
         *[
             _tracked_specialist(stage_key, registry_key, func, args)
@@ -465,19 +780,39 @@ async def run_pipeline(
         "specialist_analysis_complete",
         "Specialist analysis completed.",
         0.78,
-        list(_completed_agents),
+        list(completed_agents),
+        running_agents=sorted(running_agents),
+        queued_agents=[],
+        agent_statuses=dict(agent_statuses),
+        fallback_mode_active=fallback_mode_active,
     )
     if state.financial_analysis.status == "success" and state.financial_analysis.data:
-        _emit_progress(progress_callback, "lending", "Computing lending affordability.", 0.86, list(_completed_agents))
+        agent_statuses["lending_affordability"] = "running"
+        _emit_progress(
+            progress_callback,
+            "lending",
+            "Computing lending affordability.",
+            0.86,
+            list(completed_agents),
+            running_agents=["lending_affordability"],
+            agent_statuses=dict(agent_statuses),
+            fallback_mode_active=fallback_mode_active,
+        )
         state.lending_affordability = await _execute_stage(
             stage_key="lending_affordability",
             registry_key="lending-affordability",
             func=run_lending_affordability,
             args=(ingestion_output, state.financial_analysis.data, pipeline_input.asking_price),
             metadata=state.metadata,
-            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            timeout_seconds=_resolve_stage_timeout("lending-affordability", settings.pipeline_stage_timeout_seconds),
             retry_attempts=settings.pipeline_retry_attempts,
+            queued_at=_timestamp(),
+            capture_prompt_bodies=bool(
+                getattr(settings, "pipeline_prompt_debug_include_bodies", False)
+                and "lending_affordability" in prompt_debug_stages
+            ),
         )
+        agent_statuses["lending_affordability"] = state.lending_affordability.status
     else:
         state.lending_affordability = _make_agent_error(
             agent_name="lending_affordability",
@@ -489,9 +824,12 @@ async def run_pipeline(
         state.metadata.stage_metrics["lending_affordability"] = _stage_metric(
             result=state.lending_affordability,
             attempts=1,
-            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            timeout_seconds=_resolve_stage_timeout("lending-affordability", settings.pipeline_stage_timeout_seconds),
             registry_key="lending-affordability",
+            queued_at=_timestamp(),
+            completed_at=_timestamp(),
         )
+        agent_statuses["lending_affordability"] = state.lending_affordability.status
         if "lending_affordability" not in state.metadata.partial_failures:
             state.metadata.partial_failures.append("lending_affordability")
 
@@ -513,57 +851,16 @@ async def run_pipeline(
     ]
     all_applicable_failed = len(applicable_successes) == 0
 
-    _emit_progress(progress_callback, "scoring", "Building the deterministic scorecard.", 0.92, list(_completed_agents))
+    _emit_progress(
+        progress_callback,
+        "scoring",
+        "Building the deterministic scorecard.",
+        0.92,
+        list(completed_agents),
+        agent_statuses=dict(agent_statuses),
+        fallback_mode_active=fallback_mode_active,
+    )
     state.scorecard = compute_pipeline_scorecard(ingestion_output, specialist_results_map)
-
-    # ── Deterministic fallback: when every applicable LLM agent failed, extract ──
-    # financial data directly from the parsed ingestion output so the user still
-    # sees meaningful numbers (margins, SDE, DSCR, working capital, scenarios).
-    _deterministic_fallback_report = None
-    if all_applicable_failed:
-        try:
-            from app.services.financial_data_extractor import extract_financial_data
-            from app.services.analysis_service import run_analysis
-            from app.models.schemas import (
-                FinancialData,
-                QuestionnaireData,
-                DealInfo,
-                OwnerDependenceAnswers,
-                CustomerConcentrationAnswers,
-                RevenueQualityAnswers,
-                EmployeeRiskAnswers,
-                SupplierRiskAnswers,
-                FinancialRiskAnswers,
-            )
-
-            extracted = extract_financial_data(ingestion_output)
-            if extracted.income_statement is not None or extracted.balance_sheet is not None:
-                financial_data = FinancialData(
-                    income_statement=extracted.income_statement,
-                    balance_sheet=extracted.balance_sheet,
-                    loan_terms=extracted.loan_terms,
-                    cash_flow=extracted.cash_flow,
-                )
-                questionnaire = QuestionnaireData(
-                    owner_dependence=OwnerDependenceAnswers(),
-                    customer_concentration=CustomerConcentrationAnswers(),
-                    revenue_quality=RevenueQualityAnswers(),
-                    employee_risk=EmployeeRiskAnswers(),
-                    supplier_risk=SupplierRiskAnswers(),
-                    financial_risk=FinancialRiskAnswers(),
-                )
-                deal_info = DealInfo(
-                    asking_price=pipeline_input.asking_price or 0,
-                    business_type=pipeline_input.business_type or "small_business",
-                )
-                _deterministic_fallback_report = run_analysis(financial_data, questionnaire, deal_info)
-                logger.info(
-                    "Deterministic fallback activated: analysis_id=%s extracted_income=%s",
-                    pipeline_input.analysis_id,
-                    extracted.income_statement is not None,
-                )
-        except Exception as _fb_err:
-            logger.warning("Deterministic fallback failed: %s", _fb_err)
 
     # ── Save a partial report now (before synthesis) so polling clients can ──
     # render whatever is already available while synthesis runs.
@@ -579,7 +876,7 @@ async def run_pipeline(
                 analysis_id=pipeline_input.analysis_id,
                 clarification_evidence=clarification_evidence,
                 include_deep_review=False,
-                deterministic_fallback=_deterministic_fallback_report,
+                deterministic_fallback=None,
             ).model_dump(mode="json", by_alias=True)
             get_analysis_artifact_repository().save_analysis_report(pipeline_input.analysis_id, _partial)
             logger.info("Partial report saved: analysis_id=%s", pipeline_input.analysis_id)
@@ -601,9 +898,12 @@ async def run_pipeline(
         state.metadata.stage_metrics["synthesis_report"] = _stage_metric(
             result=state.synthesis_report,
             attempts=0,
-            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            timeout_seconds=_resolve_stage_timeout("synthesis-report", settings.pipeline_stage_timeout_seconds),
             registry_key="synthesis-report",
+            queued_at=_timestamp(),
+            completed_at=_timestamp(),
         )
+        agent_statuses["synthesis_report"] = state.synthesis_report.status
         if "synthesis_report" not in state.metadata.partial_failures:
             state.metadata.partial_failures.append("synthesis_report")
     elif not settings.pipeline_allow_partial_failures and state.metadata.partial_failures:
@@ -617,9 +917,12 @@ async def run_pipeline(
         state.metadata.stage_metrics["synthesis_report"] = _stage_metric(
             result=state.synthesis_report,
             attempts=1,
-            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            timeout_seconds=_resolve_stage_timeout("synthesis-report", settings.pipeline_stage_timeout_seconds),
             registry_key="synthesis-report",
+            queued_at=_timestamp(),
+            completed_at=_timestamp(),
         )
+        agent_statuses["synthesis_report"] = state.synthesis_report.status
         if "synthesis_report" not in state.metadata.partial_failures:
             state.metadata.partial_failures.append("synthesis_report")
     elif not settings.pipeline_enable_synthesis:
@@ -633,34 +936,101 @@ async def run_pipeline(
         state.metadata.stage_metrics["synthesis_report"] = _stage_metric(
             result=state.synthesis_report,
             attempts=1,
-            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            timeout_seconds=_resolve_stage_timeout("synthesis-report", settings.pipeline_stage_timeout_seconds),
             registry_key="synthesis-report",
+            queued_at=_timestamp(),
+            completed_at=_timestamp(),
         )
+        agent_statuses["synthesis_report"] = state.synthesis_report.status
         if "synthesis_report" not in state.metadata.partial_failures:
             state.metadata.partial_failures.append("synthesis_report")
     else:
-        _emit_progress(progress_callback, "synthesis", "Assembling the final report.", 0.97, list(_completed_agents))
+        agent_statuses["synthesis_report"] = "running"
+        _emit_progress(
+            progress_callback,
+            "synthesis_started",
+            "Assembling the final report.",
+            0.97,
+            list(completed_agents),
+            running_agents=["synthesis_report"],
+            agent_statuses=dict(agent_statuses),
+            fallback_mode_active=fallback_mode_active,
+        )
         state.synthesis_report = await _execute_stage(
             stage_key="synthesis_report",
             registry_key="synthesis-report",
             func=run_synthesis_report,
             args=(state.scorecard, specialist_results_map),
             metadata=state.metadata,
-            timeout_seconds=settings.pipeline_stage_timeout_seconds,
+            timeout_seconds=_resolve_stage_timeout("synthesis-report", settings.pipeline_stage_timeout_seconds),
             retry_attempts=settings.pipeline_retry_attempts,
+            queued_at=_timestamp(),
+            capture_prompt_bodies=bool(
+                getattr(settings, "pipeline_prompt_debug_include_bodies", False)
+                and "synthesis_report" in prompt_debug_stages
+            ),
         )
+        agent_statuses["synthesis_report"] = state.synthesis_report.status
+        if state.metadata.stage_metrics.get("synthesis_report") and state.metadata.stage_metrics["synthesis_report"].fallback_used:
+            fallback_mode_active = True
 
     state.metadata.completed_at = _timestamp()
     _refresh_metadata_totals(state.metadata)
-    state.metadata.total_latency_ms = max(
-        state.metadata.total_latency_ms,
-        int((time.perf_counter() - pipeline_started) * 1000),
-    )
+    state.metadata.total_latency_ms = int((time.perf_counter() - pipeline_started) * 1000)
+    state.metadata.critical_path = _critical_path_report(state.metadata)
+    if pipeline_input.analysis_id and settings.pipeline_prompt_debug_artifacts_enabled:
+        try:
+            repository = get_analysis_artifact_repository()
+            prompt_debug_stage_results = {
+                "ingestion": state.ingestion,
+                "financial_analysis": state.financial_analysis,
+                "tax_compliance": state.tax_compliance,
+                "ar_collections": state.ar_collections,
+                "customer_concentration": state.customer_concentration,
+                "operations_transferability": state.operations_transferability,
+                "lease_contract": state.lease_contract,
+                "market_macro": state.market_macro,
+                "lending_affordability": state.lending_affordability,
+                "synthesis_report": state.synthesis_report,
+            }
+            ref = repository.save_prompt_debug_artifact(
+                pipeline_input.analysis_id,
+                _serialize_prompt_debug_artifact(
+                    pipeline_input.analysis_id,
+                    state.metadata,
+                    prompt_debug_stage_results,
+                    selected_stages=prompt_debug_stages,
+                    include_prompt_bodies=bool(getattr(settings, "pipeline_prompt_debug_include_bodies", False)),
+                ),
+            )
+            state.metadata.debug_artifacts["prompt_debug"] = ref
+        except Exception as debug_exc:
+            logger.warning("Could not save prompt debug artifact: %s", debug_exc)
 
     if state.metadata.partial_failures:
-        _emit_progress(progress_callback, "completed_with_warnings", "Analysis completed with partial failures.", 1.0, list(_completed_agents))
+        _emit_progress(
+            progress_callback,
+            "completed_with_warnings",
+            "Analysis completed with partial failures.",
+            1.0,
+            list(completed_agents),
+            running_agents=[],
+            queued_agents=[],
+            agent_statuses=dict(agent_statuses),
+            fallback_mode_active=fallback_mode_active,
+        )
     else:
-        _emit_progress(progress_callback, "completed", "Analysis complete.", 1.0, list(_completed_agents))
+        _emit_progress(
+            progress_callback,
+            "completed",
+            "Analysis complete.",
+            1.0,
+            list(completed_agents),
+            running_agents=[],
+            queued_agents=[],
+            agent_statuses=dict(agent_statuses),
+            fallback_mode_active=fallback_mode_active,
+        )
 
     total_ms = int((time.perf_counter() - pipeline_started) * 1000)
     logger.info(
@@ -680,5 +1050,5 @@ async def run_pipeline(
         analysis_id=pipeline_input.analysis_id,
         clarification_evidence=clarification_evidence,
         include_deep_review=(pipeline_input.report_depth == "deep"),
-        deterministic_fallback=_deterministic_fallback_report,
+        deterministic_fallback=None,
     ).model_dump(mode="json", by_alias=True)
