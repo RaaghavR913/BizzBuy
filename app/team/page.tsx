@@ -54,6 +54,15 @@ const FOUNDERS = [
     linkedin: '',
     image: '',
   },
+  {
+    name: 'Guillermo Washington',
+    role: 'Full Stack Engineer',
+    initials: 'GW',
+    bio: '',
+    gradient: 'from-yellow-300 to-amber-500',
+    linkedin: '',
+    image: '',
+  },
 ];
 
 export default function TeamPage() {

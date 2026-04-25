@@ -24,7 +24,6 @@ export function FinancialSnapshot({ report }: { report: ReportOutput }) {
             <tr className="border-b border-white/[0.06]">
               <th className="text-left py-2 px-3 text-t-muted font-medium">Metric</th>
               <th className="text-right py-2 px-3 text-t-muted font-medium">Value</th>
-              <th className="text-left py-2 px-3 text-t-muted font-medium hidden sm:table-cell">Notes</th>
             </tr>
           </thead>
           <tbody>
@@ -34,9 +33,6 @@ export function FinancialSnapshot({ report }: { report: ReportOutput }) {
                 <td className="py-2.5 px-3 text-right font-sans font-semibold text-white">
                   {m.formatted}
                   {m.note?.includes('flag') && <span className="ml-2 text-red-400 text-xs">{m.note}</span>}
-                </td>
-                <td className="py-2.5 px-3 text-t-muted text-xs hidden sm:table-cell">
-                  {m.note && !m.note.includes('flag') ? m.note : ''}
                 </td>
               </tr>
             ))}
