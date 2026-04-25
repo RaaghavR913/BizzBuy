@@ -40,11 +40,23 @@ from app.services.scoring_engine import compute_pipeline_scorecard
 logger = logging.getLogger(__name__)
 
 MODEL_PRICING = {
+    "openai/gpt-5-mini": {"type": "per_token", "input": 0.25, "output": 2.0},
     "z-ai/glm-5.1":     {"type": "per_token", "input": 0.95, "output": 3.15},
     "mistral-ocr-2512": {"type": "per_page",  "rate": 0.002},
 }
 
-_DEFAULT_PROMPT_DEBUG_STAGES = {"financial_analysis", "tax_compliance", "synthesis_report"}
+_DEFAULT_PROMPT_DEBUG_STAGES = {
+    "ingestion",
+    "financial_analysis",
+    "tax_compliance",
+    "ar_collections",
+    "customer_concentration",
+    "operations_transferability",
+    "lease_contract",
+    "market_macro",
+    "lending_affordability",
+    "synthesis_report",
+}
 
 
 def _timestamp() -> str:
@@ -108,11 +120,12 @@ async def _run_in_executor(func, *args):
     return await loop.run_in_executor(None, func, *args)
 
 
-def _resolve_stage_timeout(registry_key: str, default_timeout_seconds: float) -> float:
+def _resolve_stage_timeout(registry_key: str, default_timeout_seconds: float) -> float | None:
     config = AGENT_REGISTRY.get(registry_key)
     if config and config.timeout_seconds is not None:
-        return float(config.timeout_seconds)
-    return float(default_timeout_seconds)
+        configured_timeout = float(config.timeout_seconds)
+        return configured_timeout if configured_timeout > 0 else None
+    return float(default_timeout_seconds) if default_timeout_seconds > 0 else None
 
 
 def _emit_progress(
@@ -143,7 +156,7 @@ def _stage_metric(
     *,
     result: AgentResult[Any],
     attempts: int,
-    timeout_seconds: float,
+    timeout_seconds: float | None,
     registry_key: str,
     queued_at: str | None = None,
     started_at: str | None = None,
@@ -236,7 +249,7 @@ async def _execute_stage(
     func,
     args: tuple[Any, ...],
     metadata: PipelineMetadata,
-    timeout_seconds: float,
+    timeout_seconds: float | None,
     retry_attempts: int,
     queued_at: str | None = None,
     timeout_fallback: Callable[[], AgentResult[Any]] | None = None,
@@ -264,17 +277,21 @@ async def _execute_stage(
                 else partial(func, *args)
             )
             setattr(stage_callable, "__name__", getattr(func, "__name__", "stage_callable"))
-            result = await asyncio.wait_for(_run_in_executor(stage_callable), timeout=timeout_seconds)
+            if timeout_seconds is None:
+                result = await _run_in_executor(stage_callable)
+            else:
+                result = await asyncio.wait_for(_run_in_executor(stage_callable), timeout=timeout_seconds)
         except asyncio.TimeoutError:
             timed_out = True
             latency_ms = int((time.perf_counter() - attempt_started) * 1000)
+            timeout_label = f"{timeout_seconds:.1f}s" if timeout_seconds is not None else "the configured limit"
             if timeout_fallback is not None:
                 try:
                     result = timeout_fallback()
                     if result is None:
                         raise RuntimeError("timeout fallback returned no result")
                     fallback_used = True
-                    fallback_reason = f"{stage_key} timed out after {timeout_seconds:.1f}s and used a deterministic fallback."
+                    fallback_reason = f"{stage_key} timed out after {timeout_label} and used a deterministic fallback."
                     if result.latency_ms is None:
                         result = result.model_copy(update={"latency_ms": latency_ms})
                 except Exception as fallback_exc:
@@ -282,7 +299,7 @@ async def _execute_stage(
                         agent_name=stage_key,
                         error_type="timeout",
                         message=(
-                            f"{stage_key} timed out after {timeout_seconds:.1f}s, and fallback generation failed: {fallback_exc}"
+                            f"{stage_key} timed out after {timeout_label}, and fallback generation failed: {fallback_exc}"
                         ),
                         retry_count=attempts - 1,
                         latency_ms=latency_ms,
@@ -291,7 +308,7 @@ async def _execute_stage(
                 result = _make_agent_error(
                     agent_name=stage_key,
                     error_type="timeout",
-                    message=f"{stage_key} timed out after {timeout_seconds:.1f}s.",
+                    message=f"{stage_key} timed out after {timeout_label}.",
                     retry_count=attempts - 1,
                     latency_ms=latency_ms,
                 )

@@ -5,7 +5,18 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
-_DEFAULT_PROMPT_DEBUG_STAGES = "financial_analysis,tax_compliance,synthesis_report"
+_DEFAULT_PROMPT_DEBUG_STAGES = (
+    "ingestion,"
+    "financial_analysis,"
+    "tax_compliance,"
+    "ar_collections,"
+    "customer_concentration,"
+    "operations_transferability,"
+    "lease_contract,"
+    "market_macro,"
+    "lending_affordability,"
+    "synthesis_report"
+)
 
 
 def _parse_origins(value: str) -> list[str]:
@@ -59,7 +70,7 @@ class Settings(BaseModel):
     pipeline_retry_attempts: int = _parse_int(os.getenv("BIZBUY_PIPELINE_RETRY_ATTEMPTS"), 0)
     pipeline_stage_timeout_seconds: float = _parse_float(
         os.getenv("BIZBUY_PIPELINE_STAGE_TIMEOUT_SECONDS"),
-        240.0,
+        0.0,
     )
     pipeline_prompt_debug_artifacts_enabled: bool = _parse_bool(
         os.getenv("BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED"),

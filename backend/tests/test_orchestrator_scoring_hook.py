@@ -443,8 +443,15 @@ def test_selected_prompt_debug_stages_defaults_include_tax() -> None:
     settings = SimpleNamespace(pipeline_prompt_debug_stages=[])
 
     assert orchestrator._selected_prompt_debug_stages(settings) == {
+        "ingestion",
         "financial_analysis",
         "tax_compliance",
+        "ar_collections",
+        "customer_concentration",
+        "operations_transferability",
+        "lease_contract",
+        "market_macro",
+        "lending_affordability",
         "synthesis_report",
     }
 
