@@ -33,9 +33,6 @@ export function Footer() {
               <Link href="/pricing" className="block text-sm text-t-secondary hover:text-white transition-colors">
                 Pricing
               </Link>
-              <Link href="/analyze/upload?demo=true" className="block text-sm text-t-secondary hover:text-white transition-colors">
-                Try Demo
-              </Link>
             </div>
           </div>
 

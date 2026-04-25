@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronRight, ChevronLeft, Info, AlertCircle, Plus, Trash2, CheckCircle2, Calculator } from 'lucide-react';
+import { Suspense, useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Info, AlertCircle, Plus, Trash2, CheckCircle2, Calculator, Loader2 } from 'lucide-react';
 import { useAnalysis } from '@/context/AnalysisContext';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SpotlightCard } from '@/components/ui/spotlight-card';
 import { ShinyText } from '@/components/ui/shiny-text';
 import { AnimatedButton } from '@/components/ui/animated-button';
+import { DEMO_FINANCIAL_DATA } from '@/lib/demo-data';
 import type { FinancialData, IncomeStatement, BalanceSheet, LoanTerms, AddBack } from '@/lib/types';
 import { formatCurrency } from '@/lib/calculations';
 
@@ -152,9 +153,19 @@ function ConfidenceBadge({ confidence }: { confidence?: number }) {
   );
 }
 
-export default function ReviewPage() {
+function ReviewPageContent() {
   const router = useRouter();
-  const { state, setFinancialData, setDealInfo, setStep } = useAnalysis();
+  const searchParams = useSearchParams();
+  const demoHydrated = useRef(false);
+  const {
+    state,
+    setFinancialData,
+    setDealInfo,
+    setStep,
+    setAnalysisId,
+    setAnalysisJob,
+    setPipelineDocuments,
+  } = useAnalysis();
   const [data, setData] = useState<FinancialData>(
     state.financialData ?? {
       incomeStatement: null,
@@ -182,6 +193,25 @@ export default function ReviewPage() {
   useEffect(() => {
     setStep(2);
   }, [setStep]);
+
+  useEffect(() => {
+    if (searchParams.get('demo') !== 'true' || demoHydrated.current) return;
+    demoHydrated.current = true;
+    const demo = DEMO_FINANCIAL_DATA;
+    setAnalysisId(null);
+    setAnalysisJob(null);
+    setPipelineDocuments([]);
+    setFinancialData(demo);
+    setData(demo);
+    setAskingPrice(demo.loanTerms?.askingPrice ?? null);
+    setBusinessType('home_services_(hvac,_plumbing)');
+  }, [
+    searchParams,
+    setAnalysisId,
+    setAnalysisJob,
+    setPipelineDocuments,
+    setFinancialData,
+  ]);
 
   function updateIS(updates: Partial<IncomeStatement>) {
     setData((prev) => ({
@@ -484,3 +514,16 @@ export default function ReviewPage() {
   );
 }
 
+export default function ReviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        </div>
+      }
+    >
+      <ReviewPageContent />
+    </Suspense>
+  );
+}

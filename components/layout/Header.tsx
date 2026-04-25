@@ -16,7 +16,7 @@ const ROUTES = {
   howItWorks: "/#how-it-works",
   pricing: "/pricing",
   analyze: "/analyze/upload",
-  demo: "/analyze/upload?demo=true",
+  demo: "/analyze/review?demo=true",
   founders: "/team",
 } as const
 

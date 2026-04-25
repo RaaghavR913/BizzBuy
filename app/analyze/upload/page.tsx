@@ -1,14 +1,12 @@
 'use client';
 
-import { Suspense } from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Loader2, ChevronRight, PenLine, Zap } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Loader2, PenLine } from 'lucide-react';
 import { FileDropZone, type FileItem } from '@/components/upload/FileDropZone';
 import { ClassificationReview } from '@/components/upload/ClassificationReview';
 import { useAnalysis } from '@/context/AnalysisContext';
 import { ingestDocuments, parseDocuments } from '@/lib/api-client';
-import { DEMO_FINANCIAL_DATA } from '@/lib/demo-data';
 import type { ClassifiedFileResult, FinancialData } from '@/lib/types';
 import { AnimatedButton } from '@/components/ui/animated-button';
 
@@ -46,32 +44,16 @@ function pairUploadsWithClassifications(
 
 function UploadContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { state, setFinancialData, setStep, setLoading, setError, setAnalysisId, setAnalysisJob, setPipelineDocuments } = useAnalysis();
   const [files, setFiles] = useState<FileItem[]>([]);
   const [classifiedFiles, setClassifiedFiles] = useState<ClassifiedFileResult[]>([]);
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [isClassifying, setIsClassifying] = useState(false);
   const [isClassified, setIsClassified] = useState(false);
-  const isDemo = searchParams.get('demo') === 'true';
 
   useEffect(() => {
     setStep(1);
   }, [setStep]);
-
-  useEffect(() => {
-    if (isDemo) handleDemo();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDemo]);
-
-  function handleDemo() {
-    setAnalysisId(null);
-    setAnalysisJob(null);
-    setPipelineDocuments([]);
-    setFinancialData(DEMO_FINANCIAL_DATA);
-    setStep(2);
-    router.push('/analyze/review?demo=true');
-  }
 
   const handleClassify = useCallback(async () => {
     if (files.length === 0) return;
@@ -186,24 +168,7 @@ function UploadContent() {
           Step 1 of 4
         </div>
         <h1 className="text-4xl font-display font-extrabold tracking-tight text-white mb-3">Upload Your Documents</h1>
-        <p className="text-t-secondary text-lg max-w-xl">
-          Upload the business&apos;s financial documents. AI will automatically detect what each
-          document is — no manual labeling needed.
-        </p>
       </div>
-
-      {isDemo && (
-        <div className="mb-6 p-4 bg-accent/10 border border-accent/20 rounded-xl flex items-start gap-3">
-          <Zap className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-accent">Demo Mode — Loading sample data</p>
-            <p className="text-sm text-t-secondary mt-0.5">
-              We&apos;re loading pre-built data for Sunny&apos;s HVAC Services, a fictional
-              $850K/year home services business with an SBA loan offer.
-            </p>
-          </div>
-        </div>
-      )}
 
       {state.error && (
         <div className="mb-6 p-4 bg-risk-critical/10 border border-risk-critical/20 rounded-xl text-sm text-risk-critical">
@@ -281,28 +246,11 @@ function UploadContent() {
           <PenLine className="w-4 h-4" />
           Skip — I&apos;ll enter data manually
         </button>
-
-        <button
-          onClick={handleDemo}
-          disabled={state.isLoading || isClassifying}
-          className="w-full flex items-center justify-center gap-2 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 px-6 py-3 rounded-xl font-medium transition-all text-sm"
-        >
-          <Zap className="w-4 h-4" />
-          Load Demo — Sunny&apos;s HVAC Services
-        </button>
       </div>
     </div>
   );
 }
 
 export default function UploadPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-accent" />
-      </div>
-    }>
-      <UploadContent />
-    </Suspense>
-  );
+  return <UploadContent />;
 }
