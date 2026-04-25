@@ -14,7 +14,10 @@ export function SellerQuestions({ report }: { report: ReportOutput }) {
   }
 
   return (
-    <section id="seller-questions" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-5">
+    <section
+      id="seller-questions"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-6"
+    >
       <h2 className="text-xl font-display font-bold text-white">6. Questions to Ask the Seller</h2>
       {report.questionsForSeller.map((cat, i) => (
         <div key={i} className="space-y-2">

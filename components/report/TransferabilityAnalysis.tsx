@@ -13,7 +13,10 @@ export function TransferabilityAnalysis({ report }: { report: ReportOutput }) {
     transferabilityAnalysis.score >= 20 ? 'text-orange-400' : 'text-red-400';
 
   return (
-    <section id="transferability" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-4">
+    <section
+      id="transferability"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-5 md:space-y-6"
+    >
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-display font-bold text-white">5. Transferability Analysis</h2>
         <div className="flex items-center gap-2">

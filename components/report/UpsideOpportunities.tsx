@@ -12,7 +12,10 @@ const DIFFICULTY_CONFIG = {
 
 export function UpsideOpportunities({ report }: { report: ReportOutput }) {
   return (
-    <section id="upside" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-4">
+    <section
+      id="upside"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-5 md:space-y-6"
+    >
       <h2 className="text-xl font-display font-bold text-white">8. Upside <span className="font-sans">&amp;</span> Opportunities</h2>
       <div className="space-y-3">
         {report.upsideOpportunities.map((opp, i) => {

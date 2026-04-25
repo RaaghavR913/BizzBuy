@@ -63,7 +63,10 @@ export function RiskAssessment({ report }: { report: ReportOutput }) {
   }));
 
   return (
-    <section id="risk-assessment" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-5">
+    <section
+      id="risk-assessment"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-6"
+    >
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-xl font-display font-bold text-white">4. Risk Assessment</h2>
         <div className="flex items-center gap-2">

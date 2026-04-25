@@ -3,6 +3,8 @@
 import { Check, ArrowRight, Zap } from 'lucide-react';
 import { useState } from 'react';
 
+import { GoldenHorizonShell } from '@/components/ui/golden-horizon-shell';
+
 const FEATURES = [
   'Unlimited acquisition reports',
   'Full 7-agent AI analysis',
@@ -22,20 +24,21 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+    <GoldenHorizonShell>
+      <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
         {/* Heading */}
-        <div className="text-center mb-16">
+          <div className="text-center mb-16">
           <h1 className="font-sans text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4">
             Simple, transparent pricing
           </h1>
           <p className="text-lg text-t-secondary max-w-xl mx-auto">
             One plan. Full access. Everything you need to make confident acquisition decisions.
           </p>
-        </div>
+          </div>
 
         {/* Pricing Card */}
-        <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto">
           <div className="relative bg-surface border-2 border-accent/30 rounded-2xl p-8 shadow-xl shadow-accent/5">
             {/* Glow effect */}
             <div className="absolute -inset-px bg-gradient-to-b from-accent/20 via-transparent to-transparent rounded-2xl pointer-events-none" />
@@ -98,8 +101,9 @@ export default function PricingPage() {
               </button>
             </p>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </GoldenHorizonShell>
   );
 }

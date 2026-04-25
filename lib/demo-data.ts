@@ -42,10 +42,7 @@ export const DEMO_FINANCIAL_DATA: FinancialData = {
     loanType: 'sba_7a',
   },
   cashFlow: null,
-  parsingNotes: [
-    "Demo data: Sunny's HVAC Services — a fictional business for demonstration purposes.",
-    'Cash flow statement was not provided. Analysis uses income statement and balance sheet.',
-  ],
+  parsingNotes: [],
   dataCompleteness: 0.85,
 };
 

@@ -360,7 +360,10 @@ export function DeepReview({ report }: { report: ReportOutputV2 }) {
   }
 
   return (
-    <section id="deep-review" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-6">
+    <section
+      id="deep-review"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-6 md:space-y-8"
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent">

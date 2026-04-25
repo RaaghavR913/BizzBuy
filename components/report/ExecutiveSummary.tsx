@@ -8,16 +8,19 @@ export function ExecutiveSummary({ report }: { report: ReportOutput }) {
   const { executiveSummary } = report;
 
   return (
-    <section id="executive-summary" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-4">
+    <section
+      id="executive-summary"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-5 md:space-y-6"
+    >
       <h2 className="text-xl font-display font-bold text-white">1. Executive Summary</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="flex flex-col items-center gap-1 bg-raised rounded-xl p-4 min-w-[120px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-6">
+        <div className="flex flex-col items-center gap-1 bg-raised rounded-xl p-5 md:p-6 min-w-[120px]">
           <ScoreBadge score={executiveSummary.riskScore} label="" size="lg" type="risk" />
           <span className="text-xs text-t-muted font-medium">Acquisition Risk</span>
           <span className="text-sm font-semibold text-t-secondary">{executiveSummary.riskLabel} Risk</span>
         </div>
-        <div className="flex flex-col items-center gap-1 bg-raised rounded-xl p-4 min-w-[120px]">
+        <div className="flex flex-col items-center gap-1 bg-raised rounded-xl p-5 md:p-6 min-w-[120px]">
           <ScoreBadge score={report.transferabilityAnalysis.score} label="" size="lg" type="transferability" />
           <span className="text-xs text-t-muted font-medium">Transferability</span>
           <span className="text-sm font-semibold text-t-secondary">{executiveSummary.transferabilityLabel}</span>

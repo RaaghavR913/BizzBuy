@@ -1,23 +1,26 @@
 'use client';
 
-import { StepIndicator } from '@/components/layout/StepIndicator';
-import { useAnalysis } from '@/context/AnalysisContext';
+import { usePathname } from 'next/navigation';
+
+import { GoldenHorizonShell } from '@/components/ui/golden-horizon-shell';
 
 export default function AnalyzeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { state } = useAnalysis();
+  const pathname = usePathname();
+  const isUpload = pathname === '/analyze/upload';
 
-  return (
+  const content = (
     <div className="min-h-full">
-      <div className="bg-surface border-b border-white/[0.06] pt-20 pb-6 px-4">
-        <div className="max-w-7xl mx-auto">
-          <StepIndicator currentStep={state.step} />
-        </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 py-10">{children}</div>
+      <div className="max-w-7xl mx-auto px-4 pt-20 pb-10">{children}</div>
     </div>
   );
+
+  if (isUpload) {
+    return <GoldenHorizonShell contentClassName="min-h-full">{content}</GoldenHorizonShell>;
+  }
+
+  return content;
 }

@@ -13,7 +13,10 @@ export function FinancialSnapshot({ report }: { report: ReportOutput }) {
     multiple <= 4.5 ? 'text-yellow-400' : 'text-red-400';
 
   return (
-    <section id="financial-snapshot" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-4">
+    <section
+      id="financial-snapshot"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-5 md:space-y-6"
+    >
       <h2 className="text-xl font-display font-bold text-white">2. Financial Snapshot</h2>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

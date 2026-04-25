@@ -35,9 +35,9 @@ export function ReportHeader({ report, onReset }: ReportHeaderProps) {
   }
 
   return (
-    <div className="sticky top-16 z-40 bg-surface/95 backdrop-blur-xl border-b border-white/[0.06] py-3 px-4">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3 flex-wrap">
+    <div className="sticky top-16 z-40 bg-surface/95 backdrop-blur-xl border-b border-white/[0.06] shadow-sm py-4 md:py-5 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto flex items-center justify-between gap-4 gap-y-3 flex-wrap">
+        <div className="flex items-center gap-4 flex-wrap">
           <ScoreBadge
             score={report.executiveSummary.riskScore}
             label={`Risk — ${report.executiveSummary.riskLabel}`}
@@ -55,7 +55,7 @@ export function ReportHeader({ report, onReset }: ReportHeaderProps) {
             {recConfig.label}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={handleDownload}
             disabled={downloading}

@@ -132,17 +132,17 @@ function ReportPageInner() {
     <div className="relative">
       <ReportHeader report={summaryReport} onReset={reset} />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex gap-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 md:pt-12 pb-12 md:pb-16">
+        <div className="flex gap-10 lg:gap-12">
           {/* Sidebar nav — desktop */}
           <aside className="hidden lg:block w-48 flex-shrink-0">
-            <div className="sticky top-32 space-y-1">
-              <p className="text-xs font-semibold text-t-muted uppercase tracking-wider mb-3">Sections</p>
+            <div className="sticky top-40 space-y-2">
+              <p className="text-xs font-semibold text-t-muted uppercase tracking-wider mb-4">Sections</p>
               {sections.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => scrollTo(s.id)}
-                  className="w-full text-left text-sm text-t-secondary hover:text-white hover:bg-white/[0.05] px-3 py-2 rounded-lg transition-colors"
+                  className="w-full text-left text-sm text-t-secondary hover:text-white hover:bg-white/[0.05] px-3 py-2.5 rounded-lg transition-colors"
                 >
                   {s.label}
                 </button>
@@ -151,9 +151,9 @@ function ReportPageInner() {
           </aside>
 
           {/* Report content */}
-          <div className="flex-1 min-w-0 space-y-6">
+          <div className="flex-1 min-w-0 space-y-8 md:space-y-10">
             {canRenderDeepReview && (
-              <section className="bg-surface rounded-2xl border border-white/[0.06] p-5 space-y-3">
+              <section className="bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-7 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-white">Deep review available</p>

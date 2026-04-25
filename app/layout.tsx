@@ -6,7 +6,6 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { FluidBackground } from '@/components/ui/fluid-background';
 import { SmoothScroll } from '@/components/layout/SmoothScroll';
-import { GlobalLoader } from '@/components/layout/GlobalLoader';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-display', weight: ['400', '500', '600', '700', '800'] });
@@ -33,10 +32,11 @@ export default function RootLayout({
         <SmoothScroll>
           <FluidBackground />
           <AnalysisProvider>
-            <GlobalLoader />
-            <Header />
-            <main className="flex-1 w-full">{children}</main>
-            <Footer />
+            <div className="relative z-10 flex min-h-screen w-full min-w-0 flex-1 flex-col">
+              <Header />
+              <main className="w-full min-w-0 flex-1">{children}</main>
+              <Footer />
+            </div>
           </AnalysisProvider>
         </SmoothScroll>
       </body>

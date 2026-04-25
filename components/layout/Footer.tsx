@@ -41,9 +41,6 @@ export function Footer() {
               <Link href="/team" className="block text-sm text-t-secondary hover:text-white transition-colors">
                 Meet the Team
               </Link>
-              <Link href="/#login" className="block text-sm text-t-secondary hover:text-white transition-colors">
-                Sign In
-              </Link>
             </div>
           </div>
         </div>

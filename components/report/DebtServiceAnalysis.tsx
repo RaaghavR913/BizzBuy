@@ -35,15 +35,21 @@ export function DebtServiceAnalysis({ report }: { report: ReportOutput }) {
 
   if (debtServiceAnalysis.annualDebtService === 0) {
     return (
-      <section id="debt-service" className="bg-surface rounded-2xl border border-white/[0.06] p-6">
-        <h2 className="text-xl font-display font-bold text-white mb-3">3. Debt Service <span className="font-sans">&amp;</span> Affordability</h2>
+      <section
+        id="debt-service"
+        className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-3"
+      >
+        <h2 className="text-xl font-display font-bold text-white">3. Debt Service <span className="font-sans">&amp;</span> Affordability</h2>
         <p className="text-t-secondary">No loan terms were provided. If you are financing this acquisition, enter loan terms in the review step to see a full affordability analysis.</p>
       </section>
     );
   }
 
   return (
-    <section id="debt-service" className="bg-surface rounded-2xl border border-white/[0.06] p-6 space-y-5">
+    <section
+      id="debt-service"
+      className="scroll-mt-32 bg-surface rounded-2xl border border-white/[0.06] p-6 md:p-8 space-y-6"
+    >
       <h2 className="text-xl font-display font-bold text-white">3. Debt Service <span className="font-sans">&amp;</span> Affordability</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

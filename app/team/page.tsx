@@ -1,6 +1,8 @@
 import { ExternalLink } from 'lucide-react';
 import type { Metadata } from 'next';
 
+import { StellarMistShell } from '@/components/ui/stellar-mist-shell';
+
 export const metadata: Metadata = {
   title: 'Meet the Team — BizzBuy',
   description: 'The founders behind BizzBuy, the AI-powered acquisition diligence platform.',
@@ -65,7 +67,8 @@ const FOUNDERS = [
 
 export default function TeamPage() {
   return (
-    <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
+    <StellarMistShell>
+      <div className="min-h-screen py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <div className="text-center mb-16">
@@ -126,5 +129,6 @@ export default function TeamPage() {
         </div>
       </div>
     </div>
+    </StellarMistShell>
   );
 }
