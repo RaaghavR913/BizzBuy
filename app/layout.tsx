@@ -11,13 +11,46 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-display', weight: ['400', '500', '600', '700', '800'] });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', weight: ['400', '500', '600', '700'] });
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  ? new URL(process.env.NEXT_PUBLIC_APP_URL)
+  : new URL('http://localhost:3000');
+
+const defaultTitle = 'BizzBuy — AI Acquisition Diligence';
+const defaultDescription =
+  'Know before you buy. Upload financials, answer risk questions, and get a plain-language acquisition report in minutes.';
+const ogDescription = 'The AI co-pilot for small business buyers. Affordability, risk, and transferability analysis in minutes.';
+
 export const metadata: Metadata = {
-  title: 'BizzBuy — AI Acquisition Diligence',
-  description:
-    'Know before you buy. Upload financials, answer risk questions, and get a plain-language acquisition report in minutes.',
+  metadataBase: appUrl,
+  title: defaultTitle,
+  description: defaultDescription,
+  manifest: '/site.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
   openGraph: {
-    title: 'BizzBuy — AI Acquisition Diligence',
-    description: 'The AI co-pilot for small business buyers. Affordability, risk, and transferability analysis in minutes.',
+    title: defaultTitle,
+    description: ogDescription,
+    type: 'website',
+    images: [
+      {
+        url: '/web-app-manifest-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'BizzBuy',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: defaultTitle,
+    description: ogDescription,
+    images: ['/web-app-manifest-512x512.png'],
   },
 };
 

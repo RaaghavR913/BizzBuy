@@ -1,5 +1,5 @@
+import Image from 'next/image';
 import Link from 'next/link';
-import { BarChart3 } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -9,9 +9,13 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-2">
             <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 bg-gradient-to-br from-accent to-violet-400 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-3.5 h-3.5 text-white" />
-              </div>
+              <Image
+                src="/favicon-96x96.png"
+                alt=""
+                width={28}
+                height={28}
+                className="h-7 w-7 shrink-0 rounded-lg"
+              />
               <span className="font-display text-base font-bold text-white">BizzBuy</span>
             </div>
             <p className="text-sm text-t-secondary leading-relaxed max-w-sm">

@@ -3,10 +3,12 @@
   position: relative;
   background: transparent;
   color: #D4AF37;
-  font-size: 14px;
-  font-weight: 500;
+  font-family: Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   border: 1px solid rgba(212, 175, 55, 0.4);
-  padding: 6px 16px;
+  padding: 8px 20px;
   cursor: pointer;
   perspective: 30rem;
   border-radius: 100px;
