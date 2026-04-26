@@ -738,7 +738,7 @@ def test_market_runner_declares_missing_context_when_inputs_are_thin(monkeypatch
     assert any(finding.missing_data for finding in result.data.findings)
 
 
-def test_market_runner_caps_document_context_in_prompt(monkeypatch) -> None:
+def test_market_runner_preserves_full_document_context_in_prompt(monkeypatch) -> None:
     captured: dict[str, str] = {}
     long_text = ("Service area includes Phoenix and Tucson. " * 120) + "TAIL_MARKER_SHOULD_NOT_APPEAR"
     ingestion = _ingestion_output(
@@ -790,8 +790,8 @@ def test_market_runner_caps_document_context_in_prompt(monkeypatch) -> None:
 
     assert result.status == "success"
     assert "context_snippets" in captured["user_message"]
-    assert "TAIL_MARKER_SHOULD_NOT_APPEAR" not in captured["user_message"]
-    assert len(captured["user_message"]) < 5000
+    assert "TAIL_MARKER_SHOULD_NOT_APPEAR" in captured["user_message"]
+    assert len(captured["user_message"]) > 5000
 
 
 def test_synthesis_runner_uses_deterministic_scorecard_as_authoritative_context(monkeypatch) -> None:
@@ -864,7 +864,7 @@ def test_synthesis_runner_uses_deterministic_scorecard_as_authoritative_context(
     assert "suggested_recommendation_band" not in captured["user_message"]
 
 
-def test_synthesis_runner_compacts_specialist_context(monkeypatch) -> None:
+def test_synthesis_runner_preserves_full_specialist_context(monkeypatch) -> None:
     captured: dict[str, str] = {}
     scorecard = DeterministicScorecard(
         overall_risk_score=58,
@@ -919,7 +919,7 @@ def test_synthesis_runner_compacts_specialist_context(monkeypatch) -> None:
 
     assert result.status == "success"
     assert '"metric_00"' in captured["user_message"]
-    assert '"metric_13"' not in captured["user_message"]
+    assert '"metric_13"' in captured["user_message"]
     assert "RAW_DOMAIN_TEXT_SHOULD_NOT_APPEAR" not in captured["user_message"]
     assert "specialist_briefs" in captured["user_message"]
     assert "section_summaries" not in captured["user_message"]

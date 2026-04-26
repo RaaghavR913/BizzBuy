@@ -92,9 +92,9 @@ def build_financial_user_message(
         "evidence_pack": _build_section_pack(
             ingestion_output,
             {"profit_and_loss", "balance_sheet", "cash_flow_statement", "sde_summary"},
-            max_items=8,
-            max_total_snippet_chars=2000,
-            max_fields=10,
+            max_items=None,
+            max_total_snippet_chars=None,
+            max_fields=None,
         ),
         "missing_data_notes": _notes(warning),
     }
@@ -117,9 +117,9 @@ def build_tax_user_message(
         "evidence_pack": _build_section_pack(
             ingestion_output,
             {"tax_return_1120s", "tax_return_1040", "tax_return_schedule_c", "profit_and_loss"},
-            max_items=8,
-            max_total_snippet_chars=1800,
-            max_fields=10,
+            max_items=None,
+            max_total_snippet_chars=None,
+            max_fields=None,
         ),
         "missing_data_notes": notes,
     }
@@ -135,9 +135,9 @@ def build_ar_user_message(
         "evidence_pack": _build_section_pack(
             ingestion_output,
             {"ar_aging_report"},
-            max_items=6,
-            max_total_snippet_chars=1200,
-            max_fields=10,
+            max_items=None,
+            max_total_snippet_chars=None,
+            max_fields=None,
         ),
     }
     return "## AR Context\n" + compact_json(_drop_empty(payload))
@@ -155,9 +155,9 @@ def build_customer_user_message(
         "snippet_pack": _build_section_pack(
             ingestion_output,
             {"customer_list", "contract"},
-            max_items=5,
-            max_total_snippet_chars=1600,
-            max_fields=8,
+            max_items=None,
+            max_total_snippet_chars=None,
+            max_fields=None,
         ),
         "missing_data_notes": notes,
     }
@@ -173,9 +173,9 @@ def build_ops_user_message(
         "snippet_pack": _build_section_pack(
             ingestion_output,
             {"employee_roster", "insurance_policy", "equipment_list", "other"},
-            max_items=5,
-            max_total_snippet_chars=1600,
-            max_fields=8,
+            max_items=None,
+            max_total_snippet_chars=None,
+            max_fields=None,
         ),
     }
     return "## Operations Context\n" + compact_json(_drop_empty(payload))
@@ -190,9 +190,9 @@ def build_lease_user_message(
         "snippet_pack": _build_section_pack(
             ingestion_output,
             {"lease_agreement", "contract", "other"},
-            max_items=6,
-            max_total_snippet_chars=1800,
-            max_fields=8,
+            max_items=None,
+            max_total_snippet_chars=None,
+            max_fields=None,
         ),
     }
     return "## Lease & Contract Context\n" + compact_json(_drop_empty(payload))
@@ -234,9 +234,9 @@ def build_market_user_message(
         "context_snippets": _build_section_pack(
             ingestion_output,
             {doc.document_type.value for doc in ingestion_output.documents},
-            max_items=4,
-            max_total_snippet_chars=1400,
-            max_fields=6,
+            max_items=None,
+            max_total_snippet_chars=None,
+            max_fields=None,
         ),
         "missing_data_notes": notes,
     }
@@ -255,17 +255,17 @@ def build_synthesis_user_message(
         "specialist_context": _drop_empty(
             {
                 "available_analyses": successful_agents,
-                "failed_analyses": list(metrics.get("failed_agents", []))[:6],
+                "failed_analyses": list(metrics.get("failed_agents", [])),
                 "overall_completeness": metrics.get("completeness"),
                 "red_flags": _unique_finding_briefs(
                     metrics.get("red_flags", []),
-                    max_items=4,
-                    max_description_chars=140,
+                    max_items=None,
+                    max_description_chars=None,
                 ),
                 "green_flags": _unique_finding_briefs(
                     metrics.get("green_flags", []),
-                    max_items=2,
-                    max_description_chars=120,
+                    max_items=None,
+                    max_description_chars=None,
                 ),
                 "specialist_briefs": [
                 brief
@@ -279,7 +279,7 @@ def build_synthesis_user_message(
 
 
 def _compact_scorecard(scorecard: DeterministicScorecard) -> dict[str, Any]:
-    validated_metrics = _select_validated_metrics(scorecard.validated_metrics, max_items=8)
+    validated_metrics = _select_validated_metrics(scorecard.validated_metrics, max_items=None)
 
     return _drop_empty(
         {
@@ -295,22 +295,22 @@ def _compact_scorecard(scorecard: DeterministicScorecard) -> dict[str, Any]:
                         "status": dimension.status,
                     }
                 )
-                for dimension in scorecard.buyer_facing_dimensions[:4]
+                for dimension in scorecard.buyer_facing_dimensions
             ],
             "deal_breakers": _unique_finding_briefs(
                 scorecard.deal_breakers,
-                max_items=4,
-                max_description_chars=120,
+                max_items=None,
+                max_description_chars=None,
             ),
             "conflicts": [
                 _drop_empty(
                     {
                         "key": conflict.key,
-                        "description": _clip_text(conflict.description, 120),
+                        "description": _clip_text(conflict.description, None),
                         "conservative_value": conflict.conservative_value,
                     }
                 )
-                for conflict in scorecard.conflicts[:4]
+                for conflict in scorecard.conflicts
             ],
             "validated_metrics": validated_metrics,
             "technical_scorecards": [
@@ -321,7 +321,7 @@ def _compact_scorecard(scorecard: DeterministicScorecard) -> dict[str, Any]:
                         "recommendation": technical_scorecard.recommendation,
                     }
                 )
-                for technical_scorecard in scorecard.technical_scorecards[:8]
+                for technical_scorecard in scorecard.technical_scorecards
             ],
         }
     )
@@ -343,10 +343,10 @@ def _agent_brief(
                 "agent": AGENT_DISPLAY_NAMES.get(agent_key, agent_key),
                 "score": data.overall_score,
                 "confidence": data.confidence,
-                "summary": _clip_text(data.summary, 180),
-                "top_findings": _unique_finding_briefs(data.findings, max_items=2, max_description_chars=120),
-                "top_risks": list(section_summary.get("top_risks", []))[:2] if isinstance(section_summary, Mapping) else [],
-                "missing_inputs": [item.description for item in data.missing_inputs[:2]],
+                "summary": _clip_text(data.summary, None),
+                "top_findings": _unique_finding_briefs(data.findings, max_items=None, max_description_chars=None),
+                "top_risks": list(section_summary.get("top_risks", [])) if isinstance(section_summary, Mapping) else [],
+                "missing_inputs": [item.description for item in data.missing_inputs],
             }
         )
     return _drop_empty(
@@ -354,7 +354,7 @@ def _agent_brief(
             "agent": AGENT_DISPLAY_NAMES.get(agent_key, agent_key),
             "score": getattr(data, "overall_score", None),
             "confidence": getattr(data, "confidence", None),
-            "summary": _clip_text(getattr(data, "summary", None), 180),
+            "summary": _clip_text(getattr(data, "summary", None), None),
         }
     )
 
@@ -362,7 +362,7 @@ def _agent_brief(
 def _select_validated_metrics(
     metrics: Mapping[str, NormalizedMetric],
     *,
-    max_items: int,
+    max_items: int | None,
 ) -> dict[str, Any]:
     selected: dict[str, Any] = {}
     for key in _PREFERRED_VALIDATED_METRICS:
@@ -370,14 +370,14 @@ def _select_validated_metrics(
         if metric is None:
             continue
         selected[key] = _compact_metric(metric)
-        if len(selected) >= max_items:
+        if max_items is not None and len(selected) >= max_items:
             return selected
 
     for key, metric in metrics.items():
         if key in selected:
             continue
         selected[key] = _compact_metric(metric)
-        if len(selected) >= max_items:
+        if max_items is not None and len(selected) >= max_items:
             break
     return selected
 
@@ -385,8 +385,8 @@ def _select_validated_metrics(
 def _unique_finding_briefs(
     findings: Iterable[Any],
     *,
-    max_items: int,
-    max_description_chars: int,
+    max_items: int | None,
+    max_description_chars: int | None,
 ) -> list[dict[str, Any]]:
     briefs: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -398,7 +398,7 @@ def _unique_finding_briefs(
         brief = _finding_brief(finding, max_description_chars=max_description_chars)
         if brief:
             briefs.append(brief)
-        if len(briefs) >= max_items:
+        if max_items is not None and len(briefs) >= max_items:
             break
     return briefs
 
@@ -411,16 +411,16 @@ def _finding_identity(finding: Any) -> str:
     if title:
         return f"title:{str(title).strip().lower()}"
     description = _value_from_item(finding, "description")
-    return f"description:{_clip_text(str(description or ''), 80)}"
+    return f"description:{_clip_text(str(description or ''), None)}"
 
 
 def _build_section_pack(
     ingestion_output: IngestionOutput,
     document_types: Iterable[DocumentType | str],
     *,
-    max_items: int,
-    max_total_snippet_chars: int,
-    max_fields: int,
+    max_items: int | None,
+    max_total_snippet_chars: int | None,
+    max_fields: int | None,
 ) -> list[dict[str, Any]]:
     allowed = {item.value if isinstance(item, DocumentType) else item for item in document_types}
     section_entries: list[tuple[DocumentInfo, DocumentSection]] = []
@@ -431,6 +431,7 @@ def _build_section_pack(
 
     section_entries.sort(
         key=lambda item: (
+            -_section_priority(item[0], item[1]),
             -(item[1].timeframe.fiscal_year or -1),
             item[0].file_name,
             item[1].page or item[1].page_start or 0,
@@ -441,14 +442,18 @@ def _build_section_pack(
     remaining_chars = max_total_snippet_chars
     packed: list[dict[str, Any]] = []
     for doc, section in section_entries:
-        if len(packed) >= max_items:
+        if max_items is not None and len(packed) >= max_items:
             break
 
         snippet = None
-        cleaned_text = _clip_text(section.raw_text, min(320, remaining_chars))
+        snippet_limit = None
+        if remaining_chars is not None:
+            snippet_limit = remaining_chars
+        cleaned_text = _clip_text(section.raw_text, snippet_limit)
         if cleaned_text:
             snippet = cleaned_text
-            remaining_chars = max(0, remaining_chars - len(cleaned_text))
+            if remaining_chars is not None:
+                remaining_chars = max(0, remaining_chars - len(cleaned_text))
 
         key_fields = _limit_mapping(_preview_extracted_data(section), max_fields)
         item = _drop_empty(
@@ -468,8 +473,18 @@ def _build_section_pack(
     return packed
 
 
+def _section_priority(doc: DocumentInfo, section: DocumentSection) -> int:
+    preview = _preview_extracted_data(section)
+    source_format = (section.source_format or "").lower()
+    structured_bonus = 3 if source_format in {"spreadsheet", "pdf"} else 0
+    named_section_bonus = 1 if (section.section_name or section.section_id) else 0
+    non_cim_bonus = 1 if "cim" not in doc.file_name.lower() else 0
+    preview_bonus = min(len(preview), 6)
+    return structured_bonus + named_section_bonus + non_cim_bonus + preview_bonus
+
+
 def _preview_extracted_data(section: DocumentSection) -> dict[str, Any]:
-    preview = _limit_mapping(build_evidence_fields(section), 8)
+    preview = _limit_mapping(build_evidence_fields(section), None)
     if preview:
         return preview
 
@@ -481,8 +496,6 @@ def _preview_extracted_data(section: DocumentSection) -> dict[str, Any]:
         if compact_value in (None, "", [], {}):
             continue
         preview[str(key)] = compact_value
-        if len(preview) >= 8:
-            break
     return preview
 
 
@@ -490,12 +503,9 @@ def _compact_value(value: Any) -> Any:
     if value is None or isinstance(value, (int, float, bool)):
         return value
     if isinstance(value, str):
-        return _clip_text(value, 120)
+        return _clip_text(value, None)
     if isinstance(value, list):
-        compact_items = [_compact_value(item) for item in value[:3]]
-        if len(value) > 3:
-            compact_items.append(f"... ({len(value) - 3} more)")
-        return compact_items
+        return [_compact_value(item) for item in value]
     if isinstance(value, dict):
         compact_dict = {}
         for key, item in value.items():
@@ -505,10 +515,8 @@ def _compact_value(value: Any) -> Any:
             if compact_item in (None, "", [], {}):
                 continue
             compact_dict[str(key)] = compact_item
-            if len(compact_dict) >= 4:
-                break
         return compact_dict
-    return _clip_text(str(value), 120)
+    return _clip_text(str(value), None)
 
 
 def _compact_metric(metric: NormalizedMetric) -> dict[str, Any]:
@@ -525,8 +533,8 @@ def _compact_metric(metric: NormalizedMetric) -> dict[str, Any]:
 def _finding_brief(
     finding: NormalizedFinding | Any,
     *,
-    max_description_chars: int = 180,
-    max_title_chars: int = 120,
+    max_description_chars: int | None = 180,
+    max_title_chars: int | None = 120,
 ) -> dict[str, Any]:
     severity = _value_from_item(finding, "severity")
     severity_value = severity.value if hasattr(severity, "value") else severity
@@ -559,7 +567,7 @@ def _limit_mapping(data: Mapping[str, Any], max_items: int) -> dict[str, Any]:
         if value in (None, "", [], {}):
             continue
         limited[key] = value
-        if len(limited) >= max_items:
+        if max_items is not None and len(limited) >= max_items:
             break
     return limited
 
@@ -578,11 +586,11 @@ def _notes(*values: str | None) -> list[str]:
     return [value for value in values if value]
 
 
-def _clip_text(value: str | None, max_chars: int) -> str | None:
+def _clip_text(value: str | None, max_chars: int | None) -> str | None:
     if not value:
         return None
-    cleaned = " ".join(str(value).split())
-    if len(cleaned) <= max_chars:
+    cleaned = str(value)
+    if max_chars is None or len(cleaned) <= max_chars:
         return cleaned
     if max_chars <= 3:
         return cleaned[:max_chars]
