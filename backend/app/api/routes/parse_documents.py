@@ -160,7 +160,7 @@ async def parse_documents_route(
     raw_file_hashes = fileHashes if isinstance(fileHashes, str) else file_hashes
     if not isinstance(raw_file_hashes, str):
         raw_file_hashes = None
-    parsed_file_hashes = _json_list(raw_file_hashes, "fileHashes")
+    _json_list(raw_file_hashes, "fileHashes")
 
     raw_ocr_refs = ocrArtifactRefs if isinstance(ocrArtifactRefs, str) else ocr_artifact_refs
     if not isinstance(raw_ocr_refs, str):
