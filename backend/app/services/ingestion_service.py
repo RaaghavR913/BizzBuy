@@ -13,6 +13,7 @@ from app.agents.schemas import (
     SectionContentType,
     Timeframe,
 )
+from app.core.path_safety import validate_analysis_id
 from app.services.analysis_repository import (
     AnalysisArtifactRepository,
     build_stored_ingestion_artifacts,
@@ -108,7 +109,9 @@ def ingest_and_persist_intake_documents(
     repository: AnalysisArtifactRepository | None = None,
 ) -> IngestionOutput:
     output = ingest_intake_documents(documents)
-    resolved_analysis_id = analysis_id or str(uuid4())
+    resolved_analysis_id = validate_analysis_id(analysis_id) if analysis_id else str(uuid4())
+    if resolved_analysis_id is None:
+        resolved_analysis_id = str(uuid4())
     artifact_repository = repository or get_analysis_artifact_repository()
     artifact_ref = artifact_repository.get_ingestion_artifact_ref(resolved_analysis_id)
     output.metadata.analysis_id = resolved_analysis_id

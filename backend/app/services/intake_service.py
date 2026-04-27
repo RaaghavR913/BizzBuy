@@ -15,6 +15,8 @@ from zipfile import BadZipFile, ZipFile
 from fastapi import UploadFile
 
 from app.agents.schemas import DocumentType, MissingInput
+from app.core.config import get_settings
+from app.core.path_safety import UnsafePathError, validate_sha256_hex
 from app.services.section_kind import infer_section_kind, infer_sheet_kinds
 
 
@@ -29,6 +31,23 @@ LEGACY_DOCUMENT_TYPE_ALIASES: dict[str, DocumentType] = {
     "tax_return": DocumentType.TAX_RETURN_1120S,
     "tax_returns": DocumentType.TAX_RETURN_1120S,
 }
+
+
+class ArchiveLimitError(ValueError):
+    """Raised when an Office document zip exceeds configured parser limits."""
+
+
+def _validate_zip_archive(archive: ZipFile, label: str) -> None:
+    settings = get_settings()
+    entries = [info for info in archive.infolist() if not info.is_dir()]
+    if len(entries) > settings.max_zip_entries:
+        raise ArchiveLimitError(f"{label} archive contains too many entries.")
+
+    total_uncompressed = 0
+    for info in entries:
+        total_uncompressed += max(0, info.file_size)
+        if total_uncompressed > settings.max_zip_uncompressed_bytes:
+            raise ArchiveLimitError(f"{label} archive exceeds the decompressed size limit.")
 
 
 @dataclass(slots=True)
@@ -71,8 +90,9 @@ def decode_text_content(content: bytes) -> str:
 def _extract_docx_text(content: bytes) -> str:
     try:
         with ZipFile(BytesIO(content)) as archive:
+            _validate_zip_archive(archive, "DOCX")
             xml_content = archive.read("word/document.xml")
-    except (BadZipFile, KeyError):
+    except (BadZipFile, KeyError, ArchiveLimitError):
         return ""
 
     try:
@@ -106,8 +126,9 @@ def extract_docx_content(content: bytes) -> tuple[str, list[list[dict[str, Any]]
     """
     try:
         with ZipFile(BytesIO(content)) as archive:
+            _validate_zip_archive(archive, "DOCX")
             xml_content = archive.read("word/document.xml")
-    except (BadZipFile, KeyError):
+    except (BadZipFile, KeyError, ArchiveLimitError):
         return "", []
 
     try:
@@ -208,6 +229,7 @@ def _parse_csv_content(
 def extract_xlsx_workbook(content: bytes) -> tuple[list[dict[str, Any]], list[str]]:
     try:
         with ZipFile(BytesIO(content)) as archive:
+            _validate_zip_archive(archive, "XLSX")
             shared_strings = _read_xlsx_shared_strings(archive)
             workbook_root = ElementTree.fromstring(archive.read("xl/workbook.xml"))
             workbook_rels = _read_xlsx_relationships(archive)
@@ -258,6 +280,8 @@ def extract_xlsx_workbook(content: bytes) -> tuple[list[dict[str, Any]], list[st
                     }
                 )
             return sheets, notes
+    except ArchiveLimitError as exc:
+        return [], [str(exc)]
     except (BadZipFile, KeyError, ElementTree.ParseError):
         return [], ["XLSX upload could not be parsed into workbook sheets."]
 
@@ -556,19 +580,23 @@ def _load_cached_ocr_payload(*, file_hash: str | None, artifact_ref: str | None)
 
 def _safe_ocr_artifact_path(*, file_hash: str | None, artifact_ref: str | None) -> Path | None:
     root = (Path(os.getenv("BIZBUY_ARTIFACT_DIR", "backend/.artifacts")) / "ocr").resolve()
-    if file_hash and len(file_hash) == 64 and all(char in "0123456789abcdefABCDEF" for char in file_hash):
-        return root / f"{file_hash.lower()}.json"
-    if artifact_ref:
-        candidate = Path(artifact_ref)
-        if not candidate.is_absolute():
-            candidate = Path.cwd() / candidate
+    if file_hash:
         try:
-            resolved = candidate.resolve()
-            resolved.relative_to(root)
-            if resolved.suffix == ".json":
-                return resolved
-        except Exception:
+            return root / f"{validate_sha256_hex(file_hash)}.json"
+        except UnsafePathError:
             return None
+    if artifact_ref:
+        ref = artifact_ref.strip()
+        if ref.startswith("ocr:"):
+            try:
+                return root / f"{validate_sha256_hex(ref.removeprefix('ocr:'))}.json"
+            except UnsafePathError:
+                return None
+        if len(ref) == 64:
+            try:
+                return root / f"{validate_sha256_hex(ref)}.json"
+            except UnsafePathError:
+                return None
     return None
 
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import shutil
 from io import BytesIO
@@ -11,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.api.routes.parse_documents import parse_documents_route
+from app.services.intake_service import _safe_ocr_artifact_path
 from app.services.intake_service import extract_xlsx_workbook
 from app.services.section_kind import infer_sheet_kinds
 
@@ -67,6 +69,18 @@ def test_parse_documents_route_accepts_frontend_filetypes_alias_multipart(monkey
         shutil.rmtree(artifact_dir, ignore_errors=True)
 
 
+def test_parse_documents_route_rejects_malformed_json_form_fields() -> None:
+    client = TestClient(app)
+    response = client.post(
+        "/api/parse-documents",
+        files={"files": ("seller-pnl.txt", b"Revenue 1200000\nNet Income 300000", "text/plain")},
+        data={"fileTypes": "{not-json"},
+    )
+
+    assert response.status_code == 400
+    assert "fileTypes" in response.json()["detail"]
+
+
 def test_peakair_workbook_sheet_kind_inference() -> None:
     sample_root = Path(__file__).resolve().parents[2] / "sample company1"
     workbook = sample_root / "PeakAir_Financials.xlsx"
@@ -84,7 +98,8 @@ def test_parse_documents_reuses_cached_ocr_text_by_file_hash(monkeypatch) -> Non
     artifact_dir = Path("backend/.test-artifacts/parse-documents-ocr-cache")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
-    file_hash = "a" * 64
+    upload_bytes = b"%PDF cached text comes from artifact"
+    file_hash = hashlib.sha256(upload_bytes).hexdigest()
     ocr_dir = artifact_dir / "ocr"
     ocr_dir.mkdir(parents=True, exist_ok=True)
     artifact_path = ocr_dir / f"{file_hash}.json"
@@ -114,11 +129,10 @@ def test_parse_documents_reuses_cached_ocr_text_by_file_hash(monkeypatch) -> Non
         client = TestClient(app)
         response = client.post(
             "/api/parse-documents",
-            files={"files": ("scanned.pdf", b"%PDF cached text comes from artifact", "application/pdf")},
+            files={"files": ("scanned.pdf", upload_bytes, "application/pdf")},
             data={
                 "fileTypes": '["profit_and_loss"]',
-                "fileHashes": json.dumps([file_hash]),
-                "ocrArtifactRefs": json.dumps([str(artifact_path)]),
+                "ocrArtifactRefs": json.dumps([f"ocr:{file_hash}"]),
             },
         )
         payload = response.json()
@@ -134,6 +148,53 @@ def test_parse_documents_reuses_cached_ocr_text_by_file_hash(monkeypatch) -> Non
         ), f"Expected an OCR-artifact note, got: {doc_notes}"
     finally:
         shutil.rmtree(artifact_dir, ignore_errors=True)
+
+
+def test_parse_documents_ignores_mismatched_ocr_ref(monkeypatch) -> None:
+    artifact_dir = Path("backend/.test-artifacts/parse-documents-mismatched-ocr-cache")
+    shutil.rmtree(artifact_dir, ignore_errors=True)
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
+    wrong_hash = "b" * 64
+    ocr_dir = artifact_dir / "ocr"
+    ocr_dir.mkdir(parents=True, exist_ok=True)
+    (ocr_dir / f"{wrong_hash}.json").write_text(
+        json.dumps(
+            {
+                "pages": [{"page_number": 1, "markdown": "Wrong cached OCR text", "image_refs": []}],
+                "full_markdown": "Wrong cached OCR text",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/api/parse-documents",
+            files={"files": ("scanned.pdf", b"%PDF different uploaded bytes", "application/pdf")},
+            data={
+                "fileTypes": '["profit_and_loss"]',
+                "fileHashes": json.dumps([wrong_hash]),
+                "ocrArtifactRefs": json.dumps([f"ocr:{wrong_hash}"]),
+            },
+        )
+        payload = response.json()
+
+        assert response.status_code == 200
+        assert payload["pipelineDocuments"][0]["sections"] == []
+        assert payload["pipelineDocuments"][0]["status"] == "failed"
+    finally:
+        shutil.rmtree(artifact_dir, ignore_errors=True)
+
+
+def test_ocr_artifact_refs_do_not_accept_filesystem_paths(tmp_path, monkeypatch) -> None:
+    artifact_dir = tmp_path / "artifacts"
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
+    ocr_path = artifact_dir / "ocr" / f"{'c' * 64}.json"
+    ocr_path.parent.mkdir(parents=True)
+    ocr_path.write_text("{}", encoding="utf-8")
+
+    assert _safe_ocr_artifact_path(file_hash=None, artifact_ref=str(ocr_path)) is None
 
 
 def test_peakair_parse_documents_seeds_review_financial_data(monkeypatch) -> None:

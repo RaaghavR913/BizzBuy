@@ -7,7 +7,8 @@ from xml.etree import ElementTree
 
 import pytest
 
-from app.services.intake_service import extract_docx_content, extract_docx_text
+from app.core.config import get_settings
+from app.services.intake_service import extract_docx_content, extract_docx_text, extract_xlsx_workbook
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +57,14 @@ def _build_docx(body_children: list[ElementTree.Element]) -> bytes:
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("word/document.xml", xml_bytes)
+    return buf.getvalue()
+
+
+def _build_zip(entries: dict[str, bytes]) -> bytes:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for name, content in entries.items():
+            zf.writestr(name, content)
     return buf.getvalue()
 
 
@@ -152,3 +161,31 @@ def test_extract_docx_row_index_sequential():
     _, tables = extract_docx_content(content)
     row_indices = [r["row_index"] for r in tables[0]]
     assert row_indices == [1, 2, 3]
+
+
+def test_extract_docx_rejects_zip_with_too_many_entries(monkeypatch):
+    monkeypatch.setenv("BIZBUY_MAX_ZIP_ENTRIES", "1")
+    get_settings.cache_clear()
+    try:
+        content = _build_zip({
+            "word/document.xml": b"<w:document />",
+            "word/extra.xml": b"<extra />",
+        })
+        narrative, tables = extract_docx_content(content)
+
+        assert narrative == ""
+        assert tables == []
+    finally:
+        get_settings.cache_clear()
+
+
+def test_extract_xlsx_reports_zip_decompressed_size_limit(monkeypatch):
+    monkeypatch.setenv("BIZBUY_MAX_ZIP_UNCOMPRESSED_BYTES", "10")
+    get_settings.cache_clear()
+    try:
+        sheets, notes = extract_xlsx_workbook(_build_zip({"xl/workbook.xml": b"x" * 100}))
+
+        assert sheets == []
+        assert notes == ["XLSX archive exceeds the decompressed size limit."]
+    finally:
+        get_settings.cache_clear()

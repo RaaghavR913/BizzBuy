@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from app.agents.orchestrator import run_pipeline
 from app.core.config import get_settings
+from app.core.path_safety import validate_analysis_id
 from app.models.schemas import AnalysisJobProgress, AnalysisJobRecord, AnalysisJobRequest, AnalysisJobResponse
 from app.services.analysis_repository import AnalysisArtifactRepository, get_analysis_artifact_repository
 from app.services.analysis_service import run_analysis
@@ -16,6 +17,17 @@ from app.services.analysis_service import run_analysis
 _EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="analysis-job")
 _FUTURES: Dict[str, Future[None]] = {}
 _FUTURES_LOCK = Lock()
+
+
+class AnalysisJobLimitError(RuntimeError):
+    pass
+
+
+class AnalysisJobAccessError(RuntimeError):
+    pass
+
+
+_OWNER_CHECK_SKIPPED = object()
 
 
 def _now_iso() -> str:
@@ -39,6 +51,14 @@ def _build_response(
     )
 
 
+def _ensure_owner_access(job: AnalysisJobRecord, owner_flow_id: str | None) -> None:
+    if not job.owner_flow_id:
+        return
+    if owner_flow_id and job.owner_flow_id == owner_flow_id:
+        return
+    raise AnalysisJobAccessError("Analysis job does not belong to this session.")
+
+
 def _persist_job(
     repository: AnalysisArtifactRepository,
     analysis_id: str,
@@ -55,6 +75,7 @@ def _persist_job(
     queued_agents: list[str] | None = None,
     agent_statuses: dict[str, str] | None = None,
     fallback_mode_active: bool | None = None,
+    owner_flow_id: str | None = None,
 ) -> AnalysisJobRecord:
     existing = repository.load_analysis_job(analysis_id)
     timestamp = _now_iso()
@@ -65,6 +86,7 @@ def _persist_job(
     prev_statuses = existing.progress.agent_statuses if existing else {}
     job = AnalysisJobRecord(
         analysis_id=analysis_id,
+        owner_flow_id=owner_flow_id if owner_flow_id is not None else (existing.owner_flow_id if existing else None),
         status=status,  # type: ignore[arg-type]
         created_at=created_at,
         updated_at=timestamp,
@@ -121,7 +143,7 @@ def _update_progress(
 
 
 def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactRepository) -> None:
-    analysis_id = payload.analysis_id or str(uuid4())
+    analysis_id = validate_analysis_id(payload.analysis_id) or str(uuid4())
     started_at = _now_iso()
     _persist_job(
         repository,
@@ -221,20 +243,30 @@ def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactR
 def start_analysis_job(
     payload: AnalysisJobRequest,
     repository: AnalysisArtifactRepository | None = None,
+    *,
+    owner_flow_id: str | None = None,
 ) -> AnalysisJobResponse:
     settings = get_settings()
     if not settings.analysis_jobs_enabled:
         raise RuntimeError("Analysis jobs are disabled by rollout configuration.")
 
     artifact_repository = repository or get_analysis_artifact_repository()
-    analysis_id = payload.analysis_id or str(uuid4())
+    analysis_id = validate_analysis_id(payload.analysis_id) or str(uuid4())
     existing = artifact_repository.load_analysis_job(analysis_id)
+    if existing:
+        _ensure_owner_access(existing, owner_flow_id)
 
     if existing and existing.status in {"queued", "running"}:
         return _build_response(existing)
 
+    with _FUTURES_LOCK:
+        active_jobs = sum(1 for future in _FUTURES.values() if not future.done())
+        if settings.max_active_analysis_jobs > 0 and active_jobs >= settings.max_active_analysis_jobs:
+            raise AnalysisJobLimitError("Maximum active analysis jobs reached.")
+
     queued_job = AnalysisJobRecord(
         analysis_id=analysis_id,
+        owner_flow_id=owner_flow_id,
         status="queued",
         created_at=_now_iso(),
         updated_at=_now_iso(),
@@ -259,11 +291,16 @@ def start_analysis_job(
 def get_analysis_job(
     analysis_id: str,
     repository: AnalysisArtifactRepository | None = None,
+    *,
+    owner_flow_id: str | None | object = _OWNER_CHECK_SKIPPED,
 ) -> AnalysisJobResponse | None:
     artifact_repository = repository or get_analysis_artifact_repository()
+    analysis_id = validate_analysis_id(analysis_id) or analysis_id
     job = artifact_repository.load_analysis_job(analysis_id)
     if job is None:
         return None
+    if owner_flow_id is not _OWNER_CHECK_SKIPPED:
+        _ensure_owner_access(job, owner_flow_id if isinstance(owner_flow_id, str) else None)
 
     # Serve the report whenever it exists on disk (partial or complete).
     # The frontend renders whatever sections are populated and shows skeletons for the rest.
@@ -276,6 +313,7 @@ def broadcast_job_snapshot(
 ) -> None:
     """Push the current job + report to any SSE subscribers (e.g. after disk writes)."""
     artifact_repository = repository or get_analysis_artifact_repository()
+    analysis_id = validate_analysis_id(analysis_id) or analysis_id
     snap = get_analysis_job(analysis_id, artifact_repository)
     if snap is None:
         return

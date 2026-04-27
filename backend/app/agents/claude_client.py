@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional, Type, TypeVar
 import anthropic
 from pydantic import BaseModel, ValidationError
 
+from app.agents.output_coercion import coerce_json_container_strings
 from app.agents.registry import AgentConfig
 from app.agents.schemas import AgentErrorPayload, AgentResult, TokenUsage
 
@@ -118,6 +119,7 @@ def call_agent(
 
             # Parse the tool input
             tool_input = tool_use_block.input
+            tool_input = coerce_json_container_strings(tool_input)
             last_output = json.dumps(tool_input, indent=2)
 
             # Validate with Pydantic

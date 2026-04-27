@@ -10,6 +10,10 @@ from app.models.schemas import AnalysisJobRequest
 from app.services.analysis_jobs import get_analysis_job, start_analysis_job
 from app.services.analysis_repository import FileSystemAnalysisArtifactRepository
 
+ANALYSIS_ID_1 = "11111111-1111-4111-8111-111111111111"
+ANALYSIS_ID_2 = "22222222-2222-4222-8222-222222222222"
+ANALYSIS_ID_3 = "33333333-3333-4333-8333-333333333333"
+
 
 def _wait_for_status(
     repository: FileSystemAnalysisArtifactRepository,
@@ -69,26 +73,26 @@ def test_analysis_job_persists_progress_and_completed_report(monkeypatch) -> Non
     try:
         created = start_analysis_job(
             AnalysisJobRequest(
-                analysis_id="analysis-job-1",
+                analysis_id=ANALYSIS_ID_1,
                 documents=[{"document_id": "doc-1", "sections": [{"raw_text": "Revenue 100"}]}],
             ),
             repository=repository,
         )
 
-        assert created.analysis_id == "analysis-job-1"
+        assert created.analysis_id == ANALYSIS_ID_1
         assert created.status == "queued"
 
-        completed = _wait_for_status(repository, "analysis-job-1", "completed")
+        completed = _wait_for_status(repository, ANALYSIS_ID_1, "completed")
 
         assert completed.progress.stage == "completed"
         assert completed.progress.progress == 1.0
 
-        status = get_analysis_job("analysis-job-1", repository=repository)
+        status = get_analysis_job(ANALYSIS_ID_1, repository=repository)
 
         assert status is not None
         assert status.status == "completed"
         assert status.report is not None
-        assert status.report["metadata"]["analysisId"] == "analysis-job-1"
+        assert status.report["metadata"]["analysisId"] == ANALYSIS_ID_1
         assert status.report["summary"]["headline"] == "Ready"
     finally:
         shutil.rmtree(artifact_root, ignore_errors=True)
@@ -144,19 +148,19 @@ def test_analysis_job_status_is_reloadable_while_running(monkeypatch) -> None:
     try:
         start_analysis_job(
             AnalysisJobRequest(
-                analysis_id="analysis-job-2",
+                analysis_id=ANALYSIS_ID_2,
                 documents=[{"document_id": "doc-2", "sections": [{"raw_text": "Revenue 250"}]}],
             ),
             repository=repository,
         )
 
-        running = _wait_for_status(repository, "analysis-job-2", "running")
+        running = _wait_for_status(repository, ANALYSIS_ID_2, "running")
 
         assert running.progress.stage in {"ingestion", "specialists_started"}
         assert running.progress.progress >= 0.2
 
         reloaded_repository = FileSystemAnalysisArtifactRepository(artifact_root)
-        reloaded = get_analysis_job("analysis-job-2", repository=reloaded_repository)
+        reloaded = get_analysis_job(ANALYSIS_ID_2, repository=reloaded_repository)
 
         assert reloaded is not None
         assert reloaded.status == "running"
@@ -168,7 +172,7 @@ def test_analysis_job_status_is_reloadable_while_running(monkeypatch) -> None:
         assert reloaded.report is None
 
         release_job.set()
-        completed = _wait_for_status(repository, "analysis-job-2", "completed")
+        completed = _wait_for_status(repository, ANALYSIS_ID_2, "completed")
 
         assert completed.completed_at is not None
     finally:
@@ -225,14 +229,14 @@ def test_analysis_job_persists_partial_report_without_marking_job_failed(monkeyp
     try:
         start_analysis_job(
             AnalysisJobRequest(
-                analysis_id="analysis-job-3",
+                analysis_id=ANALYSIS_ID_3,
                 documents=[{"document_id": "doc-3", "sections": [{"raw_text": "Revenue 500"}]}],
             ),
             repository=repository,
         )
 
-        completed = _wait_for_status(repository, "analysis-job-3", "completed")
-        status = get_analysis_job("analysis-job-3", repository=repository)
+        completed = _wait_for_status(repository, ANALYSIS_ID_3, "completed")
+        status = get_analysis_job(ANALYSIS_ID_3, repository=repository)
 
         assert completed.progress.stage == "completed"
         assert status is not None

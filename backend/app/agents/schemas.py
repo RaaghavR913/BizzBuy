@@ -3,7 +3,9 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from app.core.path_safety import validate_analysis_id
 
 
 def to_camel(value: str) -> str:
@@ -890,6 +892,11 @@ class PipelineInput(BaseModel):
     analysis_id: Optional[str] = None
     clarifications: List[ClarificationAnswer] = Field(default_factory=list)
     report_depth: Optional[str] = None
+
+    @field_validator("analysis_id")
+    @classmethod
+    def _validate_analysis_id(cls, value: Optional[str]) -> Optional[str]:
+        return validate_analysis_id(value)
 
 
 class TokenUsage(BaseModel):

@@ -7,14 +7,20 @@ import io
 import json
 import mimetypes
 import os
+import re
+import shutil
 from pathlib import Path
+from pathlib import PurePosixPath, PureWindowsPath
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
 from app.agents.mistral_ocr_client import MistralOCRError, ocr_document
+from app.core.config import get_settings
+from app.core.path_safety import safe_child_path, validate_sha256_hex
+from app.core.security import protect_expensive_route, record_upload_bytes
 from app.services.intake_service import decode_text_content, extract_docx_text, extract_xlsx_workbook
 from app.services.section_kind import infer_sheet_kinds
 
@@ -22,10 +28,13 @@ router = APIRouter()
 
 UPLOAD_ROOT = Path(os.getenv("BIZBUY_UPLOAD_DIR", "uploads"))
 OCR_ARTIFACT_ROOT = Path(os.getenv("BIZBUY_ARTIFACT_DIR", "backend/.artifacts")) / "ocr"
+OCR_ARTIFACT_REF_PREFIX = "ocr:"
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 MAX_PAGES = 1000
 
 _STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls", ".docx"}
+_SAFE_EXTENSION_RE = re.compile(r"^\.[a-z0-9]{1,16}$")
+_protect_upload_route = protect_expensive_route("upload")
 
 _MISTRAL_TO_DETECTED_TYPE: dict[str, str] = {
     "pnl_income_statement": "profit_and_loss",
@@ -86,7 +95,26 @@ def _count_pdf_pages(file_bytes: bytes) -> int | None:
 
 
 def _ocr_artifact_path(file_hash: str) -> Path:
-    return OCR_ARTIFACT_ROOT / f"{file_hash}.json"
+    safe_hash = validate_sha256_hex(file_hash)
+    return safe_child_path(OCR_ARTIFACT_ROOT, f"{safe_hash}.json")
+
+
+def _ocr_artifact_ref(file_hash: str) -> str:
+    safe_hash = validate_sha256_hex(file_hash)
+    return f"{OCR_ARTIFACT_REF_PREFIX}{safe_hash}"
+
+
+def _safe_storage_filename(file_id: str, original_name: str) -> str:
+    suffixes = (
+        PurePosixPath(original_name).suffix.lower(),
+        PureWindowsPath(original_name).suffix.lower(),
+    )
+    suffix = next((candidate for candidate in suffixes if _SAFE_EXTENSION_RE.fullmatch(candidate)), "")
+    return f"{file_id}{suffix}"
+
+
+def _max_file_size_bytes() -> int:
+    return get_settings().max_upload_file_bytes
 
 
 def _load_cached_ocr_result(file_hash: str):
@@ -107,7 +135,36 @@ def _save_ocr_result(file_hash: str, result: Any) -> str:
     artifact_path.parent.mkdir(parents=True, exist_ok=True)
     payload = result.model_dump(mode="json")
     artifact_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    return str(artifact_path)
+    return _ocr_artifact_ref(file_hash)
+
+
+def _reject_oversized_or_too_many_files(request: Request, files: list[UploadFile]) -> None:
+    settings = get_settings()
+    if len(files) > settings.max_upload_files:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "too_many_files",
+                "detail": f"Upload request includes {len(files)} files (limit: {settings.max_upload_files}).",
+                "limit": settings.max_upload_files,
+            },
+        )
+
+    content_length = request.headers.get("content-length")
+    if content_length:
+        try:
+            request_bytes = int(content_length)
+        except ValueError:
+            request_bytes = 0
+        if request_bytes > settings.max_upload_request_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail={
+                    "error": "request_too_large",
+                    "detail": "Upload request exceeds the configured byte limit.",
+                    "limit_bytes": settings.max_upload_request_bytes,
+                },
+            )
 
 
 async def _classify_one(
@@ -123,7 +180,8 @@ async def _classify_one(
     size_bytes = len(file_bytes)
     file_hash = hashlib.sha256(file_bytes).hexdigest()
 
-    if size_bytes > MAX_FILE_SIZE_BYTES:
+    max_file_size_bytes = _max_file_size_bytes()
+    if size_bytes > max_file_size_bytes:
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
@@ -131,7 +189,7 @@ async def _classify_one(
             sizeBytes=size_bytes,
             detectedType="unknown",
             confidence=0.0,
-            rationale=f"File exceeds {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB size limit.",
+            rationale=f"File exceeds {max_file_size_bytes // (1024 * 1024)} MB size limit.",
             suggestedAlternatives=[],
             extractedMetadata={},
             fileHash=file_hash,
@@ -155,7 +213,7 @@ async def _classify_one(
                 fileHash=file_hash,
             )
 
-    dest = run_dir / original_name
+    dest = safe_child_path(run_dir, _safe_storage_filename(file_id, original_name))
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(file_bytes)
 
@@ -171,7 +229,7 @@ async def _classify_one(
             result = await loop.run_in_executor(None, ocr_document, file_bytes, original_name)
             artifact_ref = _save_ocr_result(file_hash, result)
         else:
-            artifact_ref = str(_ocr_artifact_path(file_hash))
+            artifact_ref = _ocr_artifact_ref(file_hash)
         detected = _MISTRAL_TO_DETECTED_TYPE.get(
             result.classification.document_type, "other",
         )
@@ -210,7 +268,7 @@ async def _classify_one(
                 sizeBytes=size_bytes,
                 detectedType=detected_type,
                 confidence=confidence,
-                rationale=f"OCR attempt failed ({exc}). Falling back to structured parser. {rationale}",
+                rationale=f"OCR classification was unavailable. Falling back to structured parser. {rationale}",
                 suggestedAlternatives=[],
                 extractedMetadata=metadata,
                 fileHash=file_hash,
@@ -223,11 +281,11 @@ async def _classify_one(
             sizeBytes=size_bytes,
             detectedType="unknown",
             confidence=0.0,
-            rationale=f"Classification failed: {exc}",
+            rationale="Classification failed. Try a smaller file or a supported document format.",
             suggestedAlternatives=[],
             extractedMetadata={},
             fileHash=file_hash,
-            error=str(exc),
+            error="classification_failed",
         )
 
 
@@ -311,8 +369,8 @@ def _parse_structured_file(
         elif ext == ".docx":
             text_content = extract_docx_text(file_bytes)
 
-    except Exception as exc:
-        return "other", 0.2, f"Failed to parse {ext} file: {exc}", _empty_extracted_metadata()
+    except Exception:
+        return "other", 0.2, f"Failed to parse {ext} file.", _empty_extracted_metadata()
 
     if not text_content.strip() and row_count == 0:
         return "other", 0.2, f"File appears empty or could not be parsed ({ext}).", _empty_extracted_metadata()
@@ -347,16 +405,28 @@ def _parse_structured_file(
     return detected_type, confidence, rationale, metadata
 
 
-@router.post("/documents/ingest", response_model=IngestResponse)
+@router.post(
+    "/documents/ingest",
+    response_model=IngestResponse,
+    dependencies=[Depends(_protect_upload_route)],
+)
 async def ingest_documents(
+    request: Request,
     files: list[UploadFile] = File(...),
 ) -> IngestResponse:
+    _reject_oversized_or_too_many_files(request, files)
     run_id = str(uuid4())
     run_dir = UPLOAD_ROOT / run_id
 
     loop = asyncio.get_event_loop()
 
-    tasks = [_classify_one(upload, run_dir, loop) for upload in files]
+    semaphore = asyncio.Semaphore(get_settings().max_concurrent_ocr_classifications)
+
+    async def classify_with_limit(upload: UploadFile) -> ClassifiedFile:
+        async with semaphore:
+            return await _classify_one(upload, run_dir, loop)
+
+    tasks = [classify_with_limit(upload) for upload in files]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     classified: list[ClassifiedFile] = []
@@ -371,13 +441,28 @@ async def ingest_documents(
                     sizeBytes=0,
                     detectedType="unknown",
                     confidence=0.0,
-                    rationale=f"Unexpected error: {result}",
+                    rationale="Unexpected error while classifying file.",
                     suggestedAlternatives=[],
                     extractedMetadata={},
-                    error=str(result),
+                    error="classification_failed",
                 )
             )
         else:
             classified.append(result)
+
+    total_bytes = sum(file.size_bytes for file in classified)
+    if total_bytes > get_settings().max_upload_request_bytes:
+        shutil.rmtree(run_dir, ignore_errors=True)
+        raise HTTPException(
+            status_code=413,
+            detail={
+                "error": "request_too_large",
+                "detail": "Upload request exceeds the configured byte limit.",
+                "limit_bytes": get_settings().max_upload_request_bytes,
+            },
+        )
+    record_upload_bytes(request, total_bytes)
+    if get_settings().delete_uploads_after_ingest:
+        shutil.rmtree(run_dir, ignore_errors=True)
 
     return IngestResponse(runId=run_id, files=classified)

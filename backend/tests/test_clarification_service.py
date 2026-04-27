@@ -6,6 +6,8 @@ from app.services.analysis_repository import FileSystemAnalysisArtifactRepositor
 from app.services.clarification_service import build_clarification_evidence, store_clarification_answers
 from app.services.ingestion_service import ingest_and_persist_document_payloads
 
+ANALYSIS_ID = "66666666-6666-4666-8666-666666666666"
+
 
 def test_store_clarification_answers_persists_as_supplemental_artifacts() -> None:
     repo_root = Path("backend/.test-artifacts/clarification-service")
@@ -23,12 +25,12 @@ def test_store_clarification_answers_persists_as_supplemental_artifacts() -> Non
                     "text": "Revenue 1200000",
                 }
             ],
-            analysis_id="analysis-clarifications",
+            analysis_id=ANALYSIS_ID,
             repository=repository,
         )
 
         saved = store_clarification_answers(
-            "analysis-clarifications",
+            ANALYSIS_ID,
             [
                 ClarificationAnswer(
                     question_id="customer-top-revenue",
@@ -48,7 +50,7 @@ def test_store_clarification_answers_persists_as_supplemental_artifacts() -> Non
         assert saved[0].source == "user_asserted"
         assert saved[0].supplemental is True
 
-        artifacts = repository.load_ingestion_artifacts("analysis-clarifications")
+        artifacts = repository.load_ingestion_artifacts(ANALYSIS_ID)
         assert artifacts is not None
         assert artifacts.clarifications[0].question_id == "customer-top-revenue"
         assert artifacts.clarifications[0].confidence == 0.6
@@ -70,11 +72,11 @@ def test_build_clarification_evidence_marks_answers_as_lower_confidence() -> Non
                 legacy_field_path="financialRisk.pendingLiabilities",
             )
         ],
-        analysis_id="analysis-clarifications",
+        analysis_id=ANALYSIS_ID,
     )
 
     assert len(evidence) == 1
-    assert evidence[0].document_id == "clarifications:analysis-clarifications"
+    assert evidence[0].document_id == f"clarifications:{ANALYSIS_ID}"
     assert evidence[0].confidence == 0.6
     assert evidence[0].extracted_fields["supplemental"] is True
     assert evidence[0].extracted_fields["source"] == "user_asserted"

@@ -13,6 +13,12 @@ class _SampleSchema(BaseModel):
     summary: str
 
 
+class _ContainerSchema(BaseModel):
+    summary: str
+    items: list[str]
+    details: dict[str, str]
+
+
 def _config() -> AgentConfig:
     return AgentConfig(
         name="test-agent",
@@ -73,6 +79,52 @@ def test_openrouter_client_sets_provider_response_flags_on_success(monkeypatch) 
     assert result.diagnostics["schema_chars"] > 0
     assert result.diagnostics["request_started_at"] is not None
     assert result.diagnostics["request_finished_at"] is not None
+
+
+def test_openrouter_client_coerces_stringified_json_containers(monkeypatch) -> None:
+    response = SimpleNamespace(
+        usage=SimpleNamespace(prompt_tokens=11, completion_tokens=7, total_tokens=18),
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content="",
+                    tool_calls=[
+                        SimpleNamespace(
+                            function=SimpleNamespace(
+                                name=TOOL_NAME,
+                                arguments=json.dumps(
+                                    {
+                                        "summary": "ok",
+                                        "items": "[]",
+                                        "details": "{\"source\":\"agent\"}",
+                                    }
+                                ),
+                            )
+                        )
+                    ],
+                )
+            )
+        ],
+    )
+    client = SimpleNamespace(
+        chat=SimpleNamespace(
+            completions=SimpleNamespace(create=lambda **_kwargs: response)
+        )
+    )
+    monkeypatch.setattr("app.agents.openrouter_client.get_client", lambda: client)
+
+    result = call_agent(
+        _config(),
+        "SYSTEM BODY",
+        "## Test Context\n{}",
+        _ContainerSchema,
+    )
+
+    assert result.status == "success"
+    assert result.data is not None
+    assert result.data.items == []
+    assert result.data.details == {"source": "agent"}
+    assert result.diagnostics["validation_passed"] is True
 
 
 def test_openrouter_client_timeout_path_preserves_prompt_diagnostics(monkeypatch) -> None:

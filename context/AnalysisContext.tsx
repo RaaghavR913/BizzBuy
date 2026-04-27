@@ -1,7 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
-import { getAnalysisJob, getAnalysisJobEventsUrl } from '@/lib/api-client';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useState } from 'react';
+import { ensureAnalysisFlow, getAnalysisJob, getAnalysisJobEventsUrl } from '@/lib/api-client';
 import type {
   AnalysisJobSnapshot,
   AnalysisState,
@@ -29,6 +29,7 @@ type Action =
   | { type: 'SET_REPORT'; payload: AnyReportOutput }
   | { type: 'SET_LOADING'; payload: { isLoading: boolean; message?: string } }
   | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'RESTORE_STATE'; payload: AnalysisState }
   | { type: 'RESET' };
 
 const initialState: AnalysisState = {
@@ -47,11 +48,7 @@ const initialState: AnalysisState = {
   error: null,
 };
 
-function getInitialState(): AnalysisState {
-  if (typeof window === 'undefined') {
-    return initialState;
-  }
-
+function getStoredState(): AnalysisState {
   const rawState = window.sessionStorage.getItem(STORAGE_KEY);
   if (!rawState) {
     return initialState;
@@ -61,10 +58,22 @@ function getInitialState(): AnalysisState {
     return {
       ...initialState,
       ...JSON.parse(rawState),
+      error: null,
+      isLoading: false,
+      loadingMessage: '',
     } as AnalysisState;
   } catch {
     return initialState;
   }
+}
+
+function persistedState(state: AnalysisState): AnalysisState {
+  return {
+    ...state,
+    error: null,
+    isLoading: false,
+    loadingMessage: '',
+  };
 }
 
 function reducer(state: AnalysisState, action: Action): AnalysisState {
@@ -97,6 +106,8 @@ function reducer(state: AnalysisState, action: Action): AnalysisState {
       };
     case 'SET_ERROR':
       return { ...state, error: action.payload, isLoading: false };
+    case 'RESTORE_STATE':
+      return action.payload;
     case 'RESET':
       return initialState;
     default:
@@ -124,8 +135,10 @@ interface AnalysisContextValue {
 const AnalysisContext = createContext<AnalysisContextValue | null>(null);
 
 export function AnalysisProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, initialState, getInitialState);
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const [hasLoadedStoredState, setHasLoadedStoredState] = useState(false);
   const analysisJobStatus = state.analysisJob?.status;
+  const hasAnalysisJob = Boolean(state.analysisJob);
 
   const setStep = useCallback((step: 1 | 2 | 3 | 4) => {
     dispatch({ type: 'SET_STEP', payload: step });
@@ -187,8 +200,17 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    dispatch({ type: 'RESTORE_STATE', payload: getStoredState() });
+    setHasLoadedStoredState(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !hasLoadedStoredState) {
+      return;
+    }
+
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState(state)));
+  }, [hasLoadedStoredState, state]);
 
   useEffect(() => {
     // Subscribe to job updates via Server-Sent Events. Falls back to HTTP polling if the
@@ -197,8 +219,13 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
     const isTerminal =
       analysisJobStatus === 'completed' || analysisJobStatus === 'failed';
 
+    // The parse step returns an analysisId for ingestion artifacts before the
+    // report job record exists. Do not poll /analyses/:id until a job has been
+    // started, except on the report page where ?aid=... is used to resume.
     const shouldSubscribe =
-      Boolean(state.analysisId) && (!analysisJobStatus || !isTerminal);
+      Boolean(state.analysisId) &&
+      (hasAnalysisJob || state.step === 4) &&
+      (!analysisJobStatus || !isTerminal);
 
     if (!shouldSubscribe || !state.analysisId) {
       return;
@@ -206,7 +233,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     const analysisId = state.analysisId;
     let cancelled = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let timeoutId: number | null = null;
     let completedNullRetried = false;
     let eventSource: EventSource | null = null;
     let streamFinished = false;
@@ -322,10 +349,10 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    if (typeof window.EventSource === 'undefined') {
-      pollFallback();
-    } else {
+    const openEventStream = async () => {
       try {
+        await ensureAnalysisFlow();
+        if (cancelled) return;
         eventSource = new EventSource(getAnalysisJobEventsUrl(analysisId));
         eventSource.onmessage = (ev) => {
           if (cancelled) return;
@@ -346,6 +373,12 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       } catch {
         pollFallback();
       }
+    };
+
+    if (typeof window.EventSource === 'undefined') {
+      pollFallback();
+    } else {
+      void openEventStream();
     }
 
     return () => {
@@ -356,7 +389,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
       }
       closeEventSource();
     };
-  }, [analysisJobStatus, state.analysisId]);
+  }, [analysisJobStatus, hasAnalysisJob, state.analysisId, state.step]);
 
   return (
     <AnalysisContext.Provider

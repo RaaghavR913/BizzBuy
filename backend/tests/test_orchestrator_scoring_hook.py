@@ -19,6 +19,8 @@ from app.agents.schemas import (
 )
 from app.services.analysis_repository import FileSystemAnalysisArtifactRepository
 
+ANALYSIS_DEBUG_ID = "44444444-4444-4444-8444-444444444444"
+
 
 def _ingestion_output() -> IngestionOutput:
     return IngestionOutput(
@@ -420,13 +422,13 @@ async def test_prompt_debug_artifact_writes_full_prompt_bodies_when_enabled(
 
     await run_pipeline(
         {
-            "analysis_id": "analysis-debug-1",
+            "analysis_id": ANALYSIS_DEBUG_ID,
             "documents": [{"id": "doc-1"}],
             "asking_price": 900000,
         }
     )
 
-    artifact = repository.load_prompt_debug_artifact("analysis-debug-1")
+    artifact = repository.load_prompt_debug_artifact(ANALYSIS_DEBUG_ID)
 
     assert artifact is not None
     assert set(artifact["stages"]) == {"financial_analysis", "synthesis_report"}

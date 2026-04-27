@@ -268,7 +268,7 @@ function buildUpsideOpportunities(report: ReportOutputV2): ReportOutput['upsideO
   const positiveDimensions = report.scorecard.buyerFacingDimensions.filter((dimension) => (dimension.score ?? 0) >= 7);
   const positiveScorecards = report.scorecard.technicalScorecards.filter((scorecard) => (scorecard.score ?? 0) >= 8);
 
-  const opportunities = positiveDimensions.map((dimension) => ({
+  const opportunities: ReportOutput['upsideOpportunities'] = positiveDimensions.map((dimension) => ({
     opportunity: `Lean into ${dimension.label}`,
     estimatedImpact: `Current pipeline score: ${(dimension.score ?? 0).toFixed(1)}/10`,
     difficulty: 'moderate' as const,
