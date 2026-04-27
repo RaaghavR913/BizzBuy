@@ -16,6 +16,7 @@ except ModuleNotFoundError:  # pragma: no cover - exercised in test environments
 from pydantic import BaseModel, ValidationError
 
 from app.agents.context_builders import describe_user_message
+from app.agents.output_coercion import coerce_json_container_strings
 from app.agents.registry import AgentConfig
 from app.agents.schemas import AgentErrorPayload, AgentResult, TokenUsage
 
@@ -316,6 +317,9 @@ def call_agent(
                     )
 
                 last_output = json.dumps(tool_input, indent=2)
+
+            tool_input = coerce_json_container_strings(tool_input)
+            last_output = json.dumps(tool_input, indent=2)
 
             # Validate with Pydantic
             try:
