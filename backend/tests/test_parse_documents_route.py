@@ -67,6 +67,18 @@ def test_parse_documents_route_accepts_frontend_filetypes_alias_multipart(monkey
         shutil.rmtree(artifact_dir, ignore_errors=True)
 
 
+def test_parse_documents_route_rejects_malformed_json_form_fields() -> None:
+    client = TestClient(app)
+    response = client.post(
+        "/api/parse-documents",
+        files={"files": ("seller-pnl.txt", b"Revenue 1200000\nNet Income 300000", "text/plain")},
+        data={"fileTypes": "{not-json"},
+    )
+
+    assert response.status_code == 400
+    assert "fileTypes" in response.json()["detail"]
+
+
 def test_peakair_workbook_sheet_kind_inference() -> None:
     sample_root = Path(__file__).resolve().parents[2] / "sample company1"
     workbook = sample_root / "PeakAir_Financials.xlsx"

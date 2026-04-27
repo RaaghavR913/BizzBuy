@@ -1,17 +1,21 @@
-# Dev stack. If `docker compose up --build` fails with "No such container" or "No such image"
-# right after a successful pull/build, see scripts/docker-compose-up.sh (recommended) and
-# Docker Desktop → Settings → General → disable "Use containerd for pulling and storing images",
-# then Apply & Restart (see https://github.com/docker/desktop-linux/issues/309).
+# Localhost dev stack. This intentionally uses the old local workflow:
+# backend reloads on file changes, frontend runs `next dev`, and the browser
+# talks to http://localhost:8000/api.
 services:
   backend:
-    image: docker.io/library/bizzbuy-backend:latest
+    image: docker.io/library/bizzbuy-backend:local
     pull_policy: never
     build:
       context: ./backend
     container_name: bizbuy-backend
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     ports:
       - "8000:8000"
     env_file: .env.local
+    environment:
+      BIZBUY_ENV: development
+      BIZBUY_REQUIRE_EXPENSIVE_ROUTE_AUTH: "false"
+      FRONTEND_ORIGIN: http://localhost:3000,http://127.0.0.1:3000
     volumes:
       - ./backend:/app
       - backend-packages:/app/bizbuy_backend.egg-info
@@ -24,16 +28,19 @@ services:
       start_period: 15s
 
   frontend:
-    image: docker.io/library/bizzbuy-frontend:latest
+    image: docker.io/library/bizzbuy-frontend:local
     pull_policy: never
     build:
       context: .
+      target: deps
     container_name: bizbuy-frontend
+    command: ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
     ports:
       - "3000:3000"
     env_file: .env.local
     environment:
       NEXT_PUBLIC_BACKEND_URL: http://localhost:8000/api
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
     volumes:
       - ./app:/app/app
       - ./components:/app/components

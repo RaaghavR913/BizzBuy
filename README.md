@@ -255,6 +255,10 @@ npm start
 | `MISTRAL_API_KEY` | Yes | Your Mistral API key (OCR document extraction) |
 | `NEXT_PUBLIC_BACKEND_URL` | No | FastAPI backend URL seen from the browser (default: `http://localhost:8000/api`) |
 | `OPENROUTER_REFERRER` | No | HTTP-Referer header sent to OpenRouter (default: `https://bizbuy.local`) |
+| `FRONTEND_ORIGIN` | Production | Exact public frontend origin(s), comma-separated |
+| `BIZBUY_API_BEARER_TOKEN` | Production | Server-side bearer token for protected expensive backend routes |
+| `BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED` | No | Defaults to `false` in production |
+| `BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES` | No | Defaults to `false` in production |
 
 Create `.env.local` at the project root (never commit this file — it is in `.gitignore`):
 
@@ -264,6 +268,44 @@ MISTRAL_API_KEY=...
 ```
 
 A template is provided at `.env.local.example`.
+
+### Production Deployment Notes
+
+For a Vercel frontend and Railway backend:
+
+- Vercel: set `NEXT_PUBLIC_BACKEND_URL=https://<railway-backend-domain>/api` and `NEXT_PUBLIC_APP_URL=https://<frontend-domain>`.
+- Railway: set `BIZBUY_ENV=production`, `FRONTEND_ORIGIN=https://<frontend-domain>`, `OPENROUTER_API_KEY`, `MISTRAL_API_KEY`, and `BIZBUY_API_BEARER_TOKEN`.
+- In production, `/docs`, `/redoc`, and `/openapi.json` are disabled by default. Set `BIZBUY_API_DOCS_ENABLED=true` only if public API docs are intentional.
+- Prompt-debug artifacts and prompt bodies default to off in production. Keep them off unless you are using a controlled support/debug workflow.
+- Expensive backend routes are protected by bearer-token auth plus in-memory rate and concurrency limits. For a public customer launch, put this behind a real user auth layer or trusted gateway rather than exposing the bearer token in browser code.
+
+### Docker Startup Scripts
+
+Localhost dev mode, using the old Docker workflow (`next dev`, backend `--reload`, localhost CORS):
+
+```powershell
+.\scripts\start-docker.ps1 local
+```
+
+```bash
+./scripts/start-docker.sh local
+```
+
+Production-style Docker mode, using production images and no source bind mounts:
+
+```powershell
+copy .env.example .env.production
+# fill in real production values, especially FRONTEND_ORIGIN, NEXT_PUBLIC_* URLs, API keys, and BIZBUY_API_BEARER_TOKEN
+.\scripts\start-docker.ps1 production
+```
+
+```bash
+cp .env.example .env.production
+# fill in real production values
+./scripts/start-docker.sh production
+```
+
+Both scripts pass extra arguments through to Docker Compose after the mode, so `.\scripts\start-docker.ps1 local down` or `./scripts/start-docker.sh production up --build -d` work as expected.
 
 ---
 

@@ -206,7 +206,7 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
     const analysisId = state.analysisId;
     let cancelled = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let timeoutId: number | null = null;
     let completedNullRetried = false;
     let eventSource: EventSource | null = null;
     let streamFinished = false;

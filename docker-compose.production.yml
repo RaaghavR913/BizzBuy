@@ -1,0 +1,58 @@
+# Production-style stack. This uses the hardened Dockerfiles, no source bind
+# mounts, no reloaders, and `next start`.
+#
+# Start it with:
+#   docker compose --env-file .env.production -f docker-compose.production.yml up --build
+services:
+  backend:
+    image: docker.io/library/bizzbuy-backend:production
+    pull_policy: never
+    build:
+      context: ./backend
+    container_name: bizbuy-backend-production
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      BIZBUY_ENV: production
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?Set FRONTEND_ORIGIN in .env.production}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:?Set OPENROUTER_API_KEY in .env.production}
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:?Set MISTRAL_API_KEY in .env.production}
+      OPENROUTER_REFERRER: ${OPENROUTER_REFERRER:-https://bizbuy.local}
+      BIZBUY_API_BEARER_TOKEN: ${BIZBUY_API_BEARER_TOKEN:?Set BIZBUY_API_BEARER_TOKEN in .env.production}
+      BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED: "false"
+      BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES: "false"
+      BIZBUY_DELETE_UPLOADS_AFTER_INGEST: "true"
+      BIZBUY_API_DOCS_ENABLED: "${BIZBUY_API_DOCS_ENABLED:-false}"
+      BIZBUY_ARTIFACT_DIR: /app/.artifacts
+      BIZBUY_UPLOAD_DIR: /app/uploads
+    volumes:
+      - production-artifacts:/app/.artifacts
+      - production-uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    image: docker.io/library/bizzbuy-frontend:production
+    pull_policy: never
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:?Set NEXT_PUBLIC_BACKEND_URL in .env.production}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?Set NEXT_PUBLIC_APP_URL in .env.production}
+    container_name: bizbuy-frontend-production
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:?Set NEXT_PUBLIC_BACKEND_URL in .env.production}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?Set NEXT_PUBLIC_APP_URL in .env.production}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  production-artifacts:
+  production-uploads:

@@ -9,6 +9,8 @@ from app.agents.schemas import DocumentStatus, DocumentType, SectionContentType
 from app.services.ingestion_service import ingest_and_persist_document_payloads, ingest_document_payloads
 from app.services.intake_service import normalize_document_payload
 
+ANALYSIS_ID = "77777777-7777-4777-8777-777777777777"
+
 
 def test_normalize_document_payload_maps_legacy_metadata_to_canonical_contract() -> None:
     payload = normalize_document_payload(
@@ -130,19 +132,19 @@ def test_ingest_and_persist_document_payloads_stores_reloadable_artifacts() -> N
                     ],
                 }
             ],
-            analysis_id="analysis-123",
+            analysis_id=ANALYSIS_ID,
             repository=repository,
         )
 
-        assert output.metadata.analysis_id == "analysis-123"
+        assert output.metadata.analysis_id == ANALYSIS_ID
         assert len(output.metadata.artifact_refs) == 1
         assert output.metadata.artifact_refs[0].storage_kind == ArtifactStorageKind.FILESYSTEM
 
-        stored = repository.load_ingestion_artifacts("analysis-123")
+        stored = repository.load_ingestion_artifacts(ANALYSIS_ID)
 
         assert stored is not None
-        assert stored.analysis_id == "analysis-123"
-        assert stored.ingestion_output.metadata.analysis_id == "analysis-123"
+        assert stored.analysis_id == ANALYSIS_ID
+        assert stored.ingestion_output.metadata.analysis_id == ANALYSIS_ID
         assert stored.document_inventory[0].document_id == "doc-1"
         assert stored.document_inventory[0].confidence == 0.9
         assert stored.evidence_index[0].section_id == "pnl-2024"

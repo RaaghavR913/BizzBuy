@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.path_safety import validate_analysis_id
 from app.agents.schemas import (
     AgentExecutionStatus,
     AgentName,
@@ -517,6 +518,11 @@ class AnalysisJobRequest(CamelModel):
     analysis_id: str | None = None
     clarifications: list[ClarificationAnswer] = Field(default_factory=list)
     report_depth: Literal["summary", "deep"] | None = "summary"
+
+    @field_validator("analysis_id")
+    @classmethod
+    def _validate_analysis_id(cls, value: str | None) -> str | None:
+        return validate_analysis_id(value)
 
 
 class AnalysisJobResponse(CamelModel):

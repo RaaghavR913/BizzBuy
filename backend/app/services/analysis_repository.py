@@ -9,6 +9,7 @@ from typing import Protocol
 
 from app.agents.schemas import ArtifactReference, ArtifactStorageKind, StoredIngestionArtifacts
 from app.agents.evidence_utils import build_evidence_fields
+from app.core.path_safety import safe_child_path, validate_analysis_id
 from app.models.schemas import AnalysisJobRecord
 
 
@@ -53,12 +54,18 @@ class AnalysisArtifactRepository(Protocol):
 class FileSystemAnalysisArtifactRepository:
     def __init__(self, root_dir: str | Path | None = None) -> None:
         configured_root = root_dir or os.getenv("BIZBUY_ARTIFACT_DIR") or Path("backend/.artifacts")
-        self.root_dir = Path(configured_root)
+        self.root_dir = Path(configured_root).resolve()
  
     _fs_lock = RLock()
 
+    def _artifact_path(self, analysis_id: str, filename: str) -> Path:
+        safe_analysis_id = validate_analysis_id(analysis_id)
+        if safe_analysis_id is None:
+            raise ValueError("analysis_id is required.")
+        return safe_child_path(self.root_dir, safe_analysis_id, filename)
+
     def get_ingestion_artifact_ref(self, analysis_id: str) -> ArtifactReference:
-        path = self.root_dir / analysis_id / "ingestion_artifacts.json"
+        path = self._artifact_path(analysis_id, "ingestion_artifacts.json")
         return ArtifactReference(
             artifact_key="ingestion_artifacts",
             storage_kind=ArtifactStorageKind.FILESYSTEM,
@@ -67,7 +74,7 @@ class FileSystemAnalysisArtifactRepository:
         )
 
     def get_analysis_job_ref(self, analysis_id: str) -> ArtifactReference:
-        path = self.root_dir / analysis_id / "analysis_job.json"
+        path = self._artifact_path(analysis_id, "analysis_job.json")
         return ArtifactReference(
             artifact_key="analysis_job",
             storage_kind=ArtifactStorageKind.FILESYSTEM,
@@ -76,7 +83,7 @@ class FileSystemAnalysisArtifactRepository:
         )
 
     def get_analysis_report_ref(self, analysis_id: str) -> ArtifactReference:
-        path = self.root_dir / analysis_id / "analysis_report.json"
+        path = self._artifact_path(analysis_id, "analysis_report.json")
         return ArtifactReference(
             artifact_key="analysis_report",
             storage_kind=ArtifactStorageKind.FILESYSTEM,
@@ -85,7 +92,7 @@ class FileSystemAnalysisArtifactRepository:
         )
 
     def get_prompt_debug_artifact_ref(self, analysis_id: str) -> ArtifactReference:
-        path = self.root_dir / analysis_id / "prompt_debug.json"
+        path = self._artifact_path(analysis_id, "prompt_debug.json")
         return ArtifactReference(
             artifact_key="prompt_debug",
             storage_kind=ArtifactStorageKind.FILESYSTEM,

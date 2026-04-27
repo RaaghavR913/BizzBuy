@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, FileSearch, HelpCircle, Loader2, ShieldAlert } from 'lucide-react';
+import { FileSearch, HelpCircle, ShieldAlert } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import { useAnalysis } from '@/context/AnalysisContext';
 import { analyzeData, startAnalysisJob } from '@/lib/api-client';

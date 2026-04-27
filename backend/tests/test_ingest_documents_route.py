@@ -198,3 +198,82 @@ def test_docx_upload_attempts_ocr_then_falls_back(monkeypatch) -> None:
     assert classified.confidence == 0.7
     assert "Falling back to structured parser" in classified.rationale
     assert classified.error is None
+
+
+def test_upload_filename_traversal_is_not_used_for_storage(monkeypatch, tmp_path) -> None:
+    def _raise_ocr_error(_file_bytes: bytes, filename: str) -> IngestionResult:
+        assert filename == "../../escape.txt"
+        raise MistralOCRError("unsupported mime")
+
+    monkeypatch.setattr(ingest_route, "ocr_document", _raise_ocr_error)
+
+    run_dir = tmp_path / "uploads" / "run"
+    upload = UploadFile(
+        filename="../../escape.txt",
+        file=BytesIO(b"Revenue,Net Income,EBITDA\n100,50,30\n"),
+        headers={"content-type": "text/csv"},
+    )
+
+    async def _run() -> ingest_route.ClassifiedFile:
+        return await ingest_route._classify_one(upload, run_dir, asyncio.get_running_loop())
+
+    classified = asyncio.run(_run())
+
+    assert classified.original_name == "../../escape.txt"
+    assert classified.detected_type == "profit_and_loss"
+    assert not (tmp_path / "escape.txt").exists()
+    stored_files = list(run_dir.iterdir())
+    assert len(stored_files) == 1
+    assert stored_files[0].name.endswith(".txt")
+
+
+def test_upload_backslash_traversal_is_not_used_for_storage(monkeypatch, tmp_path) -> None:
+    def _raise_ocr_error(_file_bytes: bytes, filename: str) -> IngestionResult:
+        assert filename == r"..\..\escape.csv"
+        raise MistralOCRError("unsupported mime")
+
+    monkeypatch.setattr(ingest_route, "ocr_document", _raise_ocr_error)
+
+    run_dir = tmp_path / "uploads" / "run"
+    upload = UploadFile(
+        filename=r"..\..\escape.csv",
+        file=BytesIO(b"Revenue,Net Income,EBITDA\n100,50,30\n"),
+        headers={"content-type": "text/csv"},
+    )
+
+    async def _run() -> ingest_route.ClassifiedFile:
+        return await ingest_route._classify_one(upload, run_dir, asyncio.get_running_loop())
+
+    classified = asyncio.run(_run())
+
+    assert classified.detected_type == "profit_and_loss"
+    assert not (tmp_path / "escape.csv").exists()
+    stored_files = list(run_dir.iterdir())
+    assert len(stored_files) == 1
+    assert stored_files[0].name.endswith(".csv")
+
+
+def test_absolute_upload_filename_is_not_used_for_storage(monkeypatch, tmp_path) -> None:
+    def _raise_ocr_error(_file_bytes: bytes, filename: str) -> IngestionResult:
+        assert filename == "/tmp/escape.csv"
+        raise MistralOCRError("unsupported mime")
+
+    monkeypatch.setattr(ingest_route, "ocr_document", _raise_ocr_error)
+
+    run_dir = tmp_path / "uploads" / "run"
+    upload = UploadFile(
+        filename="/tmp/escape.csv",
+        file=BytesIO(b"Revenue,Net Income,EBITDA\n100,50,30\n"),
+        headers={"content-type": "text/csv"},
+    )
+
+    async def _run() -> ingest_route.ClassifiedFile:
+        return await ingest_route._classify_one(upload, run_dir, asyncio.get_running_loop())
+
+    classified = asyncio.run(_run())
+
+    assert classified.detected_type == "profit_and_loss"
+    assert not Path("/tmp/escape.csv").exists()
+    stored_files = list(run_dir.iterdir())
+    assert len(stored_files) == 1
+    assert stored_files[0].name.endswith(".csv")

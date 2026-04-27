@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from app.agents.orchestrator import run_pipeline
 from app.core.config import get_settings
+from app.core.path_safety import validate_analysis_id
 from app.models.schemas import AnalysisJobProgress, AnalysisJobRecord, AnalysisJobRequest, AnalysisJobResponse
 from app.services.analysis_repository import AnalysisArtifactRepository, get_analysis_artifact_repository
 from app.services.analysis_service import run_analysis
@@ -16,6 +17,10 @@ from app.services.analysis_service import run_analysis
 _EXECUTOR = ThreadPoolExecutor(max_workers=2, thread_name_prefix="analysis-job")
 _FUTURES: Dict[str, Future[None]] = {}
 _FUTURES_LOCK = Lock()
+
+
+class AnalysisJobLimitError(RuntimeError):
+    pass
 
 
 def _now_iso() -> str:
@@ -121,7 +126,7 @@ def _update_progress(
 
 
 def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactRepository) -> None:
-    analysis_id = payload.analysis_id or str(uuid4())
+    analysis_id = validate_analysis_id(payload.analysis_id) or str(uuid4())
     started_at = _now_iso()
     _persist_job(
         repository,
@@ -227,11 +232,16 @@ def start_analysis_job(
         raise RuntimeError("Analysis jobs are disabled by rollout configuration.")
 
     artifact_repository = repository or get_analysis_artifact_repository()
-    analysis_id = payload.analysis_id or str(uuid4())
+    analysis_id = validate_analysis_id(payload.analysis_id) or str(uuid4())
     existing = artifact_repository.load_analysis_job(analysis_id)
 
     if existing and existing.status in {"queued", "running"}:
         return _build_response(existing)
+
+    with _FUTURES_LOCK:
+        active_jobs = sum(1 for future in _FUTURES.values() if not future.done())
+        if settings.max_active_analysis_jobs > 0 and active_jobs >= settings.max_active_analysis_jobs:
+            raise AnalysisJobLimitError("Maximum active analysis jobs reached.")
 
     queued_job = AnalysisJobRecord(
         analysis_id=analysis_id,
@@ -261,6 +271,7 @@ def get_analysis_job(
     repository: AnalysisArtifactRepository | None = None,
 ) -> AnalysisJobResponse | None:
     artifact_repository = repository or get_analysis_artifact_repository()
+    analysis_id = validate_analysis_id(analysis_id) or analysis_id
     job = artifact_repository.load_analysis_job(analysis_id)
     if job is None:
         return None
@@ -276,6 +287,7 @@ def broadcast_job_snapshot(
 ) -> None:
     """Push the current job + report to any SSE subscribers (e.g. after disk writes)."""
     artifact_repository = repository or get_analysis_artifact_repository()
+    analysis_id = validate_analysis_id(analysis_id) or analysis_id
     snap = get_analysis_job(analysis_id, artifact_repository)
     if snap is None:
         return

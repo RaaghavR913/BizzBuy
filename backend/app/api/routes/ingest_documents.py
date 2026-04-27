@@ -7,14 +7,20 @@ import io
 import json
 import mimetypes
 import os
+import re
+import shutil
 from pathlib import Path
+from pathlib import PurePosixPath, PureWindowsPath
 from typing import Any
 from uuid import uuid4
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
 from app.agents.mistral_ocr_client import MistralOCRError, ocr_document
+from app.core.config import get_settings
+from app.core.path_safety import safe_child_path, validate_sha256_hex
+from app.core.security import protect_expensive_route, record_upload_bytes
 from app.services.intake_service import decode_text_content, extract_docx_text, extract_xlsx_workbook
 from app.services.section_kind import infer_sheet_kinds
 
@@ -26,6 +32,8 @@ MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 MAX_PAGES = 1000
 
 _STRUCTURED_EXTENSIONS = {".csv", ".tsv", ".xlsx", ".xls", ".docx"}
+_SAFE_EXTENSION_RE = re.compile(r"^\.[a-z0-9]{1,16}$")
+_protect_upload_route = protect_expensive_route("upload")
 
 _MISTRAL_TO_DETECTED_TYPE: dict[str, str] = {
     "pnl_income_statement": "profit_and_loss",
@@ -86,7 +94,17 @@ def _count_pdf_pages(file_bytes: bytes) -> int | None:
 
 
 def _ocr_artifact_path(file_hash: str) -> Path:
-    return OCR_ARTIFACT_ROOT / f"{file_hash}.json"
+    safe_hash = validate_sha256_hex(file_hash)
+    return safe_child_path(OCR_ARTIFACT_ROOT, f"{safe_hash}.json")
+
+
+def _safe_storage_filename(file_id: str, original_name: str) -> str:
+    suffixes = (
+        PurePosixPath(original_name).suffix.lower(),
+        PureWindowsPath(original_name).suffix.lower(),
+    )
+    suffix = next((candidate for candidate in suffixes if _SAFE_EXTENSION_RE.fullmatch(candidate)), "")
+    return f"{file_id}{suffix}"
 
 
 def _load_cached_ocr_result(file_hash: str):
@@ -155,7 +173,7 @@ async def _classify_one(
                 fileHash=file_hash,
             )
 
-    dest = run_dir / original_name
+    dest = safe_child_path(run_dir, _safe_storage_filename(file_id, original_name))
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(file_bytes)
 
@@ -347,8 +365,13 @@ def _parse_structured_file(
     return detected_type, confidence, rationale, metadata
 
 
-@router.post("/documents/ingest", response_model=IngestResponse)
+@router.post(
+    "/documents/ingest",
+    response_model=IngestResponse,
+    dependencies=[Depends(_protect_upload_route)],
+)
 async def ingest_documents(
+    request: Request,
     files: list[UploadFile] = File(...),
 ) -> IngestResponse:
     run_id = str(uuid4())
@@ -379,5 +402,9 @@ async def ingest_documents(
             )
         else:
             classified.append(result)
+
+    record_upload_bytes(request, sum(file.size_bytes for file in classified))
+    if get_settings().delete_uploads_after_ingest:
+        shutil.rmtree(run_dir, ignore_errors=True)
 
     return IngestResponse(runId=run_id, files=classified)
