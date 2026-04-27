@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import hashlib
 import json
 from pathlib import Path
 
@@ -13,9 +14,12 @@ from app.services.document_parser import parse_documents
 
 router = APIRouter()
 
-MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 MAX_PAGES = 1000
 _protect_parse_route = protect_expensive_route("parse")
+
+
+def _max_file_size_bytes() -> int:
+    return get_settings().max_upload_file_bytes
 
 
 def _reject_oversized_or_too_many_files(request: Request | None, files: list[UploadFile]) -> None:
@@ -49,13 +53,14 @@ def _reject_oversized_or_too_many_files(request: Request | None, files: list[Upl
 async def _validate_upload(upload: UploadFile) -> bytes:
     """Read upload bytes, reject if too large or too many pages."""
     file_bytes = await upload.read()
-    if len(file_bytes) > MAX_FILE_SIZE_BYTES:
+    max_file_size_bytes = _max_file_size_bytes()
+    if len(file_bytes) > max_file_size_bytes:
         raise HTTPException(
             status_code=400,
             detail={
                 "error": "file_too_large",
-                "detail": f"{upload.filename} exceeds {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB limit.",
-                "limit_mb": MAX_FILE_SIZE_BYTES // (1024 * 1024),
+                "detail": f"{upload.filename} exceeds {max_file_size_bytes // (1024 * 1024)} MB limit.",
+                "limit_mb": max_file_size_bytes // (1024 * 1024),
             },
         )
     suffix = Path(upload.filename or "").suffix.lower()
@@ -92,6 +97,28 @@ def _json_list(raw: str | None, field_name: str) -> list:
     return parsed
 
 
+def _ocr_ref_hash(value: object) -> str | None:
+    if not isinstance(value, str):
+        return None
+    candidate = value.strip()
+    if candidate.startswith("ocr:"):
+        candidate = candidate.removeprefix("ocr:")
+    if len(candidate) != 64:
+        return None
+    if all(char in "0123456789abcdefABCDEF" for char in candidate):
+        return candidate.lower()
+    return None
+
+
+def _trusted_ocr_ref_for_hash(refs: list, index: int, file_hash: str) -> str | None:
+    if index >= len(refs):
+        return None
+    ref_hash = _ocr_ref_hash(refs[index])
+    if ref_hash == file_hash:
+        return f"ocr:{file_hash}"
+    return None
+
+
 @router.post(
     "/parse-documents",
     response_model=ParseDocumentsResponse,
@@ -109,8 +136,11 @@ async def parse_documents_route(
 ) -> ParseDocumentsResponse:
     _reject_oversized_or_too_many_files(request, files)
     total_bytes = 0
+    computed_file_hashes: list[str] = []
     for upload in files:
-        total_bytes += len(await _validate_upload(upload))
+        file_bytes = await _validate_upload(upload)
+        total_bytes += len(file_bytes)
+        computed_file_hashes.append(hashlib.sha256(file_bytes).hexdigest())
         if total_bytes > get_settings().max_upload_request_bytes:
             raise HTTPException(
                 status_code=413,
@@ -137,11 +167,16 @@ async def parse_documents_route(
         raw_ocr_refs = None
     parsed_ocr_refs = _json_list(raw_ocr_refs, "ocrArtifactRefs")
 
+    trusted_ocr_refs = [
+        _trusted_ocr_ref_for_hash(parsed_ocr_refs, index, file_hash)
+        for index, file_hash in enumerate(computed_file_hashes)
+    ]
+
     extracted, ingestion_output = await parse_documents(
         files,
         parsed_file_types,
-        file_hashes=parsed_file_hashes,
-        ocr_artifact_refs=parsed_ocr_refs,
+        file_hashes=computed_file_hashes,
+        ocr_artifact_refs=trusted_ocr_refs,
     )
     return ParseDocumentsResponse(
         success=True,

@@ -10,8 +10,8 @@ services:
     build:
       context: ./backend
     container_name: bizbuy-backend-production
-    ports:
-      - "${BACKEND_PORT:-8000}:8000"
+    expose:
+      - "8000"
     environment:
       BIZBUY_ENV: production
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?Set FRONTEND_ORIGIN in .env.production}
@@ -48,6 +48,7 @@ services:
     environment:
       BIZBUY_BACKEND_URL: http://backend:8000/api
       BIZBUY_API_BEARER_TOKEN: ${BIZBUY_API_BEARER_TOKEN:?Set BIZBUY_API_BEARER_TOKEN in .env.production}
+      BIZBUY_FLOW_TOKEN_SECRET: ${BIZBUY_FLOW_TOKEN_SECRET:?Set BIZBUY_FLOW_TOKEN_SECRET in .env.production}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?Set NEXT_PUBLIC_APP_URL in .env.production}
     depends_on:
       backend:

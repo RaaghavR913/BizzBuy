@@ -11,7 +11,12 @@ from app.core.config import get_settings
 from app.core.path_safety import UnsafePathError, validate_analysis_id
 from app.core.security import RequestIdentity, acquire_sse_slot, protect_expensive_route, release_sse_slot
 from app.models.schemas import AnalysisJobRequest, AnalysisJobResponse
-from app.services.analysis_jobs import AnalysisJobLimitError, get_analysis_job, start_analysis_job
+from app.services.analysis_jobs import (
+    AnalysisJobAccessError,
+    AnalysisJobLimitError,
+    get_analysis_job,
+    start_analysis_job,
+)
 from app.services.sse_registry import subscribe, unsubscribe
 
 router = APIRouter()
@@ -25,9 +30,11 @@ _protect_sse_route = protect_expensive_route("sse")
     "/analyses",
     response_model=AnalysisJobResponse,
     status_code=status.HTTP_202_ACCEPTED,
-    dependencies=[Depends(_protect_analysis_route)],
 )
-def create_analysis_job(payload: AnalysisJobRequest) -> AnalysisJobResponse:
+def create_analysis_job(
+    payload: AnalysisJobRequest,
+    access: RequestIdentity = Depends(_protect_analysis_route),
+) -> AnalysisJobResponse:
     settings = get_settings()
     if not settings.analysis_jobs_enabled:
         raise HTTPException(
@@ -40,9 +47,11 @@ def create_analysis_job(payload: AnalysisJobRequest) -> AnalysisJobResponse:
             detail="Analysis jobs require either pipeline documents or structured financial inputs.",
         )
     try:
-        return start_analysis_job(payload)
+        return start_analysis_job(payload, owner_flow_id=access.flow_id)
     except UnsafePathError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except AnalysisJobAccessError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except AnalysisJobLimitError as exc:
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=str(exc)) from exc
 
@@ -50,14 +59,19 @@ def create_analysis_job(payload: AnalysisJobRequest) -> AnalysisJobResponse:
 @router.get(
     "/analyses/{analysis_id}",
     response_model=AnalysisJobResponse,
-    dependencies=[Depends(_protect_analysis_route)],
 )
-def get_analysis_job_status(analysis_id: str) -> AnalysisJobResponse:
+def get_analysis_job_status(
+    analysis_id: str,
+    access: RequestIdentity = Depends(_protect_analysis_route),
+) -> AnalysisJobResponse:
     try:
         safe_analysis_id = validate_analysis_id(analysis_id)
     except UnsafePathError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    job = get_analysis_job(safe_analysis_id or analysis_id)
+    try:
+        job = get_analysis_job(safe_analysis_id or analysis_id, owner_flow_id=access.flow_id)
+    except AnalysisJobAccessError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     if job is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis job not found.")
     return job
@@ -82,7 +96,11 @@ async def stream_analysis_events(
     except UnsafePathError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-    if get_analysis_job(safe_analysis_id or analysis_id) is None:
+    try:
+        job = get_analysis_job(safe_analysis_id or analysis_id, owner_flow_id=access.flow_id)
+    except AnalysisJobAccessError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    if job is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Analysis job not found.")
 
     acquire_sse_slot(access)
@@ -90,7 +108,7 @@ async def stream_analysis_events(
 
     async def event_gen() -> AsyncIterator[bytes]:
         try:
-            fresh = get_analysis_job(safe_analysis_id or analysis_id)
+            fresh = get_analysis_job(safe_analysis_id or analysis_id, owner_flow_id=access.flow_id)
             if fresh is None:
                 return
             initial = fresh.model_dump(mode="json", by_alias=True)

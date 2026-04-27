@@ -23,6 +23,13 @@ class AnalysisJobLimitError(RuntimeError):
     pass
 
 
+class AnalysisJobAccessError(RuntimeError):
+    pass
+
+
+_OWNER_CHECK_SKIPPED = object()
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -44,6 +51,14 @@ def _build_response(
     )
 
 
+def _ensure_owner_access(job: AnalysisJobRecord, owner_flow_id: str | None) -> None:
+    if not job.owner_flow_id:
+        return
+    if owner_flow_id and job.owner_flow_id == owner_flow_id:
+        return
+    raise AnalysisJobAccessError("Analysis job does not belong to this session.")
+
+
 def _persist_job(
     repository: AnalysisArtifactRepository,
     analysis_id: str,
@@ -60,6 +75,7 @@ def _persist_job(
     queued_agents: list[str] | None = None,
     agent_statuses: dict[str, str] | None = None,
     fallback_mode_active: bool | None = None,
+    owner_flow_id: str | None = None,
 ) -> AnalysisJobRecord:
     existing = repository.load_analysis_job(analysis_id)
     timestamp = _now_iso()
@@ -70,6 +86,7 @@ def _persist_job(
     prev_statuses = existing.progress.agent_statuses if existing else {}
     job = AnalysisJobRecord(
         analysis_id=analysis_id,
+        owner_flow_id=owner_flow_id if owner_flow_id is not None else (existing.owner_flow_id if existing else None),
         status=status,  # type: ignore[arg-type]
         created_at=created_at,
         updated_at=timestamp,
@@ -226,6 +243,8 @@ def _run_analysis_job(payload: AnalysisJobRequest, repository: AnalysisArtifactR
 def start_analysis_job(
     payload: AnalysisJobRequest,
     repository: AnalysisArtifactRepository | None = None,
+    *,
+    owner_flow_id: str | None = None,
 ) -> AnalysisJobResponse:
     settings = get_settings()
     if not settings.analysis_jobs_enabled:
@@ -234,6 +253,8 @@ def start_analysis_job(
     artifact_repository = repository or get_analysis_artifact_repository()
     analysis_id = validate_analysis_id(payload.analysis_id) or str(uuid4())
     existing = artifact_repository.load_analysis_job(analysis_id)
+    if existing:
+        _ensure_owner_access(existing, owner_flow_id)
 
     if existing and existing.status in {"queued", "running"}:
         return _build_response(existing)
@@ -245,6 +266,7 @@ def start_analysis_job(
 
     queued_job = AnalysisJobRecord(
         analysis_id=analysis_id,
+        owner_flow_id=owner_flow_id,
         status="queued",
         created_at=_now_iso(),
         updated_at=_now_iso(),
@@ -269,12 +291,16 @@ def start_analysis_job(
 def get_analysis_job(
     analysis_id: str,
     repository: AnalysisArtifactRepository | None = None,
+    *,
+    owner_flow_id: str | None | object = _OWNER_CHECK_SKIPPED,
 ) -> AnalysisJobResponse | None:
     artifact_repository = repository or get_analysis_artifact_repository()
     analysis_id = validate_analysis_id(analysis_id) or analysis_id
     job = artifact_repository.load_analysis_job(analysis_id)
     if job is None:
         return None
+    if owner_flow_id is not _OWNER_CHECK_SKIPPED:
+        _ensure_owner_access(job, owner_flow_id if isinstance(owner_flow_id, str) else None)
 
     # Serve the report whenever it exists on disk (partial or complete).
     # The frontend renders whatever sections are populated and shows skeletons for the rest.

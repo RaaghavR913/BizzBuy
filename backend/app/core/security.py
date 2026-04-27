@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 from ipaddress import ip_address, ip_network
+import re
 import time
 from dataclasses import dataclass
 from threading import Lock
@@ -20,6 +21,7 @@ class RequestIdentity:
     key: str
     ip_key: str
     authenticated: bool
+    flow_id: str | None = None
 
 
 @dataclass
@@ -33,6 +35,7 @@ _rate_lock = Lock()
 _rate_windows: dict[tuple[str, str], _Window] = {}
 _sse_lock = Lock()
 _active_sse: dict[str, int] = {}
+_FLOW_ID_RE = re.compile(r"^[A-Za-z0-9_-]{16,128}$")
 
 
 def _client_ip(request: Request) -> str:
@@ -83,11 +86,35 @@ def _token_from_request(request: Request) -> str | None:
     return None
 
 
+def _flow_id_from_request(request: Request) -> str | None:
+    flow_id = request.headers.get("x-bizbuy-flow-id")
+    if not flow_id:
+        return None
+    candidate = flow_id.strip()
+    if _FLOW_ID_RE.fullmatch(candidate):
+        return candidate
+    return None
+
+
+def _identity_key(*, ip_key: str, authenticated: bool, token_hash: str | None, flow_id: str | None) -> str:
+    if flow_id:
+        return f"flow:{flow_id}"
+    if authenticated and token_hash:
+        return f"token:{token_hash}"
+    return ip_key
+
+
 def identify_request(request: Request) -> RequestIdentity:
     settings = get_settings()
     ip_key = f"ip:{_client_ip(request)}"
+    flow_id = _flow_id_from_request(request)
     if not settings.auth_required:
-        return RequestIdentity(key=ip_key, ip_key=ip_key, authenticated=False)
+        return RequestIdentity(
+            key=_identity_key(ip_key=ip_key, authenticated=False, token_hash=None, flow_id=flow_id),
+            ip_key=ip_key,
+            authenticated=False,
+            flow_id=flow_id,
+        )
 
     expected = settings.api_bearer_token
     if not expected:
@@ -103,7 +130,12 @@ def identify_request(request: Request) -> RequestIdentity:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid authentication token.")
 
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()[:24]
-    return RequestIdentity(key=f"token:{token_hash}", ip_key=ip_key, authenticated=True)
+    return RequestIdentity(
+        key=_identity_key(ip_key=ip_key, authenticated=True, token_hash=token_hash, flow_id=flow_id),
+        ip_key=ip_key,
+        authenticated=True,
+        flow_id=flow_id,
+    )
 
 
 def _bucket_limit(bucket: RouteBucket) -> int:

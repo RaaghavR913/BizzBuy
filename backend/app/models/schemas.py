@@ -501,6 +501,7 @@ class AnalysisJobProgress(CamelModel):
 
 class AnalysisJobRecord(CamelModel):
     analysis_id: str
+    owner_flow_id: str | None = None
     status: Literal["queued", "running", "completed", "failed"]
     created_at: str
     updated_at: str

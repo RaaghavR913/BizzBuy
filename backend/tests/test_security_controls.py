@@ -6,12 +6,16 @@ import pytest
 from app.core.config import get_settings
 from app.core.security import RequestIdentity, _active_sse, _rate_windows, acquire_sse_slot, release_sse_slot
 from app.main import app
+from app.models.schemas import AnalysisJobProgress, AnalysisJobRecord
+from app.services import analysis_repository
+from app.services.analysis_repository import FileSystemAnalysisArtifactRepository
 
 
 def _reset_settings_and_limits() -> None:
     get_settings.cache_clear()
     _rate_windows.clear()
     _active_sse.clear()
+    analysis_repository._DEFAULT_REPOSITORY = None
 
 
 def test_production_defaults_disable_sensitive_debug_and_require_auth(monkeypatch) -> None:
@@ -153,6 +157,33 @@ def test_parse_documents_rejects_oversized_upload_request(monkeypatch, tmp_path)
         _reset_settings_and_limits()
 
 
+def test_upload_body_limit_rejects_before_route_handler(monkeypatch, tmp_path) -> None:
+    import app.api.routes.parse_documents as parse_route_module
+
+    monkeypatch.setenv("BIZBUY_ENV", "development")
+    monkeypatch.setenv("BIZBUY_MAX_UPLOAD_REQUEST_BYTES", "100")
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(tmp_path))
+    _reset_settings_and_limits()
+
+    def fail_if_route_runs(*_args, **_kwargs) -> None:
+        raise AssertionError("route handler should not run for an oversized Content-Length")
+
+    monkeypatch.setattr(parse_route_module, "_reject_oversized_or_too_many_files", fail_if_route_runs)
+
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/api/parse-documents",
+            files={"files": ("seller-pnl.txt", b"Revenue " + b"1" * 200, "text/plain")},
+            data={"fileTypes": '["profit_and_loss"]'},
+        )
+
+        assert response.status_code == 413
+        assert response.json()["detail"]["error"] == "request_too_large"
+    finally:
+        _reset_settings_and_limits()
+
+
 def test_x_forwarded_for_is_ignored_without_trusted_proxy(monkeypatch, tmp_path) -> None:
     monkeypatch.setenv("BIZBUY_ENV", "development")
     monkeypatch.setenv("BIZBUY_PARSE_RATE_LIMIT", "1")
@@ -211,4 +242,35 @@ def test_sse_connection_limit_is_enforced(monkeypatch) -> None:
         assert getattr(exc.value, "status_code", None) == 429
     finally:
         release_sse_slot(identity)
+        _reset_settings_and_limits()
+
+
+def test_analysis_job_owner_flow_is_enforced(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("BIZBUY_ENV", "development")
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(tmp_path))
+    _reset_settings_and_limits()
+    analysis_repository._DEFAULT_REPOSITORY = FileSystemAnalysisArtifactRepository(tmp_path)
+
+    analysis_id = "55555555-5555-4555-8555-555555555555"
+    repository = analysis_repository.get_analysis_artifact_repository()
+    repository.save_analysis_job(
+        AnalysisJobRecord(
+            analysis_id=analysis_id,
+            owner_flow_id="flow-owner-00001",
+            status="queued",
+            created_at="2026-04-27T00:00:00+00:00",
+            updated_at="2026-04-27T00:00:00+00:00",
+            progress=AnalysisJobProgress(),
+        )
+    )
+
+    try:
+        client = TestClient(app)
+        denied = client.get(f"/api/analyses/{analysis_id}", headers={"x-bizbuy-flow-id": "flow-other-00001"})
+        allowed = client.get(f"/api/analyses/{analysis_id}", headers={"x-bizbuy-flow-id": "flow-owner-00001"})
+
+        assert denied.status_code == 403
+        assert allowed.status_code == 200
+        assert allowed.json()["analysisId"] == analysis_id
+    finally:
         _reset_settings_and_limits()

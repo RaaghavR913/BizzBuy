@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import get_settings
+from app.core.request_limits import RequestBodyLimitMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,8 @@ app = FastAPI(
     redoc_url="/redoc" if settings.api_docs_enabled else None,
     openapi_url="/openapi.json" if settings.api_docs_enabled else None,
 )
+
+app.add_middleware(RequestBodyLimitMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

@@ -7,6 +7,10 @@ services:
     build:
       context: ./backend
     container_name: bizbuy-backend
+    # Local dev uses bind mounts and hot reload; run as root here so Docker
+    # Desktop host-mounted artifacts remain writable. Production compose uses
+    # the Dockerfile's non-root user.
+    user: "0:0"
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     ports:
       - "8000:8000"
@@ -15,10 +19,13 @@ services:
       BIZBUY_ENV: development
       BIZBUY_REQUIRE_EXPENSIVE_ROUTE_AUTH: "false"
       FRONTEND_ORIGIN: http://localhost:3000,http://127.0.0.1:3000
+      BIZBUY_ARTIFACT_DIR: /app/.artifacts
+      BIZBUY_UPLOAD_DIR: /app/uploads
     volumes:
       - ./backend:/app
       - backend-packages:/app/bizbuy_backend.egg-info
-      - ./uploads:/app/uploads
+      - backend-artifacts:/app/.artifacts
+      - backend-uploads:/app/uploads
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
@@ -56,5 +63,7 @@ services:
         condition: service_healthy
 
 volumes:
+  backend-artifacts:
+  backend-uploads:
   backend-packages:
   frontend-next-cache:

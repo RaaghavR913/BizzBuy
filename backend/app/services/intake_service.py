@@ -597,17 +597,6 @@ def _safe_ocr_artifact_path(*, file_hash: str | None, artifact_ref: str | None) 
                 return root / f"{validate_sha256_hex(ref)}.json"
             except UnsafePathError:
                 return None
-
-        candidate = Path(ref)
-        if not candidate.is_absolute():
-            candidate = Path.cwd() / candidate
-        try:
-            resolved = candidate.resolve()
-            resolved.relative_to(root)
-            if resolved.suffix == ".json":
-                return resolved
-        except Exception:
-            return None
     return None
 
 

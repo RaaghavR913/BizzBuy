@@ -83,8 +83,8 @@ export function RiskAssessment({ report }: { report: ReportOutput }) {
       </div>
 
       {/* Radar Chart */}
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-64 min-h-64 min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
           <RadarChart data={radarData}>
             <PolarGrid stroke="hsl(228 18% 25%)" />
             <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: 'hsl(228 12% 60%)' }} />

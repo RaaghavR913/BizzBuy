@@ -113,6 +113,10 @@ def _safe_storage_filename(file_id: str, original_name: str) -> str:
     return f"{file_id}{suffix}"
 
 
+def _max_file_size_bytes() -> int:
+    return get_settings().max_upload_file_bytes
+
+
 def _load_cached_ocr_result(file_hash: str):
     artifact_path = _ocr_artifact_path(file_hash)
     if not artifact_path.exists():
@@ -176,7 +180,8 @@ async def _classify_one(
     size_bytes = len(file_bytes)
     file_hash = hashlib.sha256(file_bytes).hexdigest()
 
-    if size_bytes > MAX_FILE_SIZE_BYTES:
+    max_file_size_bytes = _max_file_size_bytes()
+    if size_bytes > max_file_size_bytes:
         return ClassifiedFile(
             fileId=file_id,
             originalName=original_name,
@@ -184,7 +189,7 @@ async def _classify_one(
             sizeBytes=size_bytes,
             detectedType="unknown",
             confidence=0.0,
-            rationale=f"File exceeds {MAX_FILE_SIZE_BYTES // (1024 * 1024)} MB size limit.",
+            rationale=f"File exceeds {max_file_size_bytes // (1024 * 1024)} MB size limit.",
             suggestedAlternatives=[],
             extractedMetadata={},
             fileHash=file_hash,
@@ -415,7 +420,13 @@ async def ingest_documents(
 
     loop = asyncio.get_event_loop()
 
-    tasks = [_classify_one(upload, run_dir, loop) for upload in files]
+    semaphore = asyncio.Semaphore(get_settings().max_concurrent_ocr_classifications)
+
+    async def classify_with_limit(upload: UploadFile) -> ClassifiedFile:
+        async with semaphore:
+            return await _classify_one(upload, run_dir, loop)
+
+    tasks = [classify_with_limit(upload) for upload in files]
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     classified: list[ClassifiedFile] = []

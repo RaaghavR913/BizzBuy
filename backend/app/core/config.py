@@ -130,6 +130,15 @@ class Settings(BaseModel):
     max_upload_request_bytes: int = Field(
         default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_UPLOAD_REQUEST_BYTES"), 100 * 1024 * 1024))
     )
+    max_upload_file_bytes: int = Field(
+        default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_UPLOAD_FILE_BYTES"), 20 * 1024 * 1024))
+    )
+    max_analysis_request_bytes: int = Field(
+        default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_ANALYSIS_REQUEST_BYTES"), 5 * 1024 * 1024))
+    )
+    max_concurrent_ocr_classifications: int = Field(
+        default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_CONCURRENT_OCR_CLASSIFICATIONS"), 2))
+    )
     max_zip_entries: int = Field(
         default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_ZIP_ENTRIES"), 256))
     )

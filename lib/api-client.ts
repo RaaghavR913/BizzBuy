@@ -32,13 +32,44 @@ interface AnalysisRunContext {
 
 const BACKEND_PROXY_BASE = '/api/backend';
 
+let analysisFlowPromise: Promise<void> | null = null;
+let analysisFlowExpiresAtMs = 0;
+
 function backendUrl(path: string): string {
   const base = BACKEND_PROXY_BASE.replace(/\/$/, '');
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${base}${normalizedPath}`;
 }
 
+export async function ensureAnalysisFlow(): Promise<void> {
+  const now = Date.now();
+  if (analysisFlowExpiresAtMs - 30_000 > now) {
+    return;
+  }
+
+  if (!analysisFlowPromise) {
+    analysisFlowPromise = fetch('/api/analysis-flow', {
+      method: 'POST',
+      cache: 'no-store',
+    })
+      .then(async (res) => {
+        const body = await res.json().catch(() => ({ error: 'Request failed' }));
+        if (!res.ok) {
+          throw new Error(body.error || 'Failed to authorize analysis flow');
+        }
+        if (typeof body.expiresAt === 'number') {
+          analysisFlowExpiresAtMs = body.expiresAt * 1000;
+        }
+      })
+      .finally(() => {
+        analysisFlowPromise = null;
+      });
+  }
+  return analysisFlowPromise;
+}
+
 export async function ingestDocuments(files: File[]): Promise<IngestResponse> {
+  await ensureAnalysisFlow();
   const formData = new FormData();
   files.forEach((file) => formData.append('files', file));
 
@@ -59,6 +90,7 @@ export async function parseDocuments(
   fileHashes: Array<string | null | undefined> = [],
   ocrArtifactRefs: Array<string | null | undefined> = []
 ): Promise<ParseDocumentsResponse> {
+  await ensureAnalysisFlow();
   const formData = new FormData();
   files.forEach((file) => formData.append('files', file));
   formData.append('fileTypes', JSON.stringify(fileTypes));
@@ -86,6 +118,7 @@ export async function analyzeData(
   dealInfo: DealInfo,
   _context?: AnalysisRunContext
 ): Promise<AnalyzeResponse> {
+  await ensureAnalysisFlow();
   // This function is only called for the deterministic (no-documents) path.
   // When documents are present the caller uses startAnalysisJob instead.
   const legacyRes = await fetch(backendUrl('/analyze'), {
@@ -106,6 +139,7 @@ export async function startAnalysisJob(
   dealInfo: DealInfo,
   context?: AnalysisRunContext
 ): Promise<AnalysisJobSnapshot> {
+  await ensureAnalysisFlow();
   const res = await fetch(backendUrl('/analyses'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -134,6 +168,7 @@ export function getAnalysisJobEventsUrl(analysisId: string): string {
 }
 
 export async function getAnalysisJob(analysisId: string): Promise<AnalysisJobSnapshot> {
+  await ensureAnalysisFlow();
   const res = await fetch(backendUrl(`/analyses/${analysisId}`), {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
