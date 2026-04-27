@@ -124,6 +124,7 @@ def test_structured_upload_merges_sheet_metadata_when_ocr_succeeds(monkeypatch) 
     assert "columns" in classified.extracted_metadata
     assert classified.file_hash
     assert classified.ocr_artifact_ref
+    assert classified.ocr_artifact_ref == f"ocr:{classified.file_hash}"
 
 
 def test_ocr_result_is_cached_by_file_hash(monkeypatch) -> None:
@@ -169,6 +170,7 @@ def test_ocr_result_is_cached_by_file_hash(monkeypatch) -> None:
         assert second.detected_type == "profit_and_loss"
         assert second.rationale.startswith("Cached OCR result.")
         assert first.ocr_artifact_ref == second.ocr_artifact_ref
+        assert first.ocr_artifact_ref == f"ocr:{first.file_hash}"
     finally:
         shutil.rmtree(cache_root, ignore_errors=True)
 

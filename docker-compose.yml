@@ -1,6 +1,5 @@
-# Localhost dev stack. This intentionally uses the old local workflow:
-# backend reloads on file changes, frontend runs `next dev`, and the browser
-# talks to http://localhost:8000/api.
+# Localhost dev stack. The browser calls same-origin Next.js API routes, and
+# Next.js proxies backend calls to the backend service over Docker networking.
 services:
   backend:
     image: docker.io/library/bizzbuy-backend:local
@@ -39,7 +38,7 @@ services:
       - "3000:3000"
     env_file: .env.local
     environment:
-      NEXT_PUBLIC_BACKEND_URL: http://localhost:8000/api
+      BIZBUY_BACKEND_URL: http://backend:8000/api
       NEXT_PUBLIC_APP_URL: http://localhost:3000
     volumes:
       - ./app:/app/app

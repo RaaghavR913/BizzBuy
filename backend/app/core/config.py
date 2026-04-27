@@ -124,6 +124,24 @@ class Settings(BaseModel):
     upload_bytes_per_window: int = Field(
         default_factory=lambda: _parse_int(os.getenv("BIZBUY_UPLOAD_BYTES_PER_WINDOW"), 200 * 1024 * 1024)
     )
+    max_upload_files: int = Field(
+        default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_UPLOAD_FILES"), 10))
+    )
+    max_upload_request_bytes: int = Field(
+        default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_UPLOAD_REQUEST_BYTES"), 100 * 1024 * 1024))
+    )
+    max_zip_entries: int = Field(
+        default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_ZIP_ENTRIES"), 256))
+    )
+    max_zip_uncompressed_bytes: int = Field(
+        default_factory=lambda: max(1, _parse_int(os.getenv("BIZBUY_MAX_ZIP_UNCOMPRESSED_BYTES"), 50 * 1024 * 1024))
+    )
+    trusted_proxy_ips: list[str] = Field(
+        default_factory=lambda: _parse_csv(os.getenv("BIZBUY_TRUSTED_PROXY_IPS"))
+    )
+    trust_x_forwarded_for: bool = Field(
+        default_factory=lambda: _parse_bool(os.getenv("BIZBUY_TRUST_X_FORWARDED_FOR"), False)
+    )
     max_active_analysis_jobs: int = Field(
         default_factory=lambda: _parse_int(os.getenv("BIZBUY_MAX_ACTIVE_ANALYSIS_JOBS"), 20)
     )

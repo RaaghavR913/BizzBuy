@@ -4,9 +4,13 @@ node_modules
 .env*
 *.log
 backend
+backend/.artifacts
+backend/backend/.artifacts
+backend/.test-artifacts
+backend/backend/.test-artifacts
 docs
-sample company1
-sample company3 - LoneStar Plumbing
+uploads
+sample company*
 coverage
 *.tsbuildinfo
 .vercel

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from ipaddress import ip_address, ip_network
 import time
 from dataclasses import dataclass
 from threading import Lock
@@ -35,10 +36,37 @@ _active_sse: dict[str, int] = {}
 
 
 def _client_ip(request: Request) -> str:
+    settings = get_settings()
+    remote_addr = request.client.host if request.client else "unknown"
     forwarded_for = request.headers.get("x-forwarded-for")
-    if forwarded_for:
+    if forwarded_for and _should_trust_forwarded_for(remote_addr, settings.trusted_proxy_ips):
         return forwarded_for.split(",", 1)[0].strip() or "unknown"
-    return request.client.host if request.client else "unknown"
+    return remote_addr
+
+
+def _should_trust_forwarded_for(remote_addr: str, trusted_proxy_ips: list[str]) -> bool:
+    settings = get_settings()
+    if not settings.trust_x_forwarded_for or not trusted_proxy_ips:
+        return False
+    if remote_addr == "unknown":
+        return False
+
+    for trusted in trusted_proxy_ips:
+        if _matches_trusted_proxy(remote_addr, trusted):
+            return True
+    return False
+
+
+def _matches_trusted_proxy(remote_addr: str, trusted: str) -> bool:
+    candidate = trusted.strip()
+    if not candidate:
+        return False
+    if candidate == remote_addr:
+        return True
+    try:
+        return ip_address(remote_addr) in ip_network(candidate, strict=False)
+    except ValueError:
+        return False
 
 
 def _token_from_request(request: Request) -> str | None:

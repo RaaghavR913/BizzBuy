@@ -253,35 +253,72 @@ npm start
 |---|---|---|
 | `OPENROUTER_API_KEY` | Yes | Your OpenRouter API key (routes all 9 LLM agents to `z-ai/glm-5.1`) |
 | `MISTRAL_API_KEY` | Yes | Your Mistral API key (OCR document extraction) |
-| `NEXT_PUBLIC_BACKEND_URL` | No | FastAPI backend URL seen from the browser (default: `http://localhost:8000/api`) |
+| `BIZBUY_BACKEND_URL` | Frontend service | Server-side FastAPI URL used by the Next.js proxy/BFF (default: `http://localhost:8000/api`) |
 | `OPENROUTER_REFERRER` | No | HTTP-Referer header sent to OpenRouter (default: `https://bizbuy.local`) |
 | `FRONTEND_ORIGIN` | Production | Exact public frontend origin(s), comma-separated |
-| `BIZBUY_API_BEARER_TOKEN` | Production | Server-side bearer token for protected expensive backend routes |
+| `BIZBUY_API_BEARER_TOKEN` | Production | Server-side bearer token shared by the Next.js service and protected backend routes |
 | `BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED` | No | Defaults to `false` in production |
 | `BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES` | No | Defaults to `false` in production |
+| `BIZBUY_MAX_UPLOAD_FILES` | No | Max files accepted in one upload request (default: `10`) |
+| `BIZBUY_MAX_UPLOAD_REQUEST_BYTES` | No | Max aggregate upload request size (default: `104857600`) |
+| `BIZBUY_MAX_ZIP_ENTRIES` | No | Max DOCX/XLSX zip entries (default: `256`) |
+| `BIZBUY_MAX_ZIP_UNCOMPRESSED_BYTES` | No | Max DOCX/XLSX decompressed bytes (default: `52428800`) |
+| `BIZBUY_TRUST_X_FORWARDED_FOR` | No | Defaults to `false`; only enable with `BIZBUY_TRUSTED_PROXY_IPS` |
 
 Create `.env.local` at the project root (never commit this file — it is in `.gitignore`):
 
 ```env
 OPENROUTER_API_KEY=sk-or-v1-...
 MISTRAL_API_KEY=...
+BIZBUY_BACKEND_URL=http://localhost:8000/api
 ```
 
 A template is provided at `.env.local.example`.
 
-### Production Deployment Notes
+### Railway Production Deployment
 
-For a Vercel frontend and Railway backend:
+Deploy as two Railway services:
 
-- Vercel: set `NEXT_PUBLIC_BACKEND_URL=https://<railway-backend-domain>/api` and `NEXT_PUBLIC_APP_URL=https://<frontend-domain>`.
-- Railway: set `BIZBUY_ENV=production`, `FRONTEND_ORIGIN=https://<frontend-domain>`, `OPENROUTER_API_KEY`, `MISTRAL_API_KEY`, and `BIZBUY_API_BEARER_TOKEN`.
-- In production, `/docs`, `/redoc`, and `/openapi.json` are disabled by default. Set `BIZBUY_API_DOCS_ENABLED=true` only if public API docs are intentional.
-- Prompt-debug artifacts and prompt bodies default to off in production. Keep them off unless you are using a controlled support/debug workflow.
-- Expensive backend routes are protected by bearer-token auth plus in-memory rate and concurrency limits. For a public customer launch, put this behind a real user auth layer or trusted gateway rather than exposing the bearer token in browser code.
+- `bizzbuy-web`: public Next.js frontend.
+- `bizzbuy-api`: FastAPI backend, private/internal when Railway networking allows it.
+
+The browser calls only same-origin frontend routes such as `/api/backend/parse-documents` and `/api/backend/analyses/{id}/events`. The Next.js route handler forwards those calls to FastAPI and attaches `Authorization: Bearer ${BIZBUY_API_BEARER_TOKEN}` server-side. Never create a `NEXT_PUBLIC_BIZBUY_API_BEARER_TOKEN`, and do not use `NEXT_PUBLIC_BACKEND_URL` for production backend access.
+
+Frontend Railway variables:
+
+```env
+BIZBUY_BACKEND_URL=http://<backend-internal-host>:8000/api
+BIZBUY_API_BEARER_TOKEN=<same-secret-as-backend>
+NEXT_PUBLIC_APP_URL=https://<frontend-domain>
+```
+
+Backend Railway variables:
+
+```env
+BIZBUY_ENV=production
+FRONTEND_ORIGIN=https://<frontend-domain>
+BIZBUY_REQUIRE_EXPENSIVE_ROUTE_AUTH=true
+BIZBUY_API_BEARER_TOKEN=<strong-secret>
+OPENROUTER_API_KEY=<secret>
+MISTRAL_API_KEY=<secret>
+OPENROUTER_REFERRER=https://<frontend-domain>
+BIZBUY_API_DOCS_ENABLED=false
+BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED=false
+BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES=false
+BIZBUY_DELETE_UPLOADS_AFTER_INGEST=true
+```
+
+In production, `/docs`, `/redoc`, and `/openapi.json` are disabled by default. Prompt-debug artifacts and prompt bodies default to off in production; keep them off unless you are using a controlled support workflow.
+
+Rate limits are in-memory and are appropriate only as a single-instance beta defense. For multi-instance or higher-risk production, put the backend behind a trusted gateway or replace the counters with Redis-backed limits. The backend ignores arbitrary `x-forwarded-for` by default; enable it only with an explicit `BIZBUY_TRUSTED_PROXY_IPS` allowlist.
+
+Sample-company folders in this repo are synthetic development fixtures, but they are excluded from Docker build contexts with `sample company*` and should not be uploaded to Railway builders.
 
 ### Docker Startup Scripts
 
-Localhost dev mode, using the old Docker workflow (`next dev`, backend `--reload`, localhost CORS):
+Docker Compose is local/reference guidance. Railway should use the two-service environment matrix above.
+
+Localhost dev mode, using `next dev`, backend `--reload`, and the server-side Next.js backend proxy:
 
 ```powershell
 .\scripts\start-docker.ps1 local
@@ -295,7 +332,7 @@ Production-style Docker mode, using production images and no source bind mounts:
 
 ```powershell
 copy .env.example .env.production
-# fill in real production values, especially FRONTEND_ORIGIN, NEXT_PUBLIC_* URLs, API keys, and BIZBUY_API_BEARER_TOKEN
+# fill in real production values, especially FRONTEND_ORIGIN, NEXT_PUBLIC_APP_URL, API keys, and BIZBUY_API_BEARER_TOKEN
 .\scripts\start-docker.ps1 production
 ```
 

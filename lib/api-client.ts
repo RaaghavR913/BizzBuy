@@ -30,10 +30,10 @@ interface AnalysisRunContext {
   clarifications?: ClarificationAnswer[];
 }
 
-const DEFAULT_BACKEND_URL = 'http://localhost:8000/api';
+const BACKEND_PROXY_BASE = '/api/backend';
 
 function backendUrl(path: string): string {
-  const base = (process.env.NEXT_PUBLIC_BACKEND_URL || DEFAULT_BACKEND_URL).replace(/\/$/, '');
+  const base = BACKEND_PROXY_BASE.replace(/\/$/, '');
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${base}${normalizedPath}`;
 }

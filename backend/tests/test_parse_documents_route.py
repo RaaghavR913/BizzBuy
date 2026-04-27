@@ -129,8 +129,7 @@ def test_parse_documents_reuses_cached_ocr_text_by_file_hash(monkeypatch) -> Non
             files={"files": ("scanned.pdf", b"%PDF cached text comes from artifact", "application/pdf")},
             data={
                 "fileTypes": '["profit_and_loss"]',
-                "fileHashes": json.dumps([file_hash]),
-                "ocrArtifactRefs": json.dumps([str(artifact_path)]),
+                "ocrArtifactRefs": json.dumps([f"ocr:{file_hash}"]),
             },
         )
         payload = response.json()

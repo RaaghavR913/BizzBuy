@@ -39,15 +39,33 @@ Set these for a public Railway deployment:
 ```env
 BIZBUY_ENV=production
 FRONTEND_ORIGIN=https://<frontend-domain>
-BIZBUY_API_BEARER_TOKEN=<server-side-token>
+BIZBUY_REQUIRE_EXPENSIVE_ROUTE_AUTH=true
+BIZBUY_API_BEARER_TOKEN=<strong-secret>
+OPENROUTER_API_KEY=<secret>
+MISTRAL_API_KEY=<secret>
+OPENROUTER_REFERRER=https://<frontend-domain>
+BIZBUY_API_DOCS_ENABLED=false
 BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED=false
 BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES=false
+BIZBUY_DELETE_UPLOADS_AFTER_INGEST=true
 ```
 
-Production mode requires explicit non-local CORS origins and protects expensive routes with bearer-token auth by default. Do not expose `BIZBUY_API_BEARER_TOKEN` through `NEXT_PUBLIC_*` frontend variables; use a real auth layer, trusted gateway, or server-side proxy for public users.
+Production mode requires explicit non-local CORS origins and protects expensive routes with bearer-token auth by default. Do not expose `BIZBUY_API_BEARER_TOKEN` through `NEXT_PUBLIC_*` frontend variables. The Railway frontend should call this service through the Next.js server-side proxy at `/api/backend/*`; only the Next.js service should hold the bearer token.
+
+Recommended Railway topology:
+
+- `bizzbuy-web`: public Next.js service with `BIZBUY_BACKEND_URL=http://<backend-internal-host>:8000/api` and the same `BIZBUY_API_BEARER_TOKEN`.
+- `bizzbuy-api`: FastAPI service, private/internal where Railway supports it. If it has a public URL, expensive routes still require the bearer token.
+
+Abuse controls are intentionally conservative for a beta:
+
+- Upload requests default to 10 files and 100 MB total.
+- DOCX/XLSX parsing rejects archives with more than 256 entries or more than 50 MB decompressed content.
+- Rate limits and SSE connection counters are in-memory. Use a trusted gateway or Redis-backed limiter before multi-instance production.
+- The backend ignores arbitrary `x-forwarded-for` by default. Set `BIZBUY_TRUST_X_FORWARDED_FOR=true` only with a precise `BIZBUY_TRUSTED_PROXY_IPS` allowlist.
 
 ## Notes
 
 - The risk engine is deterministic by design.
-- The document parsing route is scaffolded for the next phase and currently returns normalized placeholders and parsing notes.
-- The frontend can stay in Next.js and call this service over HTTP.
+- OCR cache references returned to clients are opaque `ocr:<sha256>` tokens, not server filesystem paths.
+- The frontend can stay in Next.js and call this service over HTTP through the BFF proxy.

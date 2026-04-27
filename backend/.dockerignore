@@ -2,7 +2,12 @@ __pycache__
 *.pyc
 .venv
 .pytest_cache
+.artifacts
+backend/.artifacts
 .test-artifacts
+backend/.test-artifacts
+uploads
+backend/uploads
 bizbuy_backend.egg-info
 .git
 .env*

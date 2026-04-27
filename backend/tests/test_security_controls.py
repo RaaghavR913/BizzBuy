@@ -110,6 +110,95 @@ def test_rate_limit_returns_429(monkeypatch, tmp_path) -> None:
         _reset_settings_and_limits()
 
 
+def test_parse_documents_rejects_too_many_files(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("BIZBUY_ENV", "development")
+    monkeypatch.setenv("BIZBUY_MAX_UPLOAD_FILES", "1")
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(tmp_path))
+    _reset_settings_and_limits()
+
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/api/parse-documents",
+            files=[
+                ("files", ("seller-pnl.txt", b"Revenue 1200000", "text/plain")),
+                ("files", ("seller-bs.txt", b"Assets 1000000", "text/plain")),
+            ],
+            data={"fileTypes": '["profit_and_loss", "balance_sheet"]'},
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"]["error"] == "too_many_files"
+    finally:
+        _reset_settings_and_limits()
+
+
+def test_parse_documents_rejects_oversized_upload_request(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("BIZBUY_ENV", "development")
+    monkeypatch.setenv("BIZBUY_MAX_UPLOAD_REQUEST_BYTES", "100")
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(tmp_path))
+    _reset_settings_and_limits()
+
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/api/parse-documents",
+            files={"files": ("seller-pnl.txt", b"Revenue " + b"1" * 200, "text/plain")},
+            data={"fileTypes": '["profit_and_loss"]'},
+        )
+
+        assert response.status_code == 413
+        assert response.json()["detail"]["error"] == "request_too_large"
+    finally:
+        _reset_settings_and_limits()
+
+
+def test_x_forwarded_for_is_ignored_without_trusted_proxy(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("BIZBUY_ENV", "development")
+    monkeypatch.setenv("BIZBUY_PARSE_RATE_LIMIT", "1")
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(tmp_path))
+    monkeypatch.delenv("BIZBUY_TRUST_X_FORWARDED_FOR", raising=False)
+    monkeypatch.delenv("BIZBUY_TRUSTED_PROXY_IPS", raising=False)
+    _reset_settings_and_limits()
+
+    try:
+        client = TestClient(app, client=("203.0.113.10", 50000))
+        kwargs = {
+            "files": {"files": ("seller-pnl.txt", b"Revenue 1200000\nNet Income 300000", "text/plain")},
+            "data": {"fileTypes": '["profit_and_loss"]'},
+        }
+        first = client.post("/api/parse-documents", headers={"x-forwarded-for": "198.51.100.1"}, **kwargs)
+        second = client.post("/api/parse-documents", headers={"x-forwarded-for": "198.51.100.2"}, **kwargs)
+
+        assert first.status_code == 200
+        assert second.status_code == 429
+    finally:
+        _reset_settings_and_limits()
+
+
+def test_x_forwarded_for_is_used_for_configured_trusted_proxy(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("BIZBUY_ENV", "development")
+    monkeypatch.setenv("BIZBUY_PARSE_RATE_LIMIT", "1")
+    monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(tmp_path))
+    monkeypatch.setenv("BIZBUY_TRUST_X_FORWARDED_FOR", "true")
+    monkeypatch.setenv("BIZBUY_TRUSTED_PROXY_IPS", "203.0.113.10")
+    _reset_settings_and_limits()
+
+    try:
+        client = TestClient(app, client=("203.0.113.10", 50000))
+        kwargs = {
+            "files": {"files": ("seller-pnl.txt", b"Revenue 1200000\nNet Income 300000", "text/plain")},
+            "data": {"fileTypes": '["profit_and_loss"]'},
+        }
+        first = client.post("/api/parse-documents", headers={"x-forwarded-for": "198.51.100.1"}, **kwargs)
+        second = client.post("/api/parse-documents", headers={"x-forwarded-for": "198.51.100.2"}, **kwargs)
+
+        assert first.status_code == 200
+        assert second.status_code == 200
+    finally:
+        _reset_settings_and_limits()
+
+
 def test_sse_connection_limit_is_enforced(monkeypatch) -> None:
     monkeypatch.setenv("BIZBUY_MAX_ACTIVE_SSE_CONNECTIONS", "1")
     _reset_settings_and_limits()

@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 
 from app.models.schemas import ParseDocumentsResponse
+from app.core.config import get_settings
 from app.core.security import protect_expensive_route, record_upload_bytes
 from app.services.document_parser import parse_documents
 
@@ -15,6 +16,34 @@ router = APIRouter()
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 MAX_PAGES = 1000
 _protect_parse_route = protect_expensive_route("parse")
+
+
+def _reject_oversized_or_too_many_files(request: Request | None, files: list[UploadFile]) -> None:
+    settings = get_settings()
+    if len(files) > settings.max_upload_files:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "too_many_files",
+                "detail": f"Upload request includes {len(files)} files (limit: {settings.max_upload_files}).",
+                "limit": settings.max_upload_files,
+            },
+        )
+    content_length = request.headers.get("content-length") if request is not None else None
+    if content_length:
+        try:
+            request_bytes = int(content_length)
+        except ValueError:
+            request_bytes = 0
+        if request_bytes > settings.max_upload_request_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail={
+                    "error": "request_too_large",
+                    "detail": "Upload request exceeds the configured byte limit.",
+                    "limit_bytes": settings.max_upload_request_bytes,
+                },
+            )
 
 
 async def _validate_upload(upload: UploadFile) -> bytes:
@@ -78,9 +107,19 @@ async def parse_documents_route(
     ocrArtifactRefs: str | None = Form(default=None),
     request: Request = None,
 ) -> ParseDocumentsResponse:
+    _reject_oversized_or_too_many_files(request, files)
     total_bytes = 0
     for upload in files:
         total_bytes += len(await _validate_upload(upload))
+        if total_bytes > get_settings().max_upload_request_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail={
+                    "error": "request_too_large",
+                    "detail": "Upload request exceeds the configured byte limit.",
+                    "limit_bytes": get_settings().max_upload_request_bytes,
+                },
+            )
     record_upload_bytes(request, total_bytes)
 
     raw_file_types = fileTypes if isinstance(fileTypes, str) else file_types
