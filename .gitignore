@@ -54,3 +54,7 @@ backend/backend/.artifacts/*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+#mcp
+.vscode/
+dev-mcp/
