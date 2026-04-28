@@ -1,364 +1,150 @@
-# BizzBuy — AI Acquisition Diligence Co-Pilot
+# BizzBuy - AI Acquisition Diligence Co-Pilot
 
+BizzBuy helps buyers evaluate whether a small business is financially viable, transferable, and worth deeper diligence. The app combines document ingestion, deterministic financial/risk scoring, and OpenRouter-backed report synthesis into a four-step acquisition review flow.
 
+## Current Flow
 
-> There is no simple tool that helps non-expert buyers determine whether a small business is truly affordable, transferable, and worth acquiring. BizzBuy is the **"Carfax for buying a business"** — an AI-powered diligence engine that analyzes financials, operational risk, and lending viability, then delivers a plain-language buyer report.
+1. Upload diligence documents at `/analyze/upload`.
+2. Review detected document types and extracted financial data at `/analyze/review`.
+3. Answer targeted clarification questions at `/analyze/questions`.
+4. Generate and review the acquisition report at `/analyze/report`.
 
----
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Application Flow](#application-flow)
-- [Phase 2 Parallel Agent System](#phase-2-parallel-agent-system)
-- [Report Output Sections](#report-output-sections)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Project Structure](#project-structure)
-- [Disclaimer](#disclaimer)
-
----
-
-## Overview
-
-BizzBuy walks a buyer through a 4-step wizard:
-
-1. **Upload** financial documents (or use Demo Mode)
-2. **Review** and confirm the AI-extracted data
-3. **Answer** 6 sections of risk questions (triggering 7 parallel AI agents)
-4. **Receive** a full acquisition analysis report with a downloadable PDF
-
-The engine combines deterministic financial math with multiple focused Claude AI calls — keeping costs low while producing deep, specific diligence output.
-
----
-
-## Features
-
-| Feature | Details |
-|---|---|
-| Document ingestion | Upload P&L, balance sheet, cash flow, loan terms, or tax returns as PDF/image/CSV — Claude extracts structured data |
-| Editable review | Confirm or correct all AI-extracted values before analysis begins |
-| 6-dimension risk questionnaire | Owner dependence, customer concentration, revenue quality, employee risk, supplier risk, financial/add-back risk |
-| Phase 2 parallel agents | 7 specialized agents run simultaneously (financial, tax, AR/collections, customer, operations, lease & contracts, market & macro) |
-| Shared context merge | Agent outputs are merged, flags deduplicated, and SDE validated before synthesis |
-| SDE conflict detection | If tax-normalized SDE and financial SDE diverge by more than 15%, the conservative figure is used and a critical flag is raised |
-| Lending & affordability | DSCR, break-even, 4 revenue scenarios, SBA max loan sizing (5× SDE, 10-year), bankability score |
-| Full AI synthesis | Claude generates plain-language executive summary, seller questions, diligence checklist, upside opportunities, and a final recommendation |
-| Risk radar chart | Visual overview of all 6 risk dimensions |
-| Transferability analysis | Scored view of how easily the business can change hands |
-| Downloadable PDF | Full report exported via `@react-pdf/renderer` |
-| Demo mode | Pre-loaded HVAC business (Sunny's HVAC Services) for demonstrations |
-
----
+The frontend calls backend routes through the Next.js server-side proxy at `/api/backend/*`. The browser does not need direct access to the FastAPI service or backend bearer token.
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Framework | Next.js 14 (App Router), TypeScript 5 |
-| AI | OpenRouter (`z-ai/glm-5.1`) via `openai` Python SDK — all 9 LLM agents; Mistral OCR (`mistral-ocr-2512`) for document extraction |
-| UI | Tailwind CSS 3, shadcn/ui components, Lucide React icons |
-| Charts | Recharts |
+| Frontend | Next.js 16, React 18, TypeScript, Tailwind CSS |
+| Backend | FastAPI, Pydantic v2, pytest |
+| LLM runtime | OpenRouter via the OpenAI Python SDK |
+| OCR | Mistral OCR |
+| Reports | Deterministic scoring plus optional agent synthesis |
 | PDF | `@react-pdf/renderer` |
-| State | React Context + `useReducer` |
-| CSV parsing | PapaParse |
-| Validation | Zod |
 
----
+## Repository Layout
 
-## Application Flow
-
-```
-Landing Page
-    │
-    ▼
-Step 1 — Upload (/analyze/upload)
-    Files + doc types → POST /api/parse-documents
-    → FinancialData (structured payload)
-    │
-    ▼
-Step 2 — Review (/analyze/review)
-    User confirms/corrects extracted figures
-    Adds deal info (asking price, business type, etc.)
-    │
-    ▼
-Step 3 — Questions (/analyze/questions)
-    6-section risk questionnaire
-    → runPhase2Agents() — 7 parallel API calls
-    → POST /api/agents/merge → SharedContext
-    → POST /api/analyze → ReportOutput
-    │
-    ▼
-Step 4 — Report (/analyze/report)
-    Full plain-language analysis report
-    → POST /api/generate-pdf → bizbuy-acquisition-report.pdf
-```
-
----
-
-## Phase 2 Parallel Agent System
-
-When "Generate Report" is clicked, all 7 agents are called simultaneously via `Promise.all` in `lib/api-client.ts`. Each agent receives the same `{ financialData, questionnaire, dealInfo }` payload and returns an `AgentOutput` with `metrics`, `flags`, `confidence`, `summary`, and `notes`.
-
-| Agent | Endpoint | Type | What it produces |
-|---|---|---|---|
-| **Financial** | `/api/agents/financial` | Deterministic | SDE, margins, DSCR, valuation multiple, working capital, cash flow metrics |
-| **Tax** | `/api/agents/tax` | Claude + fallback | Tax-normalized SDE (`normalizedSDE`), revenue/income variance vs statements, deduction risk score |
-| **AR & Collections** | `/api/agents/ar-collections` | Deterministic | Implied DSO, AR-to-revenue %, bad-debt risk score |
-| **Customer** | `/api/agents/customer` | Deterministic | Approximate HHI, churn risk score, contract strength score |
-| **Operations** | `/api/agents/operations` | Deterministic | Process maturity, management depth, supplier dependency, critical staff ratio, composite ops risk |
-| **Lease & Contracts** | `/api/agents/lease-contracts` | Claude + fallback | Transferability risk, remaining lease term, rent escalation, transfer approval requirement |
-| **Market & Macro** | `/api/agents/market-macro` | Claude + heuristics | Industry valuation range (low/high multiple), macro risk score, industry outlook score |
-
-### Shared Context Merge (`lib/merge-context.ts`)
-
-After all 7 agents complete, `/api/agents/merge` calls `buildSharedContext`:
-
-- **Deduplicates** flags across all agents by `sourceAgent:dimension:message`
-- **Sorts** flags — critical → warning → info, then by dimension
-- **SDE conflict detection** — if tax `normalizedSDE` and financial `sde` diverge by more than 15%, the conservative (lower) figure is used as `validatedSDE` and a critical flag is added
-- The merged `SharedContext` is then passed to `/api/analyze`
-
-### SBA Loan Sizing & Bankability (`app/api/analyze/route.ts`)
-
-| Calculation | Formula |
+| Path | Purpose |
 |---|---|
-| Max supported loan | `validatedSDE × 5` |
-| Estimated rate | WSJ Prime (8.5%) + SBA spread (2.75%) = **11.25%** |
-| Payment model | 10-year amortization |
-| Bankability base score | 55 |
-| Adjustments | +25 / +15 / +5 for DSCR tiers; −20 if DSCR < 1; −15 if SDE conflict; −8 per critical flag; −3 per warning |
-| Labels | Weak / Borderline / Bankable / Strong |
+| `app/` | Next.js app routes and BFF proxy routes |
+| `components/` | UI and workflow components |
+| `context/` | Analysis wizard state |
+| `lib/` | Frontend API client, types, calculations, and helpers |
+| `backend/app/` | FastAPI app, agents, services, schemas, and routes |
+| `backend/tests/` | Backend unit and integration tests |
+| `backend/tests/fixtures/peakair/` | Synthetic PeakAir parser fixture documents |
+| `docs/` | Current planning, security, and implementation notes |
+| `docs/archive/` | Historical plans and audits kept for reference only |
 
----
+## Local Setup
 
-## Report Output Sections
-
-Each `ReportOutput` contains the following sections, all rendered on-screen and exported to PDF:
-
-| # | Section | Contents |
-|---|---|---|
-| 1 | Executive Summary | Plain-language verdict, risk and transferability scores |
-| 2 | Financial Snapshot | Revenue, COGS, gross margin, SDE, EBITDA, working capital, valuation multiple |
-| 3 | Debt Service & Affordability | DSCR, monthly/annual debt service, break-even, 4 revenue scenarios, SBA max loan, bankability score |
-| 4 | Risk Assessment | 6-dimension scores (1–10), radar chart, deal breakers, Phase 2 agent flags |
-| 5 | Transferability Analysis | Score, key factors, improvement suggestions |
-| 6 | Questions for the Seller | 8–15 targeted questions grouped by risk category |
-| 7 | Due Diligence Checklist | 10–20 prioritized items (critical / important / nice to have) |
-| 8 | Upside Opportunities | 3–5 value-creation ideas with estimated impact and difficulty |
-| 9 | Final Recommendation | Proceed / Proceed with Caution / Walk Away + strengths, risks, next steps |
-
----
-
-## Architecture
-
-See [`architecture flow.md`](./architecture%20flow.md) for the full phase diagram with visual flowchart.
-
-```
-app/
-├── page.tsx                         # Landing page
-├── layout.tsx                       # Root layout — AnalysisProvider, Header, Footer
-├── analyze/
-│   ├── layout.tsx                   # Wizard shell — StepIndicator
-│   ├── upload/page.tsx              # Step 1: document upload
-│   ├── review/page.tsx              # Step 2: data review & deal info
-│   ├── questions/page.tsx           # Step 3: questionnaire + Phase 2 agents
-│   └── report/page.tsx              # Step 4: full analysis report
-└── api/
-    ├── parse-documents/route.ts     # Claude document extraction
-    ├── agents/
-    │   ├── financial/route.ts       # Deterministic financial agent
-    │   ├── tax/route.ts             # Tax normalization agent (Claude)
-    │   ├── ar-collections/route.ts  # AR/collections agent
-    │   ├── customer/route.ts        # Customer concentration agent
-    │   ├── operations/route.ts      # Operations agent
-    │   ├── lease-contracts/route.ts # Lease & contracts agent (Claude)
-    │   ├── market-macro/route.ts    # Market & macro agent (Claude)
-    │   └── merge/route.ts           # Merge → SharedContext
-    ├── analyze/route.ts             # Lending + Claude synthesis → ReportOutput
-    └── generate-pdf/route.ts        # PDF export via @react-pdf/renderer
-
-lib/
-├── types.ts                         # All TypeScript interfaces
-├── api-client.ts                    # Browser fetch helpers + runPhase2Agents
-├── calculations.ts                  # DSCR, SDE, scenarios, break-even (deterministic)
-├── risk-scoring.ts                  # 6-dimension weighted risk scoring
-├── merge-context.ts                 # SDE validation + flag merge
-├── prompts.ts                       # Claude prompt templates (parsing + report)
-├── agent-prompts.ts                 # Claude prompts for tax, lease, market agents
-├── report-pdf.tsx                   # @react-pdf document layout
-├── constants.ts                     # Risk thresholds, business types, disclaimers
-├── demo-data.ts                     # Pre-loaded HVAC demo data
-└── format.ts                        # UI formatting helpers
-
-context/
-└── AnalysisContext.tsx              # Global wizard state (step, data, report, loading)
-
-components/
-├── layout/                          # Header, Footer, StepIndicator
-├── upload/                          # FileDropZone
-├── report/                          # ExecutiveSummary, FinancialSnapshot,
-│                                    # DebtServiceAnalysis, RiskAssessment,
-│                                    # TransferabilityAnalysis, SellerQuestions,
-│                                    # DiligenceChecklist, UpsideOpportunities,
-│                                    # FinalRecommendation, ReportHeader, ScoreBadge
-└── ui/                              # shadcn/ui primitives (button, card, slider, etc.)
-```
-
----
-
-## Getting Started
-
-### Prerequisites
+Prerequisites:
 
 - Node.js 18+
-- An [OpenRouter API key](https://openrouter.ai/) for all LLM agents
-- A [Mistral API key](https://console.mistral.ai/) for OCR document extraction
+- Python 3.11+
+- OpenRouter API key for LLM agent calls
+- Mistral API key for OCR
 
-### Installation
+Install frontend dependencies:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Team7Hackers/BizzBuy.git
-cd BizzBuy
-
-# 2. Install dependencies
 npm install
-
-# 3. Set up environment variables
-cp .env.local.example .env.local
-# Open .env.local and add your key (see below)
-
-# 4. Start the development server
-npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Build for production
+Install backend dependencies:
 
 ```bash
-npm run build
-npm start
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e .[dev]
 ```
 
----
+Create local environment variables at the repo root:
 
-## Environment Variables
+```bash
+cp .env.example .env.local
+```
 
-| Variable | Required | Description |
-|---|---|---|
-| `OPENROUTER_API_KEY` | Yes | Your OpenRouter API key (routes all 9 LLM agents to `z-ai/glm-5.1`) |
-| `MISTRAL_API_KEY` | Yes | Your Mistral API key (OCR document extraction) |
-| `BIZBUY_BACKEND_URL` | Frontend service | Server-side FastAPI URL used by the Next.js proxy/BFF (default: `http://localhost:8000/api`) |
-| `OPENROUTER_REFERRER` | No | HTTP-Referer header sent to OpenRouter (default: `https://bizbuy.local`) |
-| `FRONTEND_ORIGIN` | Production | Exact public frontend origin(s), comma-separated |
-| `BIZBUY_API_BEARER_TOKEN` | Production | Server-side bearer token shared by the Next.js service and protected backend routes |
-| `BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED` | No | Defaults to `false` in production |
-| `BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES` | No | Defaults to `false` in production |
-| `BIZBUY_MAX_UPLOAD_FILES` | No | Max files accepted in one upload request (default: `10`) |
-| `BIZBUY_MAX_UPLOAD_REQUEST_BYTES` | No | Max aggregate upload request size (default: `104857600`) |
-| `BIZBUY_MAX_ZIP_ENTRIES` | No | Max DOCX/XLSX zip entries (default: `256`) |
-| `BIZBUY_MAX_ZIP_UNCOMPRESSED_BYTES` | No | Max DOCX/XLSX decompressed bytes (default: `52428800`) |
-| `BIZBUY_TRUST_X_FORWARDED_FOR` | No | Defaults to `false`; only enable with `BIZBUY_TRUSTED_PROXY_IPS` |
-
-Create `.env.local` at the project root (never commit this file — it is in `.gitignore`):
+Minimum useful values:
 
 ```env
 OPENROUTER_API_KEY=sk-or-v1-...
 MISTRAL_API_KEY=...
 BIZBUY_BACKEND_URL=http://localhost:8000/api
+BIZBUY_FLOW_TOKEN_SECRET=replace_with_a_long_random_local_secret
 ```
 
-A template is provided at `.env.local.example`.
+Run the backend:
 
-### Railway Production Deployment
-
-Deploy as two Railway services:
-
-- `bizzbuy-web`: public Next.js frontend.
-- `bizzbuy-api`: FastAPI backend, private/internal when Railway networking allows it.
-
-The browser calls only same-origin frontend routes such as `/api/backend/parse-documents` and `/api/backend/analyses/{id}/events`. The Next.js route handler forwards those calls to FastAPI and attaches `Authorization: Bearer ${BIZBUY_API_BEARER_TOKEN}` server-side. Never create a `NEXT_PUBLIC_BIZBUY_API_BEARER_TOKEN`, and do not use `NEXT_PUBLIC_BACKEND_URL` for production backend access.
-
-Frontend Railway variables:
-
-```env
-BIZBUY_BACKEND_URL=http://<backend-internal-host>:8000/api
-BIZBUY_API_BEARER_TOKEN=<same-secret-as-backend>
-NEXT_PUBLIC_APP_URL=https://<frontend-domain>
+```bash
+cd backend
+uvicorn app.main:app --reload --port 8000
 ```
 
-Backend Railway variables:
+Run the frontend in a second terminal:
 
-```env
-BIZBUY_ENV=production
-FRONTEND_ORIGIN=https://<frontend-domain>
-BIZBUY_REQUIRE_EXPENSIVE_ROUTE_AUTH=true
-BIZBUY_API_BEARER_TOKEN=<strong-secret>
-OPENROUTER_API_KEY=<secret>
-MISTRAL_API_KEY=<secret>
-OPENROUTER_REFERRER=https://<frontend-domain>
-BIZBUY_API_DOCS_ENABLED=false
-BIZBUY_PIPELINE_PROMPT_DEBUG_ARTIFACTS_ENABLED=false
-BIZBUY_PIPELINE_PROMPT_DEBUG_INCLUDE_BODIES=false
-BIZBUY_DELETE_UPLOADS_AFTER_INGEST=true
+```bash
+npm run dev
 ```
 
-In production, `/docs`, `/redoc`, and `/openapi.json` are disabled by default. Prompt-debug artifacts and prompt bodies default to off in production; keep them off unless you are using a controlled support workflow.
+Open `http://localhost:3000`.
 
-Rate limits are in-memory and are appropriate only as a single-instance beta defense. For multi-instance or higher-risk production, put the backend behind a trusted gateway or replace the counters with Redis-backed limits. The backend ignores arbitrary `x-forwarded-for` by default; enable it only with an explicit `BIZBUY_TRUSTED_PROXY_IPS` allowlist.
+## Storage Defaults
 
-Sample-company folders in this repo are synthetic development fixtures, but they are excluded from Docker build contexts with `sample company*` and should not be uploaded to Railway builders.
+Runtime storage is local and ignored by git:
 
-### Docker Startup Scripts
+| Variable | Default | Notes |
+|---|---|---|
+| `BIZBUY_ARTIFACT_DIR` | `backend/.artifacts` | Analysis jobs, reports, prompt debug artifacts, OCR cache |
+| `BIZBUY_UPLOAD_DIR` | `backend/uploads` | Temporary upload storage for classification |
 
-Docker Compose is local/reference guidance. Railway should use the two-service environment matrix above.
+Relative defaults and legacy `backend/.artifacts` values are resolved from the backend project root, so running commands from either the repo root or `backend/` does not create `backend/backend/.artifacts`.
 
-Localhost dev mode, using `next dev`, backend `--reload`, and the server-side Next.js backend proxy:
+## Useful Commands
 
-```powershell
-.\scripts\start-docker.ps1 local
+```bash
+npm run build
+npm run lint
 ```
 
 ```bash
-./scripts/start-docker.sh local
+cd backend
+python -m pytest -q
+python -m pytest -q tests/test_parse_documents_route.py
+python -m pytest -q tests/test_analysis_jobs.py
 ```
 
-Production-style Docker mode, using production images and no source bind mounts:
+## Backend Endpoints
 
-```powershell
-copy .env.example .env.production
-# fill in real production values, especially FRONTEND_ORIGIN, NEXT_PUBLIC_APP_URL, API keys, and BIZBUY_API_BEARER_TOKEN
-.\scripts\start-docker.ps1 production
-```
+All backend endpoints are mounted under `/api`:
 
-```bash
-cp .env.example .env.production
-# fill in real production values
-./scripts/start-docker.sh production
-```
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/health` | Health check |
+| `POST /api/documents/ingest` | Classify uploaded files and create OCR cache refs |
+| `POST /api/parse-documents` | Normalize uploaded documents into pipeline documents and review data |
+| `POST /api/analyze` | Legacy deterministic analysis path |
+| `POST /api/analyses` | Start an analysis job |
+| `GET /api/analyses/{analysis_id}` | Read analysis job status/report |
+| `GET /api/analyses/{analysis_id}/events` | Stream analysis job updates by SSE |
+| `POST /api/pipeline` | Run the pipeline directly |
 
-Both scripts pass extra arguments through to Docker Compose after the mode, so `.\scripts\start-docker.ps1 local down` or `./scripts/start-docker.sh production up --build -d` work as expected.
+## Production Notes
 
----
+For public deployments, set `BIZBUY_ENV=production`, explicit `FRONTEND_ORIGIN`, `BIZBUY_API_BEARER_TOKEN`, `OPENROUTER_API_KEY`, and `MISTRAL_API_KEY`. The Next.js service should keep `BIZBUY_API_BEARER_TOKEN` server-side and call FastAPI through `BIZBUY_BACKEND_URL`; do not expose backend secrets with `NEXT_PUBLIC_*`.
 
-## Project Structure — Key Data Types
+Railway deployments should use two services:
 
-### `FinancialData` (output of Phase 1)
-Structured payload from uploaded documents: `incomeStatement`, `balanceSheet`, `loanTerms`, `cashFlow`, `parsingNotes`, `dataCompleteness`.
+| Service | Source / Dockerfile | Key variables |
+|---|---|---|
+| `bizzbuy-web` | Repo root, `Dockerfile` | `BIZBUY_BACKEND_URL=http://${{bizzbuy-api.RAILWAY_PRIVATE_DOMAIN}}:8000/api`, `BIZBUY_API_BEARER_TOKEN=<same-secret-as-api>`, `BIZBUY_FLOW_TOKEN_SECRET=<strong-secret>`, `NEXT_PUBLIC_APP_URL=https://<frontend-domain>` |
+| `bizzbuy-api` | Root directory `backend`, Dockerfile path `Dockerfile` | `BIZBUY_ENV=production`, `BIZBUY_BIND_HOST=::`, `FRONTEND_ORIGIN=https://<frontend-domain>`, `BIZBUY_API_BEARER_TOKEN=<same-secret-as-web>`, `OPENROUTER_API_KEY=<secret>`, `MISTRAL_API_KEY=<secret>` |
 
-### `SharedContext` (output of Phase 2 merge)
-Carries all Phase 2 agent outputs, merged flags, `validatedSDE`, `sdeConflict`, and the original financial/questionnaire/deal data.
+If the API service is configured from the repo root instead of the `backend/` source root, Railway may build the Next.js Dockerfile for both services. A backend service showing `npm` or `next start` logs is misconfigured; it should show `uvicorn` / FastAPI startup logs. If the Python build fails on `COPY pyproject.toml README.md ./`, the build context is still not `backend`; set Root Directory to `backend` and leave Dockerfile Path as `Dockerfile`, not `backend/Dockerfile`. If the frontend proxy gets `ECONNREFUSED` while the API is running, confirm the API is bound to `::` for Railway private networking. Do not set `BIZBUY_BACKEND_URL` to `localhost` in Railway, because `localhost` points back to the same container.
 
-### `ReportOutput` (output of Phase 3 synthesis)
-All 9 report sections plus `agentFlags`, `sbaLoanSizing`, and `metadata`.
-
----
+Docker Compose files are provided as local/reference deployment guidance. Railway services should provide private writable directories or volumes for artifacts and uploads.
 
 ## Disclaimer
 
-This tool is for informational purposes only. It does not constitute financial, legal, or investment advice. Financial calculations are deterministic and based solely on the data provided. AI-generated narrative sections reflect patterns in the provided data and should be independently verified. Consult qualified professionals — accountant, attorney, business broker — before making any acquisition decision.
+BizzBuy is for informational diligence support only. It is not financial, legal, tax, or investment advice. Buyers should verify outputs and consult qualified professionals before making acquisition decisions.

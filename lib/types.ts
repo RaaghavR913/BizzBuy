@@ -430,15 +430,6 @@ export interface AgentFlag {
   metric?: string;
 }
 
-export interface AgentOutput {
-  agentId: AgentId;
-  summary: string;
-  flags: AgentFlag[];
-  metrics: Record<string, number | string | boolean | null>;
-  confidence: number;
-  notes: string[];
-}
-
 export interface QuestionnaireData {
   ownerDependence: {
     ownerSalesPercentage: number | null;
@@ -582,17 +573,6 @@ export interface ReportOutput {
   };
 }
 
-export interface SharedContext {
-  financialData: FinancialData;
-  questionnaire: QuestionnaireData;
-  dealInfo: DealInfo;
-  agentOutputs: Partial<Record<AgentId, AgentOutput>>;
-  mergedFlags: AgentFlag[];
-  validatedSDE: number;
-  sdeConflict: boolean;
-  dataCompleteness: number;
-}
-
 export interface AnalysisState {
   step: 1 | 2 | 3 | 4;
   financialData: FinancialData | null;
@@ -602,7 +582,6 @@ export interface AnalysisState {
   analysisId: string | null;
   analysisJob: AnalysisJobSnapshot | null;
   pipelineDocuments: PipelineDocumentPayload[];
-  sharedContext: SharedContext | null;
   report: AnyReportOutput | null;
   isLoading: boolean;
   loadingMessage: string;

@@ -11,7 +11,6 @@ import type {
   FinancialData,
   PipelineDocumentPayload,
   QuestionnaireData,
-  SharedContext,
 } from '@/lib/types';
 
 const STORAGE_KEY = 'bizbuy-analysis-state';
@@ -25,7 +24,6 @@ type Action =
   | { type: 'SET_ANALYSIS_ID'; payload: string | null }
   | { type: 'SET_ANALYSIS_JOB'; payload: AnalysisJobSnapshot | null }
   | { type: 'SET_PIPELINE_DOCUMENTS'; payload: PipelineDocumentPayload[] }
-  | { type: 'SET_SHARED_CONTEXT'; payload: SharedContext | null }
   | { type: 'SET_REPORT'; payload: AnyReportOutput }
   | { type: 'SET_LOADING'; payload: { isLoading: boolean; message?: string } }
   | { type: 'SET_ERROR'; payload: string | null }
@@ -41,7 +39,6 @@ const initialState: AnalysisState = {
   analysisId: null,
   analysisJob: null,
   pipelineDocuments: [],
-  sharedContext: null,
   report: null,
   isLoading: false,
   loadingMessage: '',
@@ -94,8 +91,6 @@ function reducer(state: AnalysisState, action: Action): AnalysisState {
       return { ...state, analysisJob: action.payload };
     case 'SET_PIPELINE_DOCUMENTS':
       return { ...state, pipelineDocuments: action.payload };
-    case 'SET_SHARED_CONTEXT':
-      return { ...state, sharedContext: action.payload };
     case 'SET_REPORT':
       return { ...state, report: action.payload };
     case 'SET_LOADING':
@@ -125,7 +120,6 @@ interface AnalysisContextValue {
   setAnalysisId: (analysisId: string | null) => void;
   setAnalysisJob: (analysisJob: AnalysisJobSnapshot | null) => void;
   setPipelineDocuments: (documents: PipelineDocumentPayload[]) => void;
-  setSharedContext: (data: SharedContext | null) => void;
   setReport: (report: AnyReportOutput) => void;
   setLoading: (isLoading: boolean, message?: string) => void;
   setError: (error: string | null) => void;
@@ -170,10 +164,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
 
   const setPipelineDocuments = useCallback((documents: PipelineDocumentPayload[]) => {
     dispatch({ type: 'SET_PIPELINE_DOCUMENTS', payload: documents });
-  }, []);
-
-  const setSharedContext = useCallback((data: SharedContext | null) => {
-    dispatch({ type: 'SET_SHARED_CONTEXT', payload: data });
   }, []);
 
   const setReport = useCallback((report: AnyReportOutput) => {
@@ -403,7 +393,6 @@ export function AnalysisProvider({ children }: { children: React.ReactNode }) {
         setAnalysisId,
         setAnalysisJob,
         setPipelineDocuments,
-        setSharedContext,
         setReport,
         setLoading,
         setError,

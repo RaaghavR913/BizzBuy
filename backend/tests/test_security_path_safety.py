@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from app.core.path_safety import UnsafePathError, safe_child_path, validate_analysis_id
+from app.core.path_safety import (
+    UnsafePathError,
+    backend_project_root,
+    resolve_backend_storage_path,
+    safe_child_path,
+    validate_analysis_id,
+)
 from app.models.schemas import AnalysisJobProgress, AnalysisJobRecord
 from app.services.analysis_repository import FileSystemAnalysisArtifactRepository
 
@@ -50,3 +56,19 @@ def test_repository_rejects_invalid_analysis_artifact_ids(tmp_path, bad_id: str)
 def test_safe_child_path_rejects_traversal_and_absolute_forms(tmp_path, bad_part: str) -> None:
     with pytest.raises(UnsafePathError):
         safe_child_path(tmp_path, bad_part)
+
+
+def test_backend_storage_defaults_are_independent_of_cwd(monkeypatch, tmp_path) -> None:
+    monkeypatch.chdir(tmp_path)
+
+    backend_root = backend_project_root()
+
+    assert resolve_backend_storage_path(None, default_relative=".artifacts") == backend_root / ".artifacts"
+    assert resolve_backend_storage_path(None, default_relative="uploads") == backend_root / "uploads"
+    assert resolve_backend_storage_path("backend/.artifacts", default_relative=".artifacts") == backend_root / ".artifacts"
+
+
+def test_backend_storage_allows_absolute_overrides(tmp_path) -> None:
+    configured = tmp_path / "artifacts"
+
+    assert resolve_backend_storage_path(configured, default_relative=".artifacts") == configured.resolve()

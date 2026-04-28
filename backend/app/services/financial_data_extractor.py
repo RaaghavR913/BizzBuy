@@ -20,8 +20,59 @@ class ExtractedFinancialData:
     detected_location: str | None = None
 
 
+@dataclass(slots=True)
+class AskingPriceEvidence:
+    value: float
+    source: str
+    document_id: str | None = None
+    section_id: str | None = None
+    section_name: str | None = None
+    confidence: float | None = None
+
+
 # Regex to extract city/state combos like "Denver, CO" from raw text.
 _LOCATION_RE = re.compile(r"\b([A-Z][a-z]{2,}(?:\s[A-Z][a-z]{2,})?),\s*([A-Z]{2})\b")
+_ASKING_PRICE_FIELD_KEYS = {
+    "asking_price",
+    "askingprice",
+    "list_price",
+    "listprice",
+    "listing_price",
+    "listingprice",
+    "purchase_price",
+    "purchaseprice",
+    "sale_price",
+    "saleprice",
+    "offer_price",
+    "offerprice",
+}
+_ASKING_PRICE_LABELS = [
+    "asking price",
+    "asking price per listing",
+    "listing price",
+    "list price",
+    "purchase price",
+    "sale price",
+    "transaction price",
+    "business price",
+]
+_ASKING_PRICE_PATTERN = re.compile(
+    r"\b(?:asking|listing|list|purchase|sale|transaction)\s+price\b[^$\d]{0,40}(\$?\s*\d[\d,]*(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+_YEAR_RE = re.compile(r"\b(19\d{2}|20\d{2})\b")
+_REPORTING_YEAR_PATTERNS = (
+    re.compile(r"\b(?:fy|fye)\s*['-]?\s*(19\d{2}|20\d{2})\b", re.IGNORECASE),
+    re.compile(r"\b(?:fiscal|tax|calendar)\s+year(?:\s+ended|\s+ending)?[^0-9]{0,30}(19\d{2}|20\d{2})\b", re.IGNORECASE),
+    re.compile(r"\b(?:year|period)\s+end(?:ed|ing)?[^0-9]{0,40}(19\d{2}|20\d{2})\b", re.IGNORECASE),
+    re.compile(r"\bfor\s+the\s+year\s+end(?:ed|ing)?[^0-9]{0,40}(19\d{2}|20\d{2})\b", re.IGNORECASE),
+    re.compile(r"\bas\s+of[^0-9]{0,40}(19\d{2}|20\d{2})\b", re.IGNORECASE),
+)
+_IDENTITY_YEAR_CONTEXT_RE = re.compile(
+    r"\b(?:dob|date\s+of\s+birth|birth|born|age|ssn|taxpayer|spouse|dependent|founded|established|incorporated|formed|naics|zip)\b",
+    re.IGNORECASE,
+)
+_HEADER_LABEL_RE = re.compile(r"\b(?:line\s+item|metric|account|description|category|period|year)\b", re.IGNORECASE)
 
 
 def extract_financial_data(ingestion_output: IngestionOutput) -> ExtractedFinancialData:
@@ -38,7 +89,20 @@ def extract_financial_data(ingestion_output: IngestionOutput) -> ExtractedFinanc
         result.income_statement = _extract_income_statement(pnl_section, sde_section, result.parsing_notes)
     if balance_section:
         result.balance_sheet = _extract_balance_sheet(balance_section, result.parsing_notes)
-    if sde_section:
+    asking_price = extract_document_asking_price(ingestion_output)
+    if asking_price:
+        result.loan_terms = LoanTerms(
+            loan_amount=0,
+            interest_rate=0,
+            term_months=120,
+            asking_price=asking_price.value,
+            loan_type="sba_7a",
+            asking_price_estimated=False,
+        )
+        result.parsing_notes.append(
+            f"{asking_price.section_name or asking_price.section_id or 'document'}: mapped explicit asking price into loan terms review fields."
+        )
+    elif sde_section:
         result.loan_terms = _extract_loan_terms(sde_section, result.parsing_notes)
     if cash_flow_section:
         result.cash_flow = _extract_cash_flow(cash_flow_section, result.parsing_notes)
@@ -92,22 +156,155 @@ def extract_financial_data(ingestion_output: IngestionOutput) -> ExtractedFinanc
         if result.detected_location:
             break
 
-    # --- Auto-estimate asking price at 3x SDE if no listing document supplied it ---
-    sde_value: float | None = None
-    if result.income_statement and result.income_statement.sde:
-        sde_value = result.income_statement.sde
-    if sde_value is not None and (result.loan_terms is None or result.loan_terms.asking_price == 0):
-        estimated_price = round(sde_value * 3.0 / 1000) * 1000  # round to nearest $1,000
-        result.loan_terms = LoanTerms(
-            loan_amount=0,
-            interest_rate=0,
-            term_months=120,
-            asking_price=estimated_price,
-            loan_type="sba_7a",
-            asking_price_estimated=True,
-        )
-
     return result
+
+
+def resolve_asking_price(
+    ingestion_output: IngestionOutput,
+    *,
+    user_asking_price: float | int | str | None = None,
+    fallback_sde: float | None = None,
+) -> AskingPriceEvidence | None:
+    user_value = _parse_number(user_asking_price)
+    if _is_plausible_asking_price(user_value):
+        return AskingPriceEvidence(value=float(user_value), source="user")
+
+    document_value = extract_document_asking_price(ingestion_output)
+    if document_value:
+        return document_value
+
+    if fallback_sde is not None and fallback_sde > 0:
+        return AskingPriceEvidence(value=round(fallback_sde * 3.0), source="estimated_3x_sde")
+    return None
+
+
+def extract_document_asking_price(ingestion_output: IngestionOutput) -> AskingPriceEvidence | None:
+    candidates: list[tuple[int, int, AskingPriceEvidence]] = []
+    order = 0
+    for document in ingestion_output.documents:
+        for section in document.sections:
+            order += 1
+            base = AskingPriceEvidence(
+                value=0,
+                source="document",
+                document_id=document.document_id,
+                section_id=section.section_id,
+                section_name=section.section_name,
+                confidence=section.confidence,
+            )
+            for value, score in _asking_price_values_from_extracted_data(section.extracted_data):
+                candidates.append((_section_price_priority(section, document.file_name) + score, order, _with_price(base, value)))
+            rows = _section_rows(section)
+            for value, score in _asking_price_values_from_rows(rows):
+                candidates.append((_section_price_priority(section, document.file_name) + score, order, _with_price(base, value)))
+            for value, score in _asking_price_values_from_raw_text(section.raw_text):
+                candidates.append((_section_price_priority(section, document.file_name) + score, order, _with_price(base, value)))
+
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    return candidates[0][2]
+
+
+def _with_price(base: AskingPriceEvidence, value: float) -> AskingPriceEvidence:
+    return AskingPriceEvidence(
+        value=value,
+        source=base.source,
+        document_id=base.document_id,
+        section_id=base.section_id,
+        section_name=base.section_name,
+        confidence=base.confidence,
+    )
+
+
+def _section_price_priority(section: DocumentSection, file_name: str) -> int:
+    text = " ".join(
+        item.lower()
+        for item in [
+            file_name,
+            section.section_name or "",
+            section.section_kind or "",
+            section.document_type.value,
+        ]
+    )
+    score = 0
+    if any(token in text for token in ("deal", "transaction", "listing", "cim", "memorandum", "contract")):
+        score += 4
+    if any(token in text for token in ("sde", "loan", "other")):
+        score += 1
+    return score
+
+
+def _asking_price_values_from_extracted_data(data: dict[str, Any]) -> list[tuple[float, int]]:
+    values: list[tuple[float, int]] = []
+    for key, value in (data or {}).items():
+        normalized_key = _normalize_label(str(key)).replace(" ", "")
+        if normalized_key not in _ASKING_PRICE_FIELD_KEYS:
+            continue
+        parsed = _parse_number(value)
+        if _is_plausible_asking_price(parsed):
+            values.append((float(parsed), 12))
+    return values
+
+
+def _asking_price_values_from_rows(rows: list[dict[str, Any]]) -> list[tuple[float, int]]:
+    values: list[tuple[float, int]] = []
+    if not rows:
+        return values
+
+    table = _row_table(rows)
+    row_value = table.find(_ASKING_PRICE_LABELS)
+    if _is_plausible_asking_price(row_value):
+        values.append((float(row_value), 10))
+
+    for row_index, row in enumerate(rows):
+        ordered_columns = _ordered_columns(row)
+        cells = [(column, str(row.get(column) or "").strip()) for column in ordered_columns]
+        for cell_index, (_column, text) in enumerate(cells):
+            if not _is_asking_price_label(text):
+                continue
+            for _next_column, next_text in cells[cell_index + 1 :]:
+                parsed = _parse_number(next_text)
+                if _is_plausible_asking_price(parsed):
+                    values.append((float(parsed), 11))
+                    break
+            inline = _ASKING_PRICE_PATTERN.search(text)
+            if inline:
+                parsed = _parse_number(inline.group(1))
+                if _is_plausible_asking_price(parsed):
+                    values.append((float(parsed), 9))
+
+        if row_index >= len(rows) - 1:
+            continue
+        next_row = rows[row_index + 1]
+        for column, text in cells:
+            if not _is_asking_price_label(text):
+                continue
+            parsed = _parse_number(next_row.get(column))
+            if _is_plausible_asking_price(parsed):
+                values.append((float(parsed), 11))
+
+    return values
+
+
+def _asking_price_values_from_raw_text(raw_text: str | None) -> list[tuple[float, int]]:
+    if not raw_text:
+        return []
+    values: list[tuple[float, int]] = []
+    for match in _ASKING_PRICE_PATTERN.finditer(raw_text):
+        parsed = _parse_number(match.group(1))
+        if _is_plausible_asking_price(parsed):
+            values.append((float(parsed), 6))
+    return values
+
+
+def _is_asking_price_label(value: str) -> bool:
+    normalized = _normalize_label(value)
+    return any(label in normalized for label in _ASKING_PRICE_LABELS)
+
+
+def _is_plausible_asking_price(value: float | None) -> bool:
+    return value is not None and 10_000 <= value <= 1_000_000_000
 
 
 def _iter_sections(ingestion_output: IngestionOutput) -> list[tuple[DocumentSection, str]]:
@@ -261,7 +458,7 @@ def _extract_balance_sheet(section: DocumentSection, notes: list[str]) -> Balanc
 def _extract_loan_terms(section: DocumentSection, notes: list[str]) -> LoanTerms | None:
     rows = _section_rows(section)
     table = _row_table(rows)
-    asking_price = table.find(["asking price (per listing)", "asking price"])
+    asking_price = table.find(_ASKING_PRICE_LABELS)
     if asking_price is None:
         return None
 
@@ -400,10 +597,17 @@ def _year_columns(rows: list[dict[str, Any]]) -> dict[int, str]:
             if col in {"row_index", "A"}:
                 continue
             text = str(val or "").strip()
-            if text and _parse_number(text) is None and not re.fullmatch(r"(19|20)\d{2}", text):
+            if text and _parse_number(text) is None and _extract_year_header(text) is None:
                 notes_columns.add(col)
 
     for row in rows:
+        row_label = str(row.get("A") or "")
+        yearish_cells = [
+            value
+            for column, value in row.items()
+            if column not in {"row_index", "A"} and _YEAR_RE.search(str(value or ""))
+        ]
+        row_has_multiple_years = len(yearish_cells) >= 2
         for column, value in row.items():
             if column in {"row_index", "A"}:
                 continue
@@ -412,18 +616,40 @@ def _year_columns(rows: list[dict[str, Any]]) -> dict[int, str]:
             text = str(value or "")
             if "%" in text:
                 continue
-            match = re.search(r"\b(19\d{2}|20\d{2})\b", text)
-            if not match:
+            year = _extract_year_header(
+                text,
+                row_label=row_label,
+                row_has_multiple_years=row_has_multiple_years,
+            )
+            if year is None:
                 continue
-            # Reject years that appear inside longer narrative sentences.
-            # A cell is treated as a year header only when the text outside
-            # the year match is short (e.g. "FY 2024", "2024", "Dec 2024").
-            surrounding = text[: match.start()] + text[match.end() :]
-            if len(surrounding.replace(" ", "")) > 8:
-                continue
-            year = int(match.group(1))
             columns[year] = str(column)
     return columns
+
+
+def _extract_year_header(
+    value: str,
+    *,
+    row_label: str = "",
+    row_has_multiple_years: bool = False,
+) -> int | None:
+    text = str(value or "").strip()
+    if not text or "%" in text:
+        return None
+    context = f"{row_label} {text}"
+    if _IDENTITY_YEAR_CONTEXT_RE.search(context):
+        return None
+
+    for pattern in _REPORTING_YEAR_PATTERNS:
+        match = pattern.search(text)
+        if match:
+            return int(match.group(1))
+
+    if re.fullmatch(r"(19\d{2}|20\d{2})", text):
+        if row_has_multiple_years or _HEADER_LABEL_RE.search(row_label):
+            return int(text)
+        return None
+    return None
 
 
 def _latest_year_column(year_columns: dict[int, str]) -> str | None:

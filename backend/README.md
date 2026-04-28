@@ -32,12 +32,22 @@ In production, API docs are disabled by default. Set `BIZBUY_API_DOCS_ENABLED=tr
 - `GET /api/analyses/{analysis_id}/events`
 - `POST /api/pipeline`
 
+## Storage Defaults
+
+Unless overridden with absolute paths, backend storage resolves from this `backend/` directory:
+
+- `BIZBUY_ARTIFACT_DIR=.artifacts` writes to `backend/.artifacts`
+- `BIZBUY_UPLOAD_DIR=uploads` writes to `backend/uploads`
+
+The resolver also treats the legacy relative value `backend/.artifacts` as `backend/.artifacts`, which prevents duplicate `backend/backend/.artifacts` trees when tests or local servers run from inside this directory.
+
 ## Production Controls
 
 Set these for a public Railway deployment:
 
 ```env
 BIZBUY_ENV=production
+BIZBUY_BIND_HOST=::
 FRONTEND_ORIGIN=https://<frontend-domain>
 BIZBUY_REQUIRE_EXPENSIVE_ROUTE_AUTH=true
 BIZBUY_API_BEARER_TOKEN=<strong-secret>
@@ -54,8 +64,10 @@ Production mode requires explicit non-local CORS origins and protects expensive 
 
 Recommended Railway topology:
 
-- `bizzbuy-web`: public Next.js service with `BIZBUY_BACKEND_URL=http://<backend-internal-host>:8000/api` and the same `BIZBUY_API_BEARER_TOKEN`.
-- `bizzbuy-api`: FastAPI service, private/internal where Railway supports it. If it has a public URL, expensive routes still require the bearer token.
+- `bizzbuy-web`: public Next.js service from the repo root Dockerfile with `BIZBUY_BACKEND_URL=http://${{bizzbuy-api.RAILWAY_PRIVATE_DOMAIN}}:8000/api` and the same `BIZBUY_API_BEARER_TOKEN`.
+- `bizzbuy-api`: FastAPI service using `backend/` as the Railway root directory and `Dockerfile` as the Dockerfile path. From that context, Railway builds `backend/Dockerfile` instead of the root Next.js Dockerfile. If it has a public URL, expensive routes still require the bearer token.
+
+If `bizzbuy-api` logs show `npm`, `next start`, or port `3000`, it is running the frontend image by mistake. If the Python build fails on `COPY pyproject.toml README.md ./`, Railway is still building with the wrong context or Dockerfile path; use Root Directory `backend` plus Dockerfile Path `Dockerfile`, not `backend/Dockerfile`. If the frontend proxy gets `ECONNREFUSED` while the API is running, confirm Uvicorn is listening on `::` for Railway private networking. The API service should run `uvicorn` and listen on Railway's `PORT` value, with `8000` only as the local fallback.
 
 Abuse controls are intentionally conservative for a beta:
 

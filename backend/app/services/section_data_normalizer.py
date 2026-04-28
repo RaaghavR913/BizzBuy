@@ -4,7 +4,7 @@ import re
 from typing import Any
 
 from app.agents.schemas import DocumentSection, DocumentType
-from app.services.financial_data_extractor import _parse_number, _row_table, _section_rows, _year_columns
+from app.services.financial_data_extractor import _extract_year_header, _parse_number, _row_table, _section_rows, _year_columns
 
 
 FINANCIAL_ALIASES: dict[str, list[str]] = {
@@ -48,6 +48,14 @@ CASH_FLOW_ALIASES: dict[str, list[str]] = {
     "free_cash_flow": ["free cash flow"],
 }
 
+AR_BUCKET_KEYS = {
+    "current": ["current", "0 30", "0 30 days", "0 to 30", "not yet due"],
+    "30_days": ["31 60", "31 60 days", "30 days", "30day", "bucket 30"],
+    "60_days": ["61 90", "61 90 days", "60 days", "60day", "bucket 60"],
+    "90_days": ["91 120", "91 120 days", "90 days", "90day", "90 plus", "90"],
+    "over_90": ["120", "120 plus", "over 90", "over90", "90 plus", "120 days"],
+}
+
 
 def normalize_section_extracted_data(section: DocumentSection) -> dict[str, Any]:
     data = dict(section.extracted_data or {})
@@ -67,6 +75,8 @@ def normalize_section_extracted_data(section: DocumentSection) -> dict[str, Any]
         data.update(_mapped_table_values(rows, BALANCE_ALIASES))
     elif kind == DocumentType.CASH_FLOW_STATEMENT.value:
         data.update(_mapped_table_values(rows, CASH_FLOW_ALIASES))
+    elif kind == DocumentType.AR_AGING_REPORT.value:
+        data.update(_ar_aging_values(rows))
     elif kind == DocumentType.CUSTOMER_LIST.value:
         customers = _customer_rows(rows)
         if customers:
@@ -83,10 +93,11 @@ def infer_latest_fiscal_year(rows: list[dict[str, Any]]) -> int | None:
     if year_columns:
         return max(year_columns)
     for row in rows:
+        row_label = str(row.get("A") or "")
         for value in row.values():
-            match = re.search(r"\b(19\d{2}|20\d{2})\b", str(value or ""))
-            if match:
-                return int(match.group(1))
+            year = _extract_year_header(str(value or ""), row_label=row_label)
+            if year is not None:
+                return year
     return None
 
 
@@ -116,6 +127,75 @@ def _sde_add_backs(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         add_backs.append({"description": row.label, "amount": row.latest_value, "category": category})
     return add_backs
+
+
+def _ar_aging_values(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    header = _header_map(rows, ["client", "total"]) or _header_map(rows, ["customer", "total"])
+    if not header:
+        return {}
+
+    name_col = header.get("client") or header.get("customer") or header.get("customer name") or header.get("name")
+    total_col = header.get("total") or header.get("balance") or header.get("amount")
+    bucket_cols = {
+        key: _first_matching_header(header, aliases)
+        for key, aliases in AR_BUCKET_KEYS.items()
+    }
+
+    customers: list[dict[str, Any]] = []
+    totals = {key: 0.0 for key in ("total_ar", "current", "30_days", "60_days", "90_days", "over_90")}
+    total_row_found = False
+
+    for row in rows[header["_index"] + 1 :]:
+        name = str(row.get(name_col) or "").strip() if name_col else ""
+        if not name:
+            continue
+        lower_name = name.lower()
+        if lower_name.startswith("note:") or lower_name.startswith("notes:"):
+            continue
+
+        amount = _parse_number(row.get(total_col)) if total_col else None
+        bucket_values = {
+            key: _parse_number(row.get(column)) if column else None
+            for key, column in bucket_cols.items()
+        }
+
+        if "total" in lower_name:
+            total_row_found = True
+            totals["total_ar"] = amount or 0.0
+            for key, value in bucket_values.items():
+                totals[key] = value or 0.0
+            continue
+
+        if amount is None:
+            amount = sum(value or 0.0 for value in bucket_values.values())
+        if amount <= 0 and not any(value for value in bucket_values.values()):
+            continue
+
+        customer = {
+            "id": f"ar_customer_{len(customers) + 1}",
+            "name": name,
+            "total": amount,
+            "balance": amount,
+            "is_grouped": _is_grouped_customer_name(name),
+        }
+        for key, value in bucket_values.items():
+            if value is not None:
+                customer[key] = value
+        customers.append(customer)
+
+    if not customers and not total_row_found:
+        return {}
+
+    if not total_row_found:
+        totals["total_ar"] = sum(customer["total"] for customer in customers)
+        for key in ("current", "30_days", "60_days", "90_days", "over_90"):
+            totals[key] = sum(_parse_number(customer.get(key)) or 0.0 for customer in customers)
+
+    return {
+        **{key: value for key, value in totals.items() if value or key == "total_ar"},
+        "customers": customers,
+        "grouped_customer_buckets": [customer for customer in customers if customer.get("is_grouped")],
+    }
 
 
 def _customer_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -189,6 +269,29 @@ def _first_header_containing(header: dict[str, Any], needle: str) -> str | None:
         if normalized in label:
             return str(column)
     return None
+
+
+def _first_matching_header(header: dict[str, Any], aliases: list[str]) -> str | None:
+    normalized_aliases = [_normalize_header(alias) for alias in aliases]
+    for alias in normalized_aliases:
+        for label, column in header.items():
+            if label == "_index":
+                continue
+            if label == alias:
+                return str(column)
+    for alias in aliases:
+        column = _first_header_containing(header, alias)
+        if column:
+            return column
+    return None
+
+
+def _is_grouped_customer_name(value: str) -> bool:
+    normalized = _normalize_header(value)
+    return bool(
+        re.search(r"\b(?:other|misc|various|remaining|all other)\b", normalized)
+        or re.search(r"\b\d+\s+(?:accounts|clients|customers|invoices)\b", normalized)
+    )
 
 
 def _normalize_header(value: str) -> str:

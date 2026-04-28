@@ -102,6 +102,15 @@ def test_periods_exclude_false_2028():
     assert table.periods == ["2022", "2023", "2024"]
 
 
+def test_year_columns_rejects_dob_like_identity_date():
+    rows = [
+        {"row_index": 1, "A": "Taxpayer", "B": "Kyle Hartigan", "C": "DOB", "D": "March 4, 1981"},
+        {"row_index": 2, "A": "Address", "B": "Denver, CO", "C": "Occupation", "D": "IT Consultant"},
+    ]
+
+    assert _year_columns(rows) == {}
+
+
 # ---------------------------------------------------------------------------
 # Bug 2 – SDE alias tests
 # ---------------------------------------------------------------------------

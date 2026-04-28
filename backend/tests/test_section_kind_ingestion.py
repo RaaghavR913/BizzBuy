@@ -158,6 +158,38 @@ def test_review_financial_extractor_falls_back_when_section_kind_is_other() -> N
     assert extracted.income_statement.net_income == 102904
 
 
+def test_extractor_uses_explicit_docx_deal_table_asking_price() -> None:
+    output = ingest_document_payloads(
+        [
+            {
+                "id": "cim-1",
+                "fileName": "CIM_Alpine.docx",
+                "documentType": "contract",
+                "sections": [
+                    {
+                        "sectionId": "cim-1:table-1",
+                        "sectionName": "Transaction Details",
+                        "extractedData": {
+                            "rows": [
+                                {"row_index": 1, "A": "Asking Price", "B": "$1,300,000"},
+                                {"row_index": 2, "A": "Structure", "B": "Asset sale"},
+                            ]
+                        },
+                        "rawText": "Asking Price | $1,300,000\nStructure | Asset sale",
+                        "confidence": 0.9,
+                    }
+                ],
+            }
+        ]
+    )
+
+    extracted = extract_financial_data(output)
+
+    assert extracted.loan_terms is not None
+    assert extracted.loan_terms.asking_price == 1_300_000
+    assert extracted.loan_terms.asking_price_estimated is False
+
+
 def test_customer_and_equipment_sections_from_one_workbook_feed_different_metrics() -> None:
     ingestion = _ingestion_output(
         [

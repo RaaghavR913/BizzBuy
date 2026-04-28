@@ -53,7 +53,7 @@ def infer_section_kind(
     """Infer a lightweight section kind without changing persisted schemas."""
     text = _combined_text(section_name=section_name, raw_text=raw_text, rows=rows)
 
-    if "balance sheet" in text:
+    if _looks_like_balance_sheet(section_name=section_name, text=text, rows=rows):
         return DocumentType.BALANCE_SHEET.value
     if _has_any(text, "customer list", "% of total rev", "contract type", "owner contact"):
         return DocumentType.CUSTOMER_LIST.value
@@ -188,6 +188,19 @@ def _has_any(text: str, *needles: str) -> bool:
 
 def _has_all(text: str, *needles: str) -> bool:
     return all(needle in text for needle in needles)
+
+
+def _looks_like_balance_sheet(
+    *,
+    section_name: str | None,
+    text: str,
+    rows: list[dict[str, Any]] | None,
+) -> bool:
+    if section_name and "balance sheet" in section_name.lower():
+        return True
+    if rows and _has_any(text, "total assets", "total liabilities", "owner's equity", "owners equity", "total equity"):
+        return True
+    return False
 
 
 def _normalize_document_type(value: Any) -> DocumentType:
