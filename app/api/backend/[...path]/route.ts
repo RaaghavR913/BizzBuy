@@ -67,8 +67,24 @@ function backendRoute(method: string, segments: string[]): BackendRoute | null {
   return null;
 }
 
+function isRailwayRuntime(): boolean {
+  return Boolean(process.env.RAILWAY_ENVIRONMENT_ID || process.env.RAILWAY_SERVICE_ID);
+}
+
+function isLocalBackendUrl(rawBase: string): boolean {
+  try {
+    const url = new URL(rawBase);
+    return ['localhost', '127.0.0.1', '::1', '[::1]'].includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function backendUrl(segments: string[], search: string): URL {
   const rawBase = process.env.BIZBUY_BACKEND_URL || DEFAULT_BACKEND_URL;
+  if (isRailwayRuntime() && (!process.env.BIZBUY_BACKEND_URL || isLocalBackendUrl(rawBase))) {
+    throw new Error('BIZBUY_BACKEND_URL must point to the Railway backend service.');
+  }
   const normalizedBase = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
   const encodedPath = segments.map((segment) => encodeURIComponent(segment)).join('/');
   const url = new URL(encodedPath, normalizedBase);

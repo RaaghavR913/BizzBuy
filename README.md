@@ -134,7 +134,16 @@ All backend endpoints are mounted under `/api`:
 
 For public deployments, set `BIZBUY_ENV=production`, explicit `FRONTEND_ORIGIN`, `BIZBUY_API_BEARER_TOKEN`, `OPENROUTER_API_KEY`, and `MISTRAL_API_KEY`. The Next.js service should keep `BIZBUY_API_BEARER_TOKEN` server-side and call FastAPI through `BIZBUY_BACKEND_URL`; do not expose backend secrets with `NEXT_PUBLIC_*`.
 
-Docker Compose files are provided as local/reference deployment guidance. Railway deployments should run separate frontend and backend services and provide private writable directories or volumes for artifacts and uploads.
+Railway deployments should use two services:
+
+| Service | Source / Dockerfile | Key variables |
+|---|---|---|
+| `bizzbuy-web` | Repo root, `Dockerfile` | `BIZBUY_BACKEND_URL=http://${{bizzbuy-api.RAILWAY_PRIVATE_DOMAIN}}:8000/api`, `BIZBUY_API_BEARER_TOKEN=<same-secret-as-api>`, `BIZBUY_FLOW_TOKEN_SECRET=<strong-secret>`, `NEXT_PUBLIC_APP_URL=https://<frontend-domain>` |
+| `bizzbuy-api` | Root directory `backend`, Dockerfile path `Dockerfile` | `BIZBUY_ENV=production`, `BIZBUY_BIND_HOST=::`, `FRONTEND_ORIGIN=https://<frontend-domain>`, `BIZBUY_API_BEARER_TOKEN=<same-secret-as-web>`, `OPENROUTER_API_KEY=<secret>`, `MISTRAL_API_KEY=<secret>` |
+
+If the API service is configured from the repo root instead of the `backend/` source root, Railway may build the Next.js Dockerfile for both services. A backend service showing `npm` or `next start` logs is misconfigured; it should show `uvicorn` / FastAPI startup logs. If the Python build fails on `COPY pyproject.toml README.md ./`, the build context is still not `backend`; set Root Directory to `backend` and leave Dockerfile Path as `Dockerfile`, not `backend/Dockerfile`. If the frontend proxy gets `ECONNREFUSED` while the API is running, confirm the API is bound to `::` for Railway private networking. Do not set `BIZBUY_BACKEND_URL` to `localhost` in Railway, because `localhost` points back to the same container.
+
+Docker Compose files are provided as local/reference deployment guidance. Railway services should provide private writable directories or volumes for artifacts and uploads.
 
 ## Disclaimer
 
