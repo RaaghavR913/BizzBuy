@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import RLock
@@ -9,7 +8,7 @@ from typing import Protocol
 
 from app.agents.schemas import ArtifactReference, ArtifactStorageKind, StoredIngestionArtifacts
 from app.agents.evidence_utils import build_evidence_fields
-from app.core.path_safety import safe_child_path, validate_analysis_id
+from app.core.path_safety import resolve_backend_env_path, safe_child_path, validate_analysis_id
 from app.models.schemas import AnalysisJobRecord
 
 
@@ -53,8 +52,11 @@ class AnalysisArtifactRepository(Protocol):
 
 class FileSystemAnalysisArtifactRepository:
     def __init__(self, root_dir: str | Path | None = None) -> None:
-        configured_root = root_dir or os.getenv("BIZBUY_ARTIFACT_DIR") or Path("backend/.artifacts")
-        self.root_dir = Path(configured_root).resolve()
+        self.root_dir = (
+            Path(root_dir).resolve()
+            if root_dir is not None
+            else resolve_backend_env_path("BIZBUY_ARTIFACT_DIR", default_relative=".artifacts")
+        )
  
     _fs_lock = RLock()
 

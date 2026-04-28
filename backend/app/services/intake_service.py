@@ -3,7 +3,6 @@ from __future__ import annotations
 import csv as _csv_module
 import json
 import mimetypes
-import os
 from dataclasses import dataclass, field
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -16,7 +15,7 @@ from fastapi import UploadFile
 
 from app.agents.schemas import DocumentType, MissingInput
 from app.core.config import get_settings
-from app.core.path_safety import UnsafePathError, validate_sha256_hex
+from app.core.path_safety import UnsafePathError, resolve_backend_env_path, validate_sha256_hex
 from app.services.section_kind import infer_section_kind, infer_sheet_kinds
 
 
@@ -187,6 +186,29 @@ def _col_letter(n: int) -> str:
         n, rem = divmod(n - 1, 26)
         result = chr(65 + rem) + result
     return result
+
+
+def _rows_to_local_text(rows: list[dict[str, Any]]) -> str:
+    lines: list[str] = []
+    for row in rows:
+        values = [
+            str(value).strip()
+            for column, value in sorted(row.items(), key=lambda item: _col_sort_key(str(item[0])))
+            if column != "row_index" and value not in {None, ""}
+        ]
+        if values:
+            lines.append(" | ".join(values))
+    return "\n".join(lines)
+
+
+def _col_sort_key(column: str) -> int:
+    if column == "row_index":
+        return -1
+    total = 0
+    for char in column.upper():
+        if "A" <= char <= "Z":
+            total = total * 26 + (ord(char) - ord("A") + 1)
+    return total
 
 
 def _parse_csv_content(
@@ -470,13 +492,27 @@ async def _normalize_upload_files(
             document.size_bytes = len(content)
             narrative, docx_tables = extract_docx_content(content)
             document.raw_text = narrative
+            if narrative.strip():
+                document.sections.append(
+                    {
+                        "section_name": "Document Text",
+                        "raw_text": narrative,
+                        "extracted_data": {},
+                        "confidence": 0.7,
+                        "contentType": "text",
+                        "sourceFormat": "docx",
+                        "notes": ["Narrative text extracted from DOCX body."],
+                    }
+                )
             for table_idx, table_rows in enumerate(docx_tables):
                 document.sections.append(
                     {
                         "section_name": f"Table {table_idx + 1}",
-                        "raw_text": narrative,
+                        "raw_text": _rows_to_local_text(table_rows),
                         "extracted_data": {"rows": table_rows},
                         "confidence": 0.75,
+                        "contentType": "table",
+                        "sourceFormat": "docx",
                         "notes": [f"Extracted from DOCX table {table_idx + 1}."],
                     }
                 )
@@ -579,7 +615,7 @@ def _load_cached_ocr_payload(*, file_hash: str | None, artifact_ref: str | None)
 
 
 def _safe_ocr_artifact_path(*, file_hash: str | None, artifact_ref: str | None) -> Path | None:
-    root = (Path(os.getenv("BIZBUY_ARTIFACT_DIR", "backend/.artifacts")) / "ocr").resolve()
+    root = resolve_backend_env_path("BIZBUY_ARTIFACT_DIR", default_relative=".artifacts") / "ocr"
     if file_hash:
         try:
             return root / f"{validate_sha256_hex(file_hash)}.json"

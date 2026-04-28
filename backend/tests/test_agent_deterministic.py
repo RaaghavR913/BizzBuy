@@ -148,6 +148,30 @@ def test_compute_ar_metrics_calculates_dso_and_write_off_risk() -> None:
     assert metrics["estimated_write_off_percent"] == 0.07
 
 
+def test_compute_ar_metrics_excludes_grouped_buckets_from_top_customer() -> None:
+    sections = [
+        make_section(
+            "ar-1",
+            DocumentType.AR_AGING_REPORT,
+            2024,
+            {
+                "total_ar": 148600,
+                "customers": [
+                    {"id": "c1", "name": "Apex Financial Group", "total": 24600},
+                    {"id": "c2", "name": "Denver Metro School District", "total": 18800},
+                    {"id": "bucket", "name": "Other clients (18 accounts)", "total": 43400, "is_grouped": True},
+                ],
+            },
+        )
+    ]
+
+    metrics = compute_ar_metrics(sections)
+
+    assert round(metrics["top_customer_percent"], 4) == round(24600 / 148600, 4)
+    assert round(metrics["aggregated_customer_bucket_percent"], 4) == round(43400 / 148600, 4)
+    assert metrics["grouped_customer_buckets"][0]["customer_name"] == "Other clients (18 accounts)"
+
+
 def test_compute_customer_metrics_calculates_hhi() -> None:
     ingestion = make_ingestion_output(
         [

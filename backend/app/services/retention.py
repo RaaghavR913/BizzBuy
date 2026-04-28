@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import shutil
 import time
-import os
 from pathlib import Path
 
 from app.core.config import Settings, get_settings
+from app.core.path_safety import resolve_backend_env_path
 
 
 def _remove_path(path: Path) -> None:
@@ -52,8 +52,8 @@ def cleanup_expired_children(
 
 def cleanup_configured_storage(settings: Settings | None = None) -> dict[str, list[Path]]:
     effective = settings or get_settings()
-    artifact_root = Path(os.getenv("BIZBUY_ARTIFACT_DIR", "backend/.artifacts"))
-    upload_root = Path(os.getenv("BIZBUY_UPLOAD_DIR", "uploads"))
+    artifact_root = resolve_backend_env_path("BIZBUY_ARTIFACT_DIR", default_relative=".artifacts")
+    upload_root = resolve_backend_env_path("BIZBUY_UPLOAD_DIR", default_relative="uploads")
     return {
         "uploads": cleanup_expired_children(
             upload_root,

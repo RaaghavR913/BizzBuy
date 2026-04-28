@@ -29,6 +29,7 @@ from app.agents.mistral_ocr_client import (
 )
 from app.agents.deterministic import (
     SBA_DEFAULTS,
+    SEVERITY_ORDER,
     compute_ar_metrics,
     compute_customer_metrics,
     compute_financial_metrics,
@@ -99,6 +100,7 @@ from app.agents.schemas import (
     Timeframe,
     Trend,
 )
+from app.services.financial_data_extractor import AskingPriceEvidence, resolve_asking_price
 from app.services.ingestion_service import ingest_and_persist_document_payloads
 
 
@@ -858,7 +860,7 @@ def _normalize_lending_output(
     ingestion_output: IngestionOutput,
     result: AgentResult[LendingAffordabilityOutput],
     *,
-    asking_price_provided: bool,
+    asking_price_evidence: AskingPriceEvidence | None,
 ) -> AgentResult[Any]:
     evidence = _make_evidence_references(
         ingestion_output,
@@ -877,6 +879,8 @@ def _normalize_lending_output(
         "total_cash_needed": _metric(domain_output.buyer_requirements.total_cash_needed, unit="usd", confidence=domain_output.confidence, evidence=evidence),
         "eligible_for_sba": _metric(domain_output.sba7a.eligible_for_sba, confidence=domain_output.confidence, evidence=evidence),
     }
+    if asking_price_evidence:
+        normalized_metrics["asking_price_source"] = _metric(asking_price_evidence.source, confidence=domain_output.confidence, evidence=evidence)
     findings = [
         NormalizedFinding(
             finding_id=risk.id,
@@ -892,13 +896,13 @@ def _normalize_lending_output(
         for risk in domain_output.risks
     ]
     missing_inputs: list[MissingInput] = []
-    if not asking_price_provided:
+    if not asking_price_evidence or asking_price_evidence.source == "estimated_3x_sde":
         missing_inputs.append(
             _missing_input(
                 "asking_price",
                 "Explicit asking price was not provided.",
                 required=False,
-                reason="Lending used a deterministic 3.0x SDE placeholder because no asking price was supplied.",
+                reason="Lending used a deterministic 3.0x SDE fallback because neither user input nor source documents supplied an asking price.",
             )
         )
     return _wrap_specialist_output(
@@ -909,6 +913,53 @@ def _normalize_lending_output(
         missing_inputs=missing_inputs,
         evidence=evidence,
     )
+
+
+def _build_lending_handoff(
+    financial_output: FinancialAnalysisOutput,
+    *,
+    asking_price_evidence: AskingPriceEvidence | None,
+    base_case: dict[str, Any],
+    scenarios: list[dict[str, Any]],
+    documents: list[str],
+) -> dict[str, Any]:
+    profitability = financial_output.profitability
+    balance_sheet = financial_output.balance_sheet
+    cash_flow = financial_output.cash_flow
+    return {
+        "financial_summary": {
+            "summary": financial_output.summary,
+            "overall_score": financial_output.overall_score,
+            "confidence": financial_output.confidence,
+            "adjusted_sde": profitability.sde,
+            "ebitda": profitability.ebitda,
+            "gross_margin": profitability.gross_margin,
+            "ebitda_margin": getattr(profitability, "ebitda_margin", None),
+            "working_capital": balance_sheet.working_capital,
+            "operating_cash_flow": cash_flow.operating_cash_flow,
+            "free_cash_flow": cash_flow.free_cash_flow,
+            "highest_severity_risks": [
+                {
+                    "id": risk.id,
+                    "severity": risk.severity.value if hasattr(risk.severity, "value") else risk.severity,
+                    "title": risk.title,
+                    "financial_impact": risk.financial_impact,
+                }
+                for risk in sorted(financial_output.risks, key=lambda item: SEVERITY_ORDER.get(getattr(item.severity, "value", item.severity), 99))[:4]
+            ],
+        },
+        "asking_price": {
+            "value": asking_price_evidence.value if asking_price_evidence else None,
+            "source": asking_price_evidence.source if asking_price_evidence else None,
+            "document_id": asking_price_evidence.document_id if asking_price_evidence else None,
+            "section_id": asking_price_evidence.section_id if asking_price_evidence else None,
+            "section_name": asking_price_evidence.section_name if asking_price_evidence else None,
+        },
+        "base_case": base_case,
+        "scenario_analysis": scenarios,
+        "documents": documents,
+        "sba_defaults": SBA_DEFAULTS,
+    }
 
 
 def build_financial_fallback_result(
@@ -1658,29 +1709,28 @@ def run_lending_affordability(
             ),
         )
 
-    base_asking_price = asking_price if asking_price and asking_price > 0 else round(sde * 3.0)
+    asking_price_evidence = resolve_asking_price(
+        ingestion_output,
+        user_asking_price=asking_price,
+        fallback_sde=sde,
+    )
+    base_asking_price = asking_price_evidence.value if asking_price_evidence else round(sde * 3.0)
     base_case = compute_sba_lending(sde, base_asking_price)
     scenarios = [
         {"multiple": multiple, "asking_price": round(sde * multiple), "metrics": compute_sba_lending(sde, round(sde * multiple))}
         for multiple in (2.5, 3.0, 3.5)
     ]
+    lending_handoff = _build_lending_handoff(
+        normalized_financial_output,
+        asking_price_evidence=asking_price_evidence,
+        base_case=base_case,
+        scenarios=scenarios,
+        documents=[doc.file_name for doc in ingestion_output.documents],
+    )
     user_message = (
-        "## Financial Analysis Summary\n"
-        + json.dumps(normalized_financial_output.model_dump(mode="json"), indent=2, default=str)
-        + "\n\n## Pre-Computed Lending Figures\n"
-        + json.dumps(
-            {
-                "asking_price_used": base_asking_price,
-                "asking_price_provided": asking_price,
-                "base_case": base_case,
-                "scenario_analysis": scenarios,
-                "documents": [doc.file_name for doc in ingestion_output.documents],
-                "sba_defaults": SBA_DEFAULTS,
-            },
-            indent=2,
-            default=str,
-        )
-        + "\n\nUse the pre-computed figures above. If no asking price was provided, treat the 3.0x SDE case as the base case and use the other scenarios as bounds."
+        "## Lending Context\n"
+        + compact_json(lending_handoff)
+        + "\n\nUse the pre-computed figures above. If asking_price.source is estimated_3x_sde, treat it as a fallback base case and use the other scenarios as bounds."
     )
     result = _call_llm_agent(
         config,
@@ -1689,7 +1739,7 @@ def run_lending_affordability(
         LendingAffordabilityOutput,
         diagnostic_context=diagnostic_context,
     )
-    return _normalize_lending_output(ingestion_output, result, asking_price_provided=asking_price is not None and asking_price > 0)
+    return _normalize_lending_output(ingestion_output, result, asking_price_evidence=asking_price_evidence)
 
 
 def run_synthesis_report(

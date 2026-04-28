@@ -323,7 +323,8 @@ def test_financial_runner_compacts_row_dump_in_prompt(monkeypatch) -> None:
     assert "evidence_pack" in captured["user_message"]
     assert '"rows"' not in captured["user_message"]
     assert "ROW-39" not in captured["user_message"]
-    assert "Revenue 1200 Net income 100" in captured["user_message"]
+    assert "Revenue 1200 Net income 100" not in captured["user_message"]
+    assert '"revenue":1200' in captured["user_message"]
 
 
 def test_tax_runner_marks_missing_tax_returns(monkeypatch) -> None:
@@ -446,6 +447,91 @@ def test_lending_runner_accepts_financial_envelope_and_emits_missing_asking_pric
     assert result.data.normalized_metrics["dscr"].value == 1.45
     assert result.data.normalized_metrics["total_cash_needed"].value == 165000
     assert result.data.missing_inputs[0].key == "asking_price"
+
+
+def test_lending_runner_uses_document_asking_price_without_missing_input(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+    ingestion = _ingestion_output(
+        [
+            DocumentInfo(
+                document_id="cim-1",
+                file_name="cim.docx",
+                mime_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                document_type=DocumentType.CONTRACT,
+                sections=[
+                    _section(
+                        "cim-1",
+                        DocumentType.CONTRACT,
+                        None,
+                        {"rows": [{"row_index": 1, "A": "Asking Price", "B": "$1,300,000"}]},
+                        "Asking Price | $1,300,000",
+                    )
+                ],
+            )
+        ]
+    )
+    financial_envelope = AgentEnvelope(
+        agent_name="financial_analysis",
+        status="success",
+        summary="Financial summary",
+        confidence=0.88,
+        overall_score=7,
+        raw_domain_output=_financial_output(),
+    )
+    lending_output = LendingAffordabilityOutput(
+        sba7a=SBA7aAnalysis(
+            eligible_for_sba=True,
+            max_loan_amount=5000000,
+            interest_rate=0.105,
+            term_years=10,
+            monthly_payment=24900,
+            annual_debt_service=298800,
+            dscr=1.9,
+            dscr_meets_minimum=True,
+            down_payment_required=260000,
+            down_payment_percent=0.2,
+            total_project_cost=1300000,
+        ),
+        affordability_analysis=AffordabilityAnalysis(
+            asking_price=1300000,
+            adjusted_sde=170000,
+            sde_multiple=7.65,
+            is_reasonably_priced=False,
+            suggested_price_range=SuggestedPriceRange(low=425000, high=595000),
+        ),
+        buyer_requirements=BuyerRequirements(
+            minimum_down_payment=260000,
+            estimated_closing_costs=36000,
+            total_cash_needed=338500,
+            minimum_post_close_liquidity=45000,
+        ),
+        deal_structure=DealStructure(
+            recommended_structure="Reprice or require seller financing",
+            seller_financing_component=250000,
+            earnout_component=None,
+            rationale="Price is high relative to SDE.",
+        ),
+        risks=[],
+        overall_score=4,
+        confidence=0.81,
+        summary="Document asking price is expensive at current SDE.",
+    )
+
+    def fake_call_agent(_config, _prompt, user_message, _schema):
+        captured["user_message"] = user_message
+        return AgentResult(status="success", data=lending_output)
+
+    monkeypatch.setattr(runners, "call_agent", fake_call_agent)
+
+    result = runners.run_lending_affordability(ingestion, financial_envelope, asking_price=None)
+
+    assert result.status == "success"
+    assert isinstance(result.data, AgentEnvelope)
+    assert result.data.normalized_metrics["asking_price"].value == 1300000
+    assert result.data.normalized_metrics["asking_price_source"].value == "document"
+    assert result.data.missing_inputs == []
+    assert '"value":1300000.0' in captured["user_message"]
+    assert '"source":"document"' in captured["user_message"]
 
 
 def test_customer_runner_adds_contract_gap_and_normalized_metrics(monkeypatch) -> None:

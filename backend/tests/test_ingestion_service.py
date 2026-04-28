@@ -108,6 +108,39 @@ def test_ingest_document_payloads_tracks_parsed_failed_and_missing_documents() -
     assert "balance_sheet" not in missing_keys
 
 
+def test_ingest_document_payloads_normalizes_ar_grouped_customer_rows() -> None:
+    output = ingest_document_payloads(
+        [
+            {
+                "id": "ar-1",
+                "fileName": "ar.xlsx",
+                "documentType": "ar_aging_report",
+                "sections": [
+                    {
+                        "sectionId": "ar-1:sheet-1",
+                        "sectionKind": "ar_aging_report",
+                        "extractedData": {
+                            "rows": [
+                                {"row_index": 1, "A": "Client", "B": "Type", "C": "Total", "D": "0-30", "E": "31-60", "F": "61-90"},
+                                {"row_index": 2, "A": "Apex Financial Group", "B": "Commercial", "C": "24600", "D": "24600", "E": "0", "F": "0"},
+                                {"row_index": 3, "A": "Other clients (18 accounts)", "B": "", "C": "43400", "D": "36200", "E": "6400", "F": "800"},
+                                {"row_index": 4, "A": "TOTAL", "B": "", "C": "68000", "D": "60800", "E": "6400", "F": "800"},
+                            ]
+                        },
+                        "confidence": 0.9,
+                    }
+                ],
+            }
+        ]
+    )
+
+    data = output.documents[0].sections[0].extracted_data
+
+    assert data["total_ar"] == 68000
+    assert data["customers"][1]["is_grouped"] is True
+    assert data["grouped_customer_buckets"][0]["name"] == "Other clients (18 accounts)"
+
+
 def test_ingest_and_persist_document_payloads_stores_reloadable_artifacts() -> None:
     repo_root = Path("backend/.test-artifacts/ingestion-service")
     shutil.rmtree(repo_root, ignore_errors=True)

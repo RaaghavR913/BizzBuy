@@ -198,18 +198,12 @@ def test_balance_sheet_all_fields_populated():
     assert bs.accounts_payable == 22400.0, f"AP: expected 22400, got {bs.accounts_payable}"
 
 
-def test_asking_price_auto_estimated_from_sde():
-    """With no listing document, asking_price must be auto-estimated at 3x SDE."""
+def test_asking_price_is_not_estimated_during_financial_extraction():
+    """Extraction should only surface explicit source prices; lending owns the 3x SDE fallback."""
     output = ingest_intake_documents([_make_income_doc(), _make_balance_doc()])
     result = extract_financial_data(output)
 
-    assert result.loan_terms is not None, "loan_terms must be set via 3x SDE estimate"
-    assert result.loan_terms.asking_price > 0, f"asking_price must be > 0, got {result.loan_terms.asking_price}"
-    expected = round(564500 * 3 / 1000) * 1000  # 1,693,500 → 1694000 after rounding
-    assert result.loan_terms.asking_price == expected, (
-        f"asking_price: expected {expected}, got {result.loan_terms.asking_price}"
-    )
-    assert result.loan_terms.asking_price_estimated is True
+    assert result.loan_terms is None
 
 
 def test_years_in_operation_derived():

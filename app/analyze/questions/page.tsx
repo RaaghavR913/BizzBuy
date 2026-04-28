@@ -163,7 +163,6 @@ export default function QuestionsPage() {
     state,
     setClarifications,
     setQuestionnaire,
-    setSharedContext,
     setReport,
     setStep,
     setLoading,
@@ -199,7 +198,6 @@ export default function QuestionsPage() {
 
     setClarifications(clarificationAnswers);
     setQuestionnaire(questionnaire);
-    setSharedContext(null);
     setLoading(true, hasPipelineDocuments ? 'Running document-first analysis...' : 'Running deterministic backend analysis...');
     setError(null);
 

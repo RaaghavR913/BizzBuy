@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any, Iterable, Mapping
 
 from app.agents.deterministic import AGENT_DISPLAY_NAMES
-from app.agents.evidence_utils import build_evidence_fields
+from app.agents.evidence_utils import build_evidence_fields, safe_fiscal_year
 from app.agents.schemas import (
     AgentEnvelope,
     AgentResult,
@@ -432,7 +433,7 @@ def _build_section_pack(
     section_entries.sort(
         key=lambda item: (
             -_section_priority(item[0], item[1]),
-            -(item[1].timeframe.fiscal_year or -1),
+            -(safe_fiscal_year(item[1].timeframe.fiscal_year) or -1),
             item[0].file_name,
             item[1].page or item[1].page_start or 0,
             item[1].section_name or item[1].section_id or "",
@@ -445,24 +446,24 @@ def _build_section_pack(
         if max_items is not None and len(packed) >= max_items:
             break
 
+        key_fields = _limit_mapping(_preview_extracted_data(section), max_fields)
         snippet = None
         snippet_limit = None
         if remaining_chars is not None:
             snippet_limit = remaining_chars
-        cleaned_text = _clip_text(section.raw_text, snippet_limit)
+        cleaned_text = _clip_text(section.raw_text, snippet_limit) if _should_include_snippet(section, key_fields) else None
         if cleaned_text:
             snippet = cleaned_text
             if remaining_chars is not None:
                 remaining_chars = max(0, remaining_chars - len(cleaned_text))
 
-        key_fields = _limit_mapping(_preview_extracted_data(section), max_fields)
         item = _drop_empty(
             {
                 "document": doc.file_name,
                 "document_type": _section_type_value(section, doc),
                 "section": section.section_name or section.section_id,
                 "section_kind": section.section_kind,
-                "fiscal_year": section.timeframe.fiscal_year,
+                "fiscal_year": safe_fiscal_year(section.timeframe.fiscal_year),
                 "page": section.page or section.page_start,
                 "key_fields": key_fields,
                 "snippet": snippet,
@@ -471,6 +472,40 @@ def _build_section_pack(
         if item:
             packed.append(item)
     return packed
+
+
+def _should_include_snippet(section: DocumentSection, key_fields: Mapping[str, Any]) -> bool:
+    rows = section.extracted_data.get("rows") if isinstance(section.extracted_data, Mapping) else None
+    if _is_identity_heavy_tax_snippet(section):
+        return False
+    if not rows:
+        return True
+    meaningful_fields = {
+        key
+        for key, value in key_fields.items()
+        if key
+        not in {
+            "section_kind",
+            "section_name",
+            "document_type",
+            "source_format",
+            "fiscal_year",
+        }
+        and value not in (None, "", [], {})
+    }
+    return not meaningful_fields
+
+
+def _is_identity_heavy_tax_snippet(section: DocumentSection) -> bool:
+    section_type = section.section_kind or section.document_type.value
+    if not str(section_type).startswith("tax_return"):
+        return False
+    text = (section.raw_text or "").lower()
+    if not text:
+        return False
+    has_identity = any(token in text for token in ("dob", "date of birth", "ssn", "taxpayer:", "filing status"))
+    has_reporting_cue = bool(re.search(r"\b(?:tax|fiscal)\s+year\b|\byear\s+ended\b|\bas\s+of\b", text))
+    return has_identity and not has_reporting_cue
 
 
 def _section_priority(doc: DocumentInfo, section: DocumentSection) -> int:

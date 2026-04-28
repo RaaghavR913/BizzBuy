@@ -6,7 +6,6 @@ import hashlib
 import io
 import json
 import mimetypes
-import os
 import re
 import shutil
 from pathlib import Path
@@ -19,15 +18,15 @@ from pydantic import BaseModel, Field
 
 from app.agents.mistral_ocr_client import MistralOCRError, ocr_document
 from app.core.config import get_settings
-from app.core.path_safety import safe_child_path, validate_sha256_hex
+from app.core.path_safety import resolve_backend_env_path, safe_child_path, validate_sha256_hex
 from app.core.security import protect_expensive_route, record_upload_bytes
 from app.services.intake_service import decode_text_content, extract_docx_text, extract_xlsx_workbook
 from app.services.section_kind import infer_sheet_kinds
 
 router = APIRouter()
 
-UPLOAD_ROOT = Path(os.getenv("BIZBUY_UPLOAD_DIR", "uploads"))
-OCR_ARTIFACT_ROOT = Path(os.getenv("BIZBUY_ARTIFACT_DIR", "backend/.artifacts")) / "ocr"
+UPLOAD_ROOT = resolve_backend_env_path("BIZBUY_UPLOAD_DIR", default_relative="uploads")
+OCR_ARTIFACT_ROOT = resolve_backend_env_path("BIZBUY_ARTIFACT_DIR", default_relative=".artifacts") / "ocr"
 OCR_ARTIFACT_REF_PREFIX = "ocr:"
 MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
 MAX_PAGES = 1000

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from app.agents.schemas import DocumentSection
 
 # Keys that contain raw spreadsheet/table row dumps.
@@ -7,6 +9,12 @@ from app.agents.schemas import DocumentSection
 # and must NOT be passed into EvidenceReference.extracted_fields, which only
 # accepts primitive scalar values (str | int | float | bool | None).
 _NOISY_RAW_KEYS = {"rows", "tables", "raw_rows", "table", "cells"}
+
+
+def safe_fiscal_year(value: int | None) -> int | None:
+    if isinstance(value, int) and 1990 <= value <= datetime.now(timezone.utc).year + 2:
+        return value
+    return None
 
 
 def build_evidence_fields(section: DocumentSection) -> dict[str, str | float | int | bool | None]:
@@ -31,8 +39,9 @@ def build_evidence_fields(section: DocumentSection) -> dict[str, str | float | i
 
     timeframe = section.timeframe
     if timeframe:
-        if timeframe.fiscal_year is not None:
-            fields["fiscal_year"] = timeframe.fiscal_year
+        fiscal_year = safe_fiscal_year(timeframe.fiscal_year)
+        if fiscal_year is not None:
+            fields["fiscal_year"] = fiscal_year
         if timeframe.start_date:
             fields["period_start"] = str(timeframe.start_date)
         if timeframe.end_date:

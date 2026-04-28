@@ -32,6 +32,15 @@ In production, API docs are disabled by default. Set `BIZBUY_API_DOCS_ENABLED=tr
 - `GET /api/analyses/{analysis_id}/events`
 - `POST /api/pipeline`
 
+## Storage Defaults
+
+Unless overridden with absolute paths, backend storage resolves from this `backend/` directory:
+
+- `BIZBUY_ARTIFACT_DIR=.artifacts` writes to `backend/.artifacts`
+- `BIZBUY_UPLOAD_DIR=uploads` writes to `backend/uploads`
+
+The resolver also treats the legacy relative value `backend/.artifacts` as `backend/.artifacts`, which prevents duplicate `backend/backend/.artifacts` trees when tests or local servers run from inside this directory.
+
 ## Production Controls
 
 Set these for a public Railway deployment:

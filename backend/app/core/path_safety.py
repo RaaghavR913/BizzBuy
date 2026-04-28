@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path, PureWindowsPath
 from uuid import UUID
@@ -11,6 +12,31 @@ class UnsafePathError(ValueError):
 
 _SHA256_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 _SPLIT_PATH_RE = re.compile(r"[\\/]+")
+_BACKEND_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def backend_project_root() -> Path:
+    return _BACKEND_PROJECT_ROOT
+
+
+def resolve_backend_storage_path(
+    configured_path: str | Path | None,
+    *,
+    default_relative: str,
+) -> Path:
+    """Resolve backend storage paths independently of the process cwd."""
+    raw_path = Path(configured_path or default_relative)
+    if raw_path.is_absolute():
+        return raw_path.resolve()
+
+    parts = raw_path.parts
+    if parts and parts[0].lower() == _BACKEND_PROJECT_ROOT.name.lower():
+        return (_BACKEND_PROJECT_ROOT.parent / raw_path).resolve()
+    return (_BACKEND_PROJECT_ROOT / raw_path).resolve()
+
+
+def resolve_backend_env_path(env_var: str, *, default_relative: str) -> Path:
+    return resolve_backend_storage_path(os.getenv(env_var), default_relative=default_relative)
 
 
 def validate_analysis_id(value: str | None, *, field_name: str = "analysis_id") -> str | None:

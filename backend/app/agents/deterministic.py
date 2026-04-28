@@ -12,6 +12,7 @@ from app.services.calculations import (
     calculate_valuation_multiple,
     calculate_working_capital,
 )
+from app.services.section_data_normalizer import normalize_section_extracted_data
 
 
 SBA_DEFAULTS = {
@@ -84,6 +85,10 @@ def safe_div(numerator: float | None, denominator: float | None) -> float | None
     return numerator / denominator
 
 
+def _is_plausible_reporting_year(value: int | None) -> bool:
+    return isinstance(value, int) and 1990 <= value <= datetime.now(timezone.utc).year + 2
+
+
 def section_kind(section: DocumentSection) -> str:
     return getattr(section, "section_kind", None) or section.document_type.value
 
@@ -101,7 +106,7 @@ def extract_revenue_by_year(sections: Sequence[DocumentSection]) -> dict[int, fl
     revenue_by_year: dict[int, float] = {}
     for section in sections:
         year = section.timeframe.fiscal_year
-        if not year or year in revenue_by_year:
+        if not _is_plausible_reporting_year(year) or year in revenue_by_year:
             continue
         revenue = safe_num(
             section.extracted_data.get("revenue")
@@ -346,7 +351,10 @@ def compute_ar_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
 
     merged: dict[str, Any] = {}
     for section in ar_sections:
-        merged.update(section.extracted_data)
+        section_data = section.extracted_data
+        if isinstance(section_data.get("rows"), list) and not section_data.get("customers"):
+            section_data = normalize_section_extracted_data(section)
+        merged.update(section_data)
 
     total_ar = safe_num(merged.get("total_ar") or merged.get("total_accounts_receivable") or merged.get("ar_total") or merged.get("total")) or 0.0
     current = safe_num(merged.get("current") or merged.get("current_amount")) or 0.0
@@ -356,6 +364,13 @@ def compute_ar_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
     over_90 = safe_num(merged.get("over_90") or merged.get("over90") or merged.get("90plus") or merged.get("bucket_over90")) or 0.0
     computed_total = current + thirty_day + sixty_day + ninety_day + over_90
     effective_total = total_ar if total_ar > 0 else computed_total
+    customers = merged.get("customers")
+    if effective_total <= 0 and isinstance(customers, list):
+        effective_total = sum(
+            safe_num(customer.get("total") or customer.get("balance") or customer.get("amount")) or 0.0
+            for customer in customers
+            if isinstance(customer, dict)
+        )
 
     annual_revenue_used_for_dso = None
     pl_sections = sorted(
@@ -374,21 +389,32 @@ def compute_ar_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
             break
 
     customer_concentrations: list[dict[str, Any]] = []
-    customers = merged.get("customers")
+    grouped_customer_buckets: list[dict[str, Any]] = []
     if isinstance(customers, list):
         for index, customer in enumerate(customers):
             if not isinstance(customer, dict):
                 continue
             amount = safe_num(customer.get("total") or customer.get("balance") or customer.get("amount")) or 0.0
-            customer_concentrations.append(
-                {
-                    "customer_id": str(customer.get("id") or customer.get("customer_id") or f"customer_{index}"),
-                    "customer_name": str(customer.get("name")) if customer.get("name") else None,
-                    "amount": amount,
-                    "percentage": (amount / effective_total) if effective_total else 0.0,
-                }
-            )
+            customer_payload = {
+                "customer_id": str(customer.get("id") or customer.get("customer_id") or f"customer_{index}"),
+                "customer_name": str(customer.get("name")) if customer.get("name") else None,
+                "amount": amount,
+                "percentage": (amount / effective_total) if effective_total else 0.0,
+                "is_grouped": _is_grouped_customer_bucket(customer),
+            }
+            if customer_payload["is_grouped"]:
+                grouped_customer_buckets.append(customer_payload)
+            else:
+                customer_concentrations.append(customer_payload)
     customer_concentrations.sort(key=lambda item: item["amount"], reverse=True)
+    grouped_customer_buckets.sort(key=lambda item: item["amount"], reverse=True)
+
+    if not any([current, thirty_day, sixty_day, ninety_day, over_90]) and isinstance(customers, list):
+        current = sum(safe_num(customer.get("current")) or safe_num(customer.get("0_30")) or 0.0 for customer in customers if isinstance(customer, dict))
+        thirty_day = sum(safe_num(customer.get("30_days")) or safe_num(customer.get("31_60")) or 0.0 for customer in customers if isinstance(customer, dict))
+        sixty_day = sum(safe_num(customer.get("60_days")) or safe_num(customer.get("61_90")) or 0.0 for customer in customers if isinstance(customer, dict))
+        ninety_day = sum(safe_num(customer.get("90_days")) or safe_num(customer.get("91_120")) or 0.0 for customer in customers if isinstance(customer, dict))
+        over_90 = sum(safe_num(customer.get("over_90")) or safe_num(customer.get("120_plus")) or 0.0 for customer in customers if isinstance(customer, dict))
 
     aging_percentages = {
         "current": (current / effective_total) if effective_total else 0.0,
@@ -411,12 +437,32 @@ def compute_ar_metrics(sections: Sequence[DocumentSection]) -> dict[str, Any]:
         "dso": ((effective_total / annual_revenue_used_for_dso) * 365) if annual_revenue_used_for_dso and effective_total else None,
         "annual_revenue_used_for_dso": annual_revenue_used_for_dso,
         "customer_concentrations": customer_concentrations,
+        "grouped_customer_buckets": grouped_customer_buckets,
+        "aggregated_customer_bucket_percent": sum(item["percentage"] for item in grouped_customer_buckets),
         "top_customer_percent": customer_concentrations[0]["percentage"] if customer_concentrations else 0.0,
         "top5_customers_percent": sum(item["percentage"] for item in customer_concentrations[:5]),
         "estimated_write_off_amount": estimated_write_off_amount,
         "estimated_write_off_percent": (estimated_write_off_amount / effective_total) if effective_total else 0.0,
         "has_ar_data": True,
     }
+
+
+def _is_grouped_customer_bucket(customer: Mapping[str, Any]) -> bool:
+    explicit = customer.get("is_grouped")
+    if isinstance(explicit, bool):
+        return explicit
+    name = str(customer.get("name") or customer.get("customer_name") or customer.get("customerName") or "")
+    normalized = name.lower()
+    return bool(
+        "other" in normalized
+        or "misc" in normalized
+        or "various" in normalized
+        or "remaining" in normalized
+        or "all other" in normalized
+        or "accounts)" in normalized
+        or "clients)" in normalized
+        or "customers)" in normalized
+    )
 
 
 def compute_customer_metrics(ingestion_output: IngestionOutput) -> dict[str, Any]:

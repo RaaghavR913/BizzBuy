@@ -17,8 +17,12 @@ from app.services.intake_service import extract_xlsx_workbook
 from app.services.section_kind import infer_sheet_kinds
 
 
+def _artifact_dir(name: str) -> Path:
+    return Path(__file__).resolve().parents[1] / ".test-artifacts" / name
+
+
 def test_parse_documents_route_returns_pipeline_seed_documents_and_analysis_id(monkeypatch) -> None:
-    artifact_dir = Path("backend/.test-artifacts/parse-documents-route")
+    artifact_dir = _artifact_dir("parse-documents-route")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
 
@@ -48,7 +52,7 @@ def test_parse_documents_route_returns_pipeline_seed_documents_and_analysis_id(m
 
 
 def test_parse_documents_route_accepts_frontend_filetypes_alias_multipart(monkeypatch) -> None:
-    artifact_dir = Path("backend/.test-artifacts/filetypes-alias")
+    artifact_dir = _artifact_dir("filetypes-alias")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
 
@@ -82,7 +86,7 @@ def test_parse_documents_route_rejects_malformed_json_form_fields() -> None:
 
 
 def test_peakair_workbook_sheet_kind_inference() -> None:
-    sample_root = Path(__file__).resolve().parents[2] / "sample company1"
+    sample_root = Path(__file__).resolve().parent / "fixtures" / "peakair"
     workbook = sample_root / "PeakAir_Financials.xlsx"
     sheets, notes = extract_xlsx_workbook(workbook.read_bytes())
 
@@ -95,7 +99,7 @@ def test_peakair_workbook_sheet_kind_inference() -> None:
 
 
 def test_parse_documents_reuses_cached_ocr_text_by_file_hash(monkeypatch) -> None:
-    artifact_dir = Path("backend/.test-artifacts/parse-documents-ocr-cache")
+    artifact_dir = _artifact_dir("parse-documents-ocr-cache")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
     upload_bytes = b"%PDF cached text comes from artifact"
@@ -151,7 +155,7 @@ def test_parse_documents_reuses_cached_ocr_text_by_file_hash(monkeypatch) -> Non
 
 
 def test_parse_documents_ignores_mismatched_ocr_ref(monkeypatch) -> None:
-    artifact_dir = Path("backend/.test-artifacts/parse-documents-mismatched-ocr-cache")
+    artifact_dir = _artifact_dir("parse-documents-mismatched-ocr-cache")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
     wrong_hash = "b" * 64
@@ -198,10 +202,10 @@ def test_ocr_artifact_refs_do_not_accept_filesystem_paths(tmp_path, monkeypatch)
 
 
 def test_peakair_parse_documents_seeds_review_financial_data(monkeypatch) -> None:
-    artifact_dir = Path("backend/.test-artifacts/peakair-parse-documents")
+    artifact_dir = _artifact_dir("peakair-parse-documents")
     shutil.rmtree(artifact_dir, ignore_errors=True)
     monkeypatch.setenv("BIZBUY_ARTIFACT_DIR", str(artifact_dir))
-    sample_root = Path(__file__).resolve().parents[2] / "sample company1"
+    sample_root = Path(__file__).resolve().parent / "fixtures" / "peakair"
     files_to_upload = [
         ("PeakAir_CustomerList_PPE.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
         ("PeakAir_EmployeeContracts.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),

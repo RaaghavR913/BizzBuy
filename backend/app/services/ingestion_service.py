@@ -22,6 +22,7 @@ from app.services.analysis_repository import (
 from app.services.intake_service import IntakeDocument, infer_missing_document_inputs, normalize_document_payload
 from app.services.section_data_normalizer import infer_latest_fiscal_year, normalize_section_extracted_data
 from app.services.section_kind import infer_effective_section_identity
+from app.agents.evidence_utils import safe_fiscal_year
 
 
 def ingest_document_payloads(documents: list[dict[str, Any]]) -> IngestionOutput:
@@ -172,6 +173,7 @@ def _normalize_section(document: IntakeDocument, section: dict[str, Any], index:
         raw_text=str(raw_text),
         rows=rows,
     )
+    timeframe.fiscal_year = safe_fiscal_year(timeframe.fiscal_year)
     if timeframe.fiscal_year is None:
         timeframe.fiscal_year = infer_latest_fiscal_year(rows)
 
@@ -225,7 +227,7 @@ def _sheet_sections(document: IntakeDocument, sheet: dict[str, Any], index: int)
             raw_text=raw_text,
             rows=seg_rows,
         )
-        fiscal_year = sheet.get("fiscalYear") or sheet.get("fiscal_year") or infer_latest_fiscal_year(seg_rows)
+        fiscal_year = safe_fiscal_year(sheet.get("fiscalYear") or sheet.get("fiscal_year")) or infer_latest_fiscal_year(seg_rows)
         suffix = f"-{seg_index + 1}" if len(segments) > 1 else ""
         normalized = DocumentSection(
             section_id=f"{document.document_id}:sheet-{index + 1}{suffix}",
