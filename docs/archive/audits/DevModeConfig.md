@@ -210,8 +210,8 @@ cd /path/to/BizzBuy
 cp .env.example .env.local
 
 # Edit .env.local and set:
-#   OPENROUTER_API_KEY=sk-or-v1-...
-#   MISTRAL_API_KEY=...
+#   OPENROUTER_API_KEY=
+#   MISTRAL_API_KEY=
 # Optional: NEXT_PUBLIC_BACKEND_URL=http://localhost:8000/api (compose sets this for the frontend service)
 ```
 

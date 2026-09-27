@@ -69,8 +69,8 @@ cp .env.example .env.local
 Minimum useful values:
 
 ```env
-OPENROUTER_API_KEY=sk-or-v1-...
-MISTRAL_API_KEY=...
+OPENROUTER_API_KEY=
+MISTRAL_API_KEY=
 BIZBUY_BACKEND_URL=http://localhost:8000/api
 BIZBUY_FLOW_TOKEN_SECRET=replace_with_a_long_random_local_secret
 ```

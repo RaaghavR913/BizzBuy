@@ -25,12 +25,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# local env files — real keys stay on disk only
 .env*.local
 .env
 .env.*
 !.env.example
+!backend/.env.example
 env.local
+credentials.json
+secrets.json
 .venv/
 __pycache__/
 *.pyc
@@ -42,10 +45,12 @@ backend/backend/.test-artifacts/
 # sample data (not needed in version control)
 sample company*/
 
-# docker
+# runtime output — never commit analysis dumps, OCR caches, or uploads
 uploads/
+**/.artifacts/
 backend/.artifacts/*
 backend/backend/.artifacts/*
+Company4artifacts/
 
 # vercel
 .vercel

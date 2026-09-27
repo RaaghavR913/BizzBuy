@@ -11,6 +11,8 @@ backend/backend/.test-artifacts
 docs
 uploads
 sample company*
+Company4artifacts
+**/.artifacts
 coverage
 *.tsbuildinfo
 .vercel

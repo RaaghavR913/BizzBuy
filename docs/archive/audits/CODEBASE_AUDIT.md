@@ -400,7 +400,7 @@ The frontend's `FileDropZone` component does not persist files to disk — uploa
 cp .env.example .env.local
 
 # 2. Edit .env.local and set your Anthropic API key
-#    ANTHROPIC_API_KEY=sk-ant-...
+#    ANTHROPIC_API_KEY=
 
 # 3. Build and start both services
 docker compose up --build
