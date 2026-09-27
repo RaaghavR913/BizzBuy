@@ -1,15 +1,69 @@
-# BizzBuy - AI Acquisition Diligence Co-Pilot
+# BizzBuy
 
-BizzBuy helps buyers evaluate whether a small business is financially viable, transferable, and worth deeper diligence. The app combines document ingestion, deterministic financial/risk scoring, and OpenRouter-backed report synthesis into a four-step acquisition review flow.
+An AI acquisition diligence co-pilot for small-business buyers.
 
-## Current Flow
+Built in one month for a hackathon, BizzBuy won **2nd place** and was also recognized by investors with the **Most Market Ready** award.
+
+## The Problem
+
+Buying a small business is one of the biggest financial decisions most people will ever make, but the diligence process is still slow, expensive, and fragmented.
+
+A buyer usually has to collect and review income statements, P&Ls, tax returns, leases, employee agreements, and supporting operating documents, then pay outside accountants, brokers, or auditors tens of thousands of dollars to interpret what those files actually mean. That process can take months, sometimes years, before a buyer feels confident enough to move forward or walk away.
+
+The real product problem is not just "document review is annoying." It is that small-business acquisition diligence is too expert-dependent, too expensive, and too slow for the average buyer evaluating a real deal.
+
+## Why I Built It
+
+I built BizzBuy around a product decision: compress a months-long diligence workflow into a guided, reviewable system that gets a buyer to a defensible first-pass answer in minutes, not months.
+
+Instead of building a generic "chat with your documents" demo, I designed BizzBuy as a structured acquisition workflow:
+
+- ingest the diligence packet
+- classify and parse the documents
+- let the buyer review extracted data before analysis
+- run specialist analysis across the business
+- assemble a decision-ready report around affordability, transferability, and risk
+
+That decision shaped the entire architecture. I did not want a single black-box LLM answer. I wanted a system that combined OCR, deterministic financial logic, targeted specialist agents, and a user review step so the output felt more like a real diligence process than a one-shot summary.
+
+## What BizzBuy Does
+
+BizzBuy helps buyers evaluate whether a small business is financially viable, transferable, and worth deeper diligence.
+
+In the current product flow:
 
 1. Upload diligence documents at `/analyze/upload`.
 2. Review detected document types and extracted financial data at `/analyze/review`.
 3. Answer targeted clarification questions at `/analyze/questions`.
 4. Generate and review the acquisition report at `/analyze/report`.
 
-The frontend calls backend routes through the Next.js server-side proxy at `/api/backend/*`. The browser does not need direct access to the FastAPI service or backend bearer token.
+At a high level, the system works like this:
+
+1. The user uploads the diligence packet.
+2. BizzBuy scans and extracts the underlying information with Mistral OCR.
+3. The backend normalizes those files into structured review data.
+4. Deterministic scoring and specialized analysis agents evaluate the business.
+5. The app assembles a report focused on affordability, transferability, and material risks.
+
+The frontend calls backend routes through the Next.js server-side proxy at `/api/backend/*`, so the browser does not need direct access to the FastAPI service or backend bearer token.
+
+## YouTube Demo
+
+[Watch the demo](https://youtu.be/9SoUmrGJKwY?si=B0KQRpTwsMiOE6yU)
+
+## Technical Depth
+
+This project was much deeper than a landing page with an API call.
+
+Key technical decisions:
+
+- **Next.js as the product surface and BFF layer**: I used Next.js 16 and React 18 for the user-facing workflow, but also as a server-side proxy so backend auth tokens stay off the client.
+- **FastAPI for the analysis runtime**: I split the backend into a Python service that owns parsing, orchestration, scoring, schemas, and report assembly rather than mixing business logic into the frontend.
+- **Mistral OCR for document ingestion**: The product depends on being able to handle messy real-world diligence files, so OCR was a first-class part of the pipeline instead of an afterthought.
+- **Deterministic scoring plus agent synthesis**: I intentionally combined rule-based financial and risk calculations with OpenRouter-backed specialist analysis so the system had both consistency and breadth.
+- **Human-in-the-loop review before final analysis**: I added an explicit review step because extraction is never perfect, and acquisition decisions should not rely on unverified parsed data.
+- **Streaming analysis jobs**: The app supports analysis jobs and server-sent events so longer-running diligence work can feel responsive instead of blocking the UI.
+- **Security and deployment separation**: The browser never needs direct access to expensive or sensitive backend routes; the frontend proxy and bearer-token boundary keep that control server-side.
 
 ## Tech Stack
 
@@ -21,6 +75,21 @@ The frontend calls backend routes through the Next.js server-side proxy at `/api
 | OCR | Mistral OCR |
 | Reports | Deterministic scoring plus optional agent synthesis |
 | PDF | `@react-pdf/renderer` |
+
+## Clean Scope Of My Role
+
+I owned every layer of this project end to end:
+
+- product framing and deciding to focus on acquisition diligence instead of generic document Q&A
+- workflow design for upload, review, clarifications, and final report generation
+- frontend implementation in Next.js, React, TypeScript, and Tailwind
+- backend architecture in FastAPI, including routes, schemas, services, orchestration, and tests
+- OCR ingestion flow and document normalization pipeline
+- deterministic financial and risk scoring logic
+- multi-agent analysis flow and report assembly
+- deployment architecture, including the server-side proxy pattern and production controls
+
+In short: this was not just a concept or prototype screen. I built the application, the backend system design, the agent workflow, and the deployment/security model that made the product usable.
 
 ## Repository Layout
 
